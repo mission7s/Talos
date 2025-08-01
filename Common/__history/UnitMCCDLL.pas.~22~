@@ -1,0 +1,45 @@
+unit UnitMCCDLL;
+
+interface
+
+uses UnitCommons;
+
+const
+	MCCDLL_NAME = 'MCCDLL.DLL';
+
+function MCCInitialize(ANotifyPort, AInPort, AOutPort: Integer; ABroadcast: Boolean = False): Integer; stdcall; external MCCDLL_NAME name 'MCCInitialize';
+function MCCFinalize: Integer; stdcall; external MCCDLL_NAME name 'MCCFinalize';
+
+// 0X00 System Control
+function MCCOpen(AID: Word; AIP: PChar; AMCCName: PChar): Integer; stdcall; external MCCDLL_NAME name 'MCCOpen';
+function MCCClose(AID: Word): Integer; stdcall; external MCCDLL_NAME name 'MCCClose';
+function MCCIsAlive(AID: Word): Integer; stdcall; external MCCDLL_NAME name 'MCCIsAlive';
+
+// 0X10 Immediate Control
+
+// 0X20 Preset/Select Commands
+
+// 0X30 Sense Queries
+
+// 0X40 CueSheet Control
+function MCCBeginUpdate(AID: Word; AChannelID: Word): Integer; stdcall; external MCCDLL_NAME name 'MCCBeginUpdate';
+function MCCEndUpdate(AID: Word; AChannelID: Word): Integer; stdcall; external MCCDLL_NAME name 'MCCEndUpdate';
+
+function MCCSetDeviceCommError(AID: Word; ADeviceName: PChar): Integer; stdcall; external MCCDLL_NAME name 'MCCSetDeviceCommError';
+function MCCSetDeviceStatus(AID: Word; ADCSID: Word; ADeviceHandle: TDeviceHandle; ADeviceStatus: TDeviceStatus): Integer; stdcall; external MCCDLL_NAME name 'MCCSetDeviceStatus';
+
+function MCCSetOnAir(AID: Word; AChannelID: Word; AIsOnAir: Boolean): Integer; stdcall; external MCCDLL_NAME name 'MCCSetOnAir';
+function MCCSetEventStatus(AID: Word; AEventID: TEventID; AEventStatus: TEventStatus): Integer; stdcall; external MCCDLL_NAME name 'MCCSetEventStatus';
+function MCCSetMediaStatus(AID: Word; AEventID: TEventID; AMediaStatus: TMediaStatus): Integer; stdcall; external MCCDLL_NAME name 'MCCSetMediaStatus';
+
+function MCCInputCueSheet(AID: Word; AIndex: Integer; ACueSheetItem: TCueSheetItem): Integer; stdcall; external MCCDLL_NAME name 'MCCInputCueSheet';
+function MCCDeleteCueSheet(AID: Word; AEventID: TEventID): Integer; stdcall; external MCCDLL_NAME name 'MCCDeleteCueSheet';
+function MCCClearCueSheet(AID: Word; AChannelID: Word): Integer; stdcall; external MCCDLL_NAME name 'MCCClearCueSheet';
+
+function MCCSetCueSheetCurr(AID: Word; AEventID: TEventID): Integer; stdcall; external MCCDLL_NAME name 'MCCSetCueSheetCurr';
+function MCCSetCueSheetNext(AID: Word; AEventID: TEventID): Integer; stdcall; external MCCDLL_NAME name 'MCCSetCueSheetNext';
+function MCCSetCueSheetTarget(AID: Word; AEventID: TEventID): Integer; stdcall; external MCCDLL_NAME name 'MCCSetCueSheetTarget';
+
+implementation
+
+end.
