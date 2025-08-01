@@ -1,0 +1,109 @@
+object Form12: TForm12
+  Left = 0
+  Top = 0
+  Caption = 'Form12'
+  ClientHeight = 601
+  ClientWidth = 843
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label3: TLabel
+    Left = 24
+    Top = 68
+    Width = 33
+    Height = 13
+    Caption = 'Source'
+  end
+  object Label4: TLabel
+    Left = 24
+    Top = 95
+    Width = 54
+    Height = 13
+    Caption = 'Destination'
+  end
+  object Label5: TLabel
+    Left = 24
+    Top = 122
+    Width = 25
+    Height = 13
+    Caption = 'Level'
+  end
+  object Label1: TLabel
+    Left = 24
+    Top = 28
+    Width = 34
+    Height = 13
+    Caption = 'DCS ID'
+  end
+  object mmDesc: TMemo
+    Left = 335
+    Top = 8
+    Width = 497
+    Height = 553
+    ImeName = 'Microsoft IME 2010'
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object edtSrcIndex: TEdit
+    Left = 96
+    Top = 65
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 1
+    Text = '50'
+  end
+  object edtDstIndex: TEdit
+    Left = 96
+    Top = 92
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 2
+    Text = '110'
+  end
+  object edtLvlIndex: TEdit
+    Left = 96
+    Top = 119
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 3
+    Text = '0'
+  end
+  object btnSetRoute: TButton
+    Left = 96
+    Top = 155
+    Width = 121
+    Height = 25
+    Caption = 'Set Route'
+    TabOrder = 4
+    OnClick = btnSetRouteClick
+  end
+  object btnGetRoute: TButton
+    Left = 96
+    Top = 195
+    Width = 121
+    Height = 25
+    Caption = 'GetRoute'
+    TabOrder = 5
+    OnClick = btnGetRouteClick
+  end
+  object edtDCSID: TEdit
+    Left = 96
+    Top = 25
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 6
+    Text = '0'
+  end
+end

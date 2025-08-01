@@ -1,0 +1,46 @@
+Hi John, 
+
+I have placed the latest executable of the RCLNPClientGUI under P:\Razor\RCL. The following functionalities are present in this version, available only in the RCL mode.
+
+1. The User Interface mode - completed. 
+2. The Packet Generator mode - completed. 
+3. The Script Mode 
+        
+        The following commands are added in this version. 
+
+        1) QC - QueryDestinationStatus 
+        2) QD - QueryDestinationStatus 
+        3) QJ - QueryDestinationStatus 
+        4) QC_dst - QueryDestinationStatus 
+        5) QD_dst - QueryDestinationStatus 
+        6) QJ_dst - QueryDestinationStatus 
+        7) QI - QueryDestinationStatus 
+        8) Qi - QueryDestinationStatus 
+        9) QC_area - QueryDestinationStatusforSpecificArea 
+        10) QD_area - QueryDestinationStatusforSpecificArea 
+        11) QJ_area - QueryDestinationStatusforSpecificArea 
+        12) TA - TakeBreakawayByName 
+        13) TJ - TakeBreakawayByIndex 
+
+        Loop command support: 
+
+        Added support for Loop Command. Loop Command takes loop count as an optional argument. 
+        If loopcount is not specified, the commands are executed in an infinite loop. 
+
+        The commands to be looped need to be specified between Loop and EndLoop as shown below. 
+
+        Loop [,loopcount] 
+        Command 1 
+        Coomand 2 
+        EndLoop 
+
+        A sample script file with the commands listed above is attached for your reference. 
+
+
+
+        <<rclscript1.txt>> 
+Do let us know of your comments. 
+
+Thanks and regards, 
+Anita 
+

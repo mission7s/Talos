@@ -1,0 +1,38 @@
+Applet to Install Fonts
+
+Version 1.02.02
+OmniBus Libraries 13.20
+Built with VC6
+Released with System Manager 3.61
+
+Version 1.02.01
+OmniBus Libraries 13.17 BF_13_4
+Built with VC6
+
+Version 1.2
+OmniBus Libraries 13.17
+Designed for use with System Manager 3.60
+
+Version 1.1
+OmniBus Libraries 13.13
+Designed for use with System Manager 3.10
+Copes with multi-domain database ids.
+
+Version 1
+OmniBus Libraries 13.0
+Designed for use with System Manager 3.10
+
+Installs fonts into the OmniBus database.
+
+1) Copy "font.exe" and "fontprmpt" to a floppy disk. The floppy
+disk should be formatted for the native FS of the drive you will
+install from.
+2) Rename "font.exe" to "omn_ix86" for Intel System Manager or "omnalpha" for Alpha System Manager.
+3) Rename "fontprmpt" to "omnprmpt".
+4) Copy the fonts files to the disk. The font files traditionally come on a floppy in folders
+(e.g. "a:\fonts\banka\font01"). They should be placed in the root directory of the disk
+(e.g. "a:\font01").
+5) Do the equivalent of "dir /b a:\ > a:\omnlist" for your OS. (RISCOS use "EnumDir :0.$ :0.$.omnlist")
+6) Put the floppy in the floppy drive of your OUI, the System Manager 3
+engine, or the Sharer.
+7) Select the relevent button from the System Manager 3 Install screen.

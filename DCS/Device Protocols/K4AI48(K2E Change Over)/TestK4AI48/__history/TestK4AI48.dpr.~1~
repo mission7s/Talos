@@ -1,0 +1,14 @@
+program TestK4AI48;
+
+uses
+  Vcl.Forms,
+  UnitTestK4AI48 in 'UnitTestK4AI48.pas' {Form1};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

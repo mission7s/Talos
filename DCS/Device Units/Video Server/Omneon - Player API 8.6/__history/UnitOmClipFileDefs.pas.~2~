@@ -1,0 +1,9 @@
+{$MINENUMSIZE 4}
+
+unit UnitOmClipFileDefs;
+
+interface
+
+implementation
+
+end.

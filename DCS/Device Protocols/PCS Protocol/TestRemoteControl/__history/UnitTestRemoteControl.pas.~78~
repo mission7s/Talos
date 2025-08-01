@@ -1,0 +1,1321 @@
+unit UnitTestRemoteControl;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Mask,
+  Vcl.ComCtrls, System.Generics.Collections,
+  UnitPCSControl, Vcl.CheckLst;
+
+type
+  TForm12 = class(TForm)
+    pCtlMain: TPageControl;
+    TabSheetMedia: TTabSheet;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    LabeledEditMediaPort: TLabeledEdit;
+    ButtonMediaOpen: TButton;
+    ButtonMediaClose: TButton;
+    ComboBoxMediaDeviceNumber: TComboBox;
+    LabeledEditMediaFileName: TLabeledEdit;
+    ButtonMediaFileOpen: TButton;
+    ButtonMediaPlayCue: TButton;
+    ButtonMediaGetNo: TButton;
+    StaticTextMediaGetDeviceNo: TStaticText;
+    ButtonMediaPlay: TButton;
+    ButtonMediaPause: TButton;
+    ButtonMediaStop: TButton;
+    MaskEditSetTimecode: TMaskEdit;
+    ButtonSetTimecode: TButton;
+    ButtonGetTimecode: TButton;
+    LabeledEditMediaSetRate: TLabeledEdit;
+    ButtonMediaSetRate: TButton;
+    ButtonMediaGetRate: TButton;
+    StaticTextMediaGetRate: TStaticText;
+    ButtonMediaGetStatus: TButton;
+    StaticTextMediaGetStatus: TStaticText;
+    MaskEditMediaPlayCueDataStart: TMaskEdit;
+    MaskEditMediaPlayCueDataDuration: TMaskEdit;
+    ButtonMediaPlayCueData: TButton;
+    SplitterH: TSplitter;
+    PanelBottom: TPanel;
+    Splitter1: TSplitter;
+    PanelBL: TPanel;
+    Label1: TLabel;
+    MemoRecvd: TMemo;
+    PanelBR: TPanel;
+    Label2: TLabel;
+    MemoSent: TMemo;
+    TabSheetCG: TTabSheet;
+    Label12: TLabel;
+    Label13: TLabel;
+    LabeledEditCGPort: TLabeledEdit;
+    ComboBoxCGDeviceNumber: TComboBox;
+    ButtonCGOpen: TButton;
+    ButtonCGClose: TButton;
+    ButtonCGGetNo: TButton;
+    StaticTextCGGetDeviceNo: TStaticText;
+    ButtonCGPlay: TButton;
+    ButtonCGPause: TButton;
+    ButtonCGStop: TButton;
+    LabeledEditCGFileName: TLabeledEdit;
+    ButtonCGFileOpen: TButton;
+    ButtonCGPlayCue: TButton;
+    ButtonCGRewind: TButton;
+    LabeledEditCGPropName: TLabeledEdit;
+    LabeledEditCGPropValue: TLabeledEdit;
+    ButtonCGSetData: TButton;
+    LabeledEditCGObjectID: TLabeledEdit;
+    ButtonCGGetData: TButton;
+    MemoCGContent: TMemo;
+    ButtonCGSetContent: TButton;
+    ButtonCGGetContent: TButton;
+    ButtonCGGetStatus: TButton;
+    StaticTextCGGetStatus: TStaticText;
+    TabSheetSwitch: TTabSheet;
+    LabeledEditSwitchPort: TLabeledEdit;
+    ButtonSwitchOpen: TButton;
+    ButtonSwitchClose: TButton;
+    CheckBoxSwitchProgram: TCheckBox;
+    CheckBoxSwitchPreset: TCheckBox;
+    CheckBoxSwitchOutput1: TCheckBox;
+    CheckBoxSwitchOutput2: TCheckBox;
+    LabeledEditSwitchID: TLabeledEdit;
+    ComboBoxSwitchBuses: TComboBox;
+    ButtonSwitchGetCrosspointTake: TButton;
+    StaticTextSwitcID: TStaticText;
+    ComboBoxSwitchTransitionType: TComboBox;
+    ButtonSwitchSetNextTransitionType: TButton;
+    CheckListBoxSwitchSetNextTransition: TCheckListBox;
+    ButtonSwitchSetNextTransition: TButton;
+    ComboBoxSwitchSetTransitionRate: TComboBox;
+    ButtonSwitchSetTransitionRate: TButton;
+    ButtonSwitchStartTransition: TButton;
+    ButtonSwitchGetTransitionType: TButton;
+    StaticTextSwitchGetTransitionType: TStaticText;
+    ButtonSwitchGetTransitionRate: TButton;
+    StaticTextSwitchGetTransitionRate: TStaticText;
+    StaticTextSwitchGetStatus: TStaticText;
+    ButtonSwitchGetStatus: TButton;
+    ButtonSwitchCrosspointTake: TButton;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    CheckListBoxSwitchKeyTakeKeysPGM: TCheckListBox;
+    ButtonKeyTake: TButton;
+    CheckListBoxSwitchSetEnableKey: TCheckListBox;
+    ButtonSwitchSetEnableKey: TButton;
+    ButtonSwitchGetKeyTake: TButton;
+    ButtonSwitchGetEnableKey: TButton;
+    CheckListBoxSwitchKeyTakeKeysPST: TCheckListBox;
+    CheckListBoxSwitchKeyTakeKeysOut1: TCheckListBox;
+    CheckListBoxSwitchKeyTakeKeysOut2: TCheckListBox;
+    Label10: TLabel;
+    TabSheetRecord: TTabSheet;
+    Label11: TLabel;
+    Label14: TLabel;
+    LabeledEditRecordPort: TLabeledEdit;
+    ComboBoxRecordDeviceNumber: TComboBox;
+    ButtonRecordOPen: TButton;
+    ButtonRecordClose: TButton;
+    ButtonRecordGetDeviceNo: TButton;
+    StaticTextRecordGetDeviceNo: TStaticText;
+    ButtonRecordPlay: TButton;
+    ButtonRecordPause: TButton;
+    ButtonRecordStop: TButton;
+    ButtonRecordGetTimecode: TButton;
+    ButtonRecordGetStatus: TButton;
+    StaticTextRecordGetStatus: TStaticText;
+    LabeledEditRecordFileName: TLabeledEdit;
+    ButtonRecordRecordCue: TButton;
+    MaskEditRecordRecordCueDataDuration: TMaskEdit;
+    ButtonRecordRecordCueData: TButton;
+    LabeledEditHelperFilename: TLabeledEdit;
+    ButtonHelperFileOpen: TButton;
+    ButtonGetClipExist: TButton;
+    StaticTextMediaGetClipExist: TStaticText;
+    ButtonGetClipSize: TButton;
+    StaticTextMediaGetClipSize: TStaticText;
+    ComboBoxGetTimecodeType: TComboBox;
+    StaticTextMediaGetTimecode: TStaticText;
+    ComboBoxGetRecordTimecodeType: TComboBox;
+    StaticTextRecordGetTimecode: TStaticText;
+    ButtonCGGetClipExist: TButton;
+    StaticTextCGGetClipExist: TStaticText;
+    CheckListBoxSwitchKeyTransition: TCheckListBox;
+    ButtonSetKeyTransitionType: TButton;
+    ComboBoxSetKeyTransitionType: TComboBox;
+    LabeledEditSetKeyTransitionParams: TLabeledEdit;
+    ButtonGetKeyTransitionType: TButton;
+    ComboBoxSetKeyTransitionRate: TComboBox;
+    ButtonSetKeyTransitionRate: TButton;
+    ButtonGetKeyTransitionRate: TButton;
+    LabeledEditTransitionParams: TLabeledEdit;
+    LabeledEditSwitchGetTransitionParametrs: TLabeledEdit;
+    ButtonKeyTransition: TButton;
+    Label15: TLabel;
+    Label16: TLabel;
+    LabeledEditRecordSpliceID: TLabeledEdit;
+    MaskEditRecordSpliceTime: TMaskEdit;
+    MaskEditRecordSpliceDuration: TMaskEdit;
+    ButtonSetSCTE35: TButton;
+    ButtonGetSCTE35: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure ButtonMediaOpenClick(Sender: TObject);
+    procedure ButtonMediaCloseClick(Sender: TObject);
+    procedure ButtonMediaGetNoClick(Sender: TObject);
+    procedure LabeledEditMediaPortChange(Sender: TObject);
+    procedure ButtonMediaFileOpenClick(Sender: TObject);
+    procedure ButtonMediaPlayCueClick(Sender: TObject);
+    procedure ButtonMediaPlayClick(Sender: TObject);
+    procedure ButtonMediaPauseClick(Sender: TObject);
+    procedure ButtonMediaStopClick(Sender: TObject);
+    procedure ButtonMediaPlayCueDataClick(Sender: TObject);
+    procedure ButtonSetTimecodeClick(Sender: TObject);
+    procedure ButtonGetTimecodeClick(Sender: TObject);
+    procedure ButtonMediaGetRateClick(Sender: TObject);
+    procedure ButtonMediaSetRateClick(Sender: TObject);
+    procedure ButtonMediaGetStatusClick(Sender: TObject);
+    procedure ButtonCGPlayCueClick(Sender: TObject);
+    procedure LabeledEditCGPortChange(Sender: TObject);
+    procedure ButtonCGOpenClick(Sender: TObject);
+    procedure ButtonCGCloseClick(Sender: TObject);
+    procedure ButtonCGGetNoClick(Sender: TObject);
+    procedure ButtonCGPlayClick(Sender: TObject);
+    procedure ButtonCGPauseClick(Sender: TObject);
+    procedure ButtonCGStopClick(Sender: TObject);
+    procedure ButtonCGRewindClick(Sender: TObject);
+    procedure ButtonCGFileOpenClick(Sender: TObject);
+    procedure ButtonCGSetDataClick(Sender: TObject);
+    procedure ButtonCGGetDataClick(Sender: TObject);
+    procedure ButtonCGSetContentClick(Sender: TObject);
+    procedure ButtonCGGetContentClick(Sender: TObject);
+    procedure ButtonCGGetStatusClick(Sender: TObject);
+    procedure ButtonSwitchOpenClick(Sender: TObject);
+    procedure ButtonSwitchCrosspointTakeClick(Sender: TObject);
+    procedure ButtonSwitchCloseClick(Sender: TObject);
+    procedure LabeledEditSwitchPortChange(Sender: TObject);
+    procedure ButtonSwitchGetCrosspointTakeClick(Sender: TObject);
+    procedure ButtonKeyTakeClick(Sender: TObject);
+    procedure ButtonSwitchGetKeyTakeClick(Sender: TObject);
+    procedure ButtonSwitchSetNextTransitionTypeClick(Sender: TObject);
+    procedure ButtonSwitchSetTransitionRateClick(Sender: TObject);
+    procedure ButtonSwitchGetTransitionTypeClick(Sender: TObject);
+    procedure ButtonSwitchGetTransitionRateClick(Sender: TObject);
+    procedure ButtonSwitchSetNextTransitionClick(Sender: TObject);
+    procedure ButtonSwitchStartTransitionClick(Sender: TObject);
+    procedure ButtonSwitchSetEnableKeyClick(Sender: TObject);
+    procedure ButtonSwitchGetEnableKeyClick(Sender: TObject);
+    procedure ButtonSwitchGetStatusClick(Sender: TObject);
+    procedure LabeledEditRecordPortChange(Sender: TObject);
+    procedure ButtonRecordOPenClick(Sender: TObject);
+    procedure ButtonRecordCloseClick(Sender: TObject);
+    procedure ButtonRecordGetDeviceNoClick(Sender: TObject);
+    procedure ButtonRecordPlayClick(Sender: TObject);
+    procedure ButtonRecordPauseClick(Sender: TObject);
+    procedure ButtonRecordStopClick(Sender: TObject);
+    procedure ButtonRecordRecordCueClick(Sender: TObject);
+    procedure ButtonRecordRecordCueDataClick(Sender: TObject);
+    procedure ButtonRecordGetTimecodeClick(Sender: TObject);
+    procedure ButtonRecordGetStatusClick(Sender: TObject);
+    procedure ButtonHelperFileOpenClick(Sender: TObject);
+    procedure ButtonGetClipExistClick(Sender: TObject);
+    procedure ButtonGetClipSizeClick(Sender: TObject);
+    procedure ButtonCGGetClipExistClick(Sender: TObject);
+    procedure ButtonSetKeyTransitionTypeClick(Sender: TObject);
+    procedure ButtonSetKeyTransitionRateClick(Sender: TObject);
+    procedure ButtonGetKeyTransitionTypeClick(Sender: TObject);
+    procedure ButtonGetKeyTransitionRateClick(Sender: TObject);
+    procedure ButtonKeyTransitionClick(Sender: TObject);
+    procedure ButtonSetSCTE35Click(Sender: TObject);
+    procedure ButtonGetSCTE35Click(Sender: TObject);
+  private
+    { Private declarations }
+    FSwitcherControl: TPCSSwitcherControl;
+    FPlayControlList: TObjectList<TPCSMediaControl>;
+    FCGControlList: TObjectList<TPCSCGControl>;
+    FRecordControlList: TObjectList<TPCSMediaControl>;
+
+    procedure LogReceived(ALogStr: String);
+  public
+    { Public declarations }
+    procedure InitializeSwitcherRemoteControl;
+    procedure InitializePlayRemoteControl;
+    procedure InitializeCGRemoteControl;
+    procedure InitializeRecordRemoteControl;
+
+    procedure FinalizeSwitcherRemoteControl;
+    procedure FinalizePlayRemoteControl;
+    procedure FinalizeCGRemoteControl;
+    procedure FinalizeRecordRemoteControl;
+  end;
+
+var
+  Form12: TForm12;
+
+  ServerIP: String = '127.0.0.1';
+  ServerTimeOut: Integer = 1000;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm12.InitializeSwitcherRemoteControl;
+var
+  ServerPort: Integer;
+begin
+  ServerPort := StrToIntDef(LabeledEditSwitchPort.Text, 0);
+
+  FSwitcherControl := TPCSSwitcherControl.Create(ServerIP, ServerPort, ServerTimeOut);
+end;
+
+procedure TForm12.InitializePlayRemoteControl;
+var
+  I: Integer;
+  ServerPort: Integer;
+
+  M: TPCSMediaControl;
+begin
+  ServerPort := StrToIntDef(LabeledEditMediaPort.Text, 0);
+
+  FPlayControlList := TObjectList<TPCSMediaControl>.Create;
+  for I := 0 to ComboBoxMediaDeviceNumber.Items.Count - 1 do
+  begin
+    M := TPCSMediaControl.Create;
+    M.ServerIP := ServerIP;
+    M.ServerPort := ServerPort + I;
+    FPlayControlList.Add(M);
+
+//    FPlayControlList.Add(TPCSMediaControl.Create(ServerIP, ServerPort + I, ServerTimeOut));
+  end;
+end;
+
+procedure TForm12.InitializeCGRemoteControl;
+var
+  I: Integer;
+  ServerPort: Integer;
+begin
+  ServerPort := StrToIntDef(LabeledEditCGPort.Text, 0);
+
+  FCGControlList := TObjectList<TPCSCGControl>.Create;
+  for I := 0 to ComboBoxCGDeviceNumber.Items.Count - 1 do
+  begin
+    FCGControlList.Add(TPCSCGControl.Create(ServerIP, ServerPort + I, ServerTimeOut));
+  end;
+end;
+
+procedure TForm12.InitializeRecordRemoteControl;
+var
+  I: Integer;
+  ServerPort: Integer;
+begin
+  ServerPort := StrToIntDef(LabeledEditRecordPort.Text, 0);
+
+  FRecordControlList := TObjectList<TPCSMediaControl>.Create;
+  for I := 0 to ComboBoxRecordDeviceNumber.Items.Count - 1 do
+  begin
+    FRecordControlList.Add(TPCSMediaControl.Create(ServerIP, ServerPort + I, ServerTimeOut));
+  end;
+end;
+
+procedure TForm12.FinalizeSwitcherRemoteControl;
+begin
+  FreeAndNil(FSwitcherControl);
+end;
+
+procedure TForm12.FinalizePlayRemoteControl;
+var
+  I: Integer;
+begin
+{  for I := ComboBoxMediaDeviceNumber.Items.Count - 1 downto 0 do
+  begin
+    FPlayControlList[I].Free;
+  end; }
+  FPlayControlList.Clear;
+
+  FreeAndNil(FPlayControlList);
+end;
+
+procedure TForm12.FinalizeCGRemoteControl;
+var
+  I: Integer;
+begin
+{  for I := ComboBoxCGDeviceNumber.Items.Count - 1 downto 0 do
+  begin
+    FCGControlList[I].Free;
+  end; }
+  FCGControlList.Clear;
+
+  FreeAndNil(FCGControlList);
+end;
+
+procedure TForm12.FinalizeRecordRemoteControl;
+begin
+  FRecordControlList.Clear;
+
+  FreeAndNil(FRecordControlList);
+end;
+
+procedure TForm12.LabeledEditCGPortChange(Sender: TObject);
+begin
+  if ((Sender as TLabeledEdit).Focused) then
+  begin
+    FinalizeCGRemoteControl;
+    InitializeCGRemoteControl;
+  end;
+end;
+
+procedure TForm12.LabeledEditMediaPortChange(Sender: TObject);
+begin
+  if ((Sender as TLabeledEdit).Focused) then
+  begin
+    FinalizePlayRemoteControl;
+    InitializePlayRemoteControl;
+  end;
+end;
+
+procedure TForm12.LabeledEditRecordPortChange(Sender: TObject);
+begin
+  if ((Sender as TLabeledEdit).Focused) then
+  begin
+    FinalizeRecordRemoteControl;
+    InitializeRecordRemoteControl;
+  end;
+end;
+
+procedure TForm12.LabeledEditSwitchPortChange(Sender: TObject);
+begin
+  if ((Sender as TLabeledEdit).Focused) then
+  begin
+    FinalizeSwitcherRemoteControl;
+    InitializeSwitcherRemoteControl;
+  end;
+end;
+
+procedure TForm12.LogReceived(ALogStr: String);
+begin
+  MemoRecvd.Lines.Add(ALogStr);
+end;
+
+procedure TForm12.ButtonCGCloseClick(Sender: TObject);
+var
+  R: Integer;
+  Closed: Boolean;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Close(Closed);
+  LogReceived(Format('ButtonCGCloseClick. Result: %d, Closed: %s', [R, BoolToStr(Closed, True)]));
+end;
+
+procedure TForm12.ButtonCGFileOpenClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(Self) do
+    try
+      Title := LabeledEditCGFileName.EditLabel.Caption;
+      Filename := ExtractFileName(LabeledEditCGFileName.Text);
+      InitialDir := ExtractFilePath(LabeledEditCGFileName.Text);
+      Filter  := 'CG file|*.ml-cgc|Any file(*.*)|*.*';
+      if Execute then
+      begin
+        if (LabeledEditCGFileName.Text <> FileName) then
+        begin
+          LabeledEditCGFileName.Text := FileName;
+        end;
+      end;
+    finally
+      Free;
+    end;
+end;
+
+procedure TForm12.ButtonCGGetClipExistClick(Sender: TObject);
+var
+  R: Integer;
+  Exist: Boolean;
+begin
+  R := FCGControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetClipExist(LabeledEditCGFileName.Text, Exist);
+  LogReceived(Format('ButtonCGGetClipExistClick. Result: %d, Exist: %s', [R, BoolToStr(Exist, True)]));
+
+  StaticTextCGGetClipExist.Caption := BoolToStr(Exist, True);
+end;
+
+procedure TForm12.ButtonCGGetContentClick(Sender: TObject);
+var
+  R: Integer;
+  Content: String;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].GetContent(LabeledEditCGObjectID.Text, Content);
+  LogReceived(Format('ButtonCGGetContentClick. Result: %d', [R]));
+
+  MemoCGContent.Text := Content;
+end;
+
+procedure TForm12.ButtonCGGetDataClick(Sender: TObject);
+var
+  R: Integer;
+  PropertyValue: String;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].GetData(LabeledEditCGObjectID.Text, LabeledEditCGPropName.Text, PropertyValue);
+  LogReceived(Format('ButtonCGGetDataClick. Result: %d', [R]));
+
+  LabeledEditCGPropValue.Text := PropertyValue;
+end;
+
+procedure TForm12.ButtonCGGetNoClick(Sender: TObject);
+var
+  R: Integer;
+  DeviceID: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].GetDeviceNo(DeviceID);
+  LogReceived(Format('ButtonCGGetNoClick. Result: %d, DeviceID: %d', [R, DeviceID]));
+
+  StaticTextCGGetDeviceNo.Caption := IntToStr(DeviceID);
+end;
+
+procedure TForm12.ButtonCGGetStatusClick(Sender: TObject);
+var
+  R: Integer;
+  Status: TPCSMediaStatus;
+  StatusStr: String;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].GetStatus(Status);
+  LogReceived(Format('ButtonCGGetStatusClick. Result: %d', [R]));
+
+  StatusStr := '';
+  if (Status.Idle) then StatusStr := StatusStr + ', idle';
+  if (Status.Play) then StatusStr := StatusStr + ', play';
+  if (Status.Paused) then StatusStr := StatusStr + ', pause';
+  if (Status.Cue) then StatusStr := StatusStr + ', cueing';
+  if (Status.CueDone) then StatusStr := StatusStr + ', cue_done';
+
+  if (Length(StatusStr) > 0) and (StatusStr[1] = ',') then
+    StatusStr := Copy(StatusStr, 3, Length(StatusStr));
+
+  StaticTextCGGetStatus.Caption := StatusStr;
+end;
+
+procedure TForm12.ButtonCGOpenClick(Sender: TObject);
+var
+  R: Integer;
+  Opened: Boolean;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Open(Opened);
+  LogReceived(Format('ButtonCGOpenClick. Result: %d, Opened: %s', [R, BoolToStr(Opened, True)]));
+end;
+
+procedure TForm12.ButtonCGPauseClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Pause;
+  LogReceived(Format('ButtonCGPauseClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonCGPlayClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Play;
+  LogReceived(Format('ButtonCGPlayClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonCGPlayCueClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].PlayCue(LabeledEditCGFileName.Text);
+  LogReceived(Format('ButtonCGPlayCueClick. Result: %d, FileName: %s', [R, LabeledEditCGFileName.Text]));
+end;
+
+procedure TForm12.ButtonCGRewindClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Rewind;
+  LogReceived(Format('ButtonCGRewindClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonCGSetContentClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].SetContent(LabeledEditCGObjectID.Text, MemoCGContent.Text);
+  LogReceived(Format('ButtonCGSetContentClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonCGSetDataClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].SetData(LabeledEditCGObjectID.Text, LabeledEditCGPropName.Text, LabeledEditCGPropValue.Text);
+  LogReceived(Format('ButtonCGSetDataClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonCGStopClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FCGControlList[ComboBoxCGDeviceNumber.ItemIndex].Stop;
+  LogReceived(Format('ButtonCGStopClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonGetClipExistClick(Sender: TObject);
+var
+  R: Integer;
+  Exist: Boolean;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetClipExist(LabeledEditHelperFilename.Text, Exist);
+  LogReceived(Format('ButtonGetClipExistClick. Result: %d, Exist: %s', [R, BoolToStr(Exist, True)]));
+
+  StaticTextMediaGetClipExist.Caption := BoolToStr(Exist, True);
+end;
+
+procedure TForm12.ButtonGetClipSizeClick(Sender: TObject);
+var
+  R: Integer;
+  Duration: String;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetClipSize(LabeledEditHelperFilename.Text, Duration);
+  LogReceived(Format('ButtonGetClipSizeClick. Result: %d, Duration: %s', [R, Duration]));
+
+  StaticTextMediaGetClipSize.Caption := Duration;
+end;
+
+procedure TForm12.ButtonGetKeyTransitionRateClick(Sender: TObject);
+var
+  R: Integer;
+  KeyTransitionRates: TPCSKeyTransitionRates;
+
+  I, J: Integer;
+begin
+  KeyTransitionRates := TPCSKeyTransitionRates.Create;
+  try
+    R := FSwitcherControl.GetKeyTransitionRate(KeyTransitionRates);
+    LogReceived(Format('ButtonSetKeyTransitionRateClick. Result: %d', [R]));
+    LogReceived('GetKeyTransitionRate Result:');
+
+    if (R = D_OK) then
+    begin
+      for I := 0 to KeyTransitionRates.Count - 1 do
+      begin
+        LogReceived(Format('Keyer #%d: ratename: ''%s'', frames: %d', [I + 1, KeyTransitionRates[I].RateName, KeyTransitionRates[I].Frames]));
+      end;
+    end;
+  finally
+    FreeAndNil(KeyTransitionRates);
+  end;
+end;
+
+procedure TForm12.ButtonGetKeyTransitionTypeClick(Sender: TObject);
+var
+  R: Integer;
+  KeyTransitionTypes: TPCSKeyTransitionTypes;
+
+  I, J: Integer;
+begin
+  KeyTransitionTypes := TPCSKeyTransitionTypes.Create;
+  try
+    R := FSwitcherControl.GetKeyTransitionType(KeyTransitionTypes);
+    LogReceived(Format('ButtonSetKeyTransitionTypeClick. Result: %d', [R]));
+    LogReceived('GetKeyTransitionType Result:');
+
+    if (R = D_OK) then
+    begin
+      for I := 0 to KeyTransitionTypes.Count - 1 do
+      begin
+        LogReceived(Format('Keyer #%d: name: ''%s'', parameters: ''%s''', [I + 1, KeyTransitionTypes[I].TypeName, KeyTransitionTypes[I].Params]));
+      end;
+    end;
+  finally
+    FreeAndNil(KeyTransitionTypes);
+  end;
+end;
+
+procedure TForm12.ButtonGetSCTE35Click(Sender: TObject);
+var
+  R: Integer;
+  TimeCodeType: TPCSTimecodeType;
+  Timecode: String;
+begin
+  case ComboBoxGetRecordTimecodeType.ItemIndex of
+    0: TimeCodeType := ttCurrent;
+    1: TimeCodeType := ttRemain;
+    else
+      TimeCodeType := ttCurrent;
+  end;
+
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].GetTimecode(TimeCodeType, Timecode);
+  LogReceived(Format('ButtonRecordGetTimecodeClick. Result: %d, Timecode: %s', [R, Timecode]));
+
+  StaticTextRecordGetTimecode.Caption := Timecode;
+end;
+
+procedure TForm12.ButtonGetTimecodeClick(Sender: TObject);
+var
+  R: Integer;
+  TimeCodeType: TPCSTimecodeType;
+  Timecode: String;
+begin
+  case ComboBoxGetTimecodeType.ItemIndex of
+    0: TimeCodeType := ttCurrent;
+    1: TimeCodeType := ttRemain;
+    else
+      TimeCodeType := ttCurrent;
+  end;
+
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetTimecode(TimeCodeType, Timecode);
+  LogReceived(Format('ButtonGetTimecodeClick. Result: %d, Timecode: %s', [R, Timecode]));
+
+  StaticTextMediaGetTimecode.Caption := Timecode;
+end;
+
+procedure TForm12.ButtonHelperFileOpenClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(Self) do
+    try
+      Title := LabeledEditHelperFilename.EditLabel.Caption;
+      Filename := ExtractFileName(LabeledEditHelperFilename.Text);
+      InitialDir := ExtractFilePath(LabeledEditHelperFilename.Text);
+      Filter  := 'Video file|*.mxf;*.mov;*.mp4;*.mpg;*.mpeg;*.avi;*.wmv|Audio file|*.wav;*.mp3;*.wma|Any file(*.*)|*.*';
+      if Execute then
+      begin
+        if (LabeledEditHelperFilename.Text <> FileName) then
+        begin
+          LabeledEditHelperFilename.Text := FileName;
+        end;
+      end;
+    finally
+      Free;
+    end;
+end;
+
+procedure TForm12.ButtonKeyTakeClick(Sender: TObject);
+var
+  R: Integer;
+  KeyEnables: TPCSKeyBusEnables;
+  BusEnables: TPCSSwitchBusEnables;
+
+  I: Integer;
+begin
+  KeyEnables := TPCSKeyBusEnables.Create;
+  try
+    for I := 0 to KeyCount - 1 do
+    begin
+      BusEnables := TPCSSwitchBusEnables.Create;
+
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbProgram, CheckListBoxSwitchKeyTakeKeysPGM.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbPreset, CheckListBoxSwitchKeyTakeKeysPST.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput1, CheckListBoxSwitchKeyTakeKeysOut1.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput2, CheckListBoxSwitchKeyTakeKeysOut2.Checked[I]));
+
+      KeyEnables.Add(BusEnables);
+    end;
+
+    R := FSwitcherControl.KeyTake(KeyEnables);
+    LogReceived(Format('ButtonKeyTakeClick. Result: %d', [R]));
+  finally
+    FreeAndNil(KeyEnables);
+  end;
+end;
+
+procedure TForm12.ButtonKeyTransitionClick(Sender: TObject);
+var
+  R: Integer;
+  KeyEnables: TPCSKeyBusEnables;
+  BusEnables: TPCSSwitchBusEnables;
+
+  I: Integer;
+begin
+  KeyEnables := TPCSKeyBusEnables.Create;
+  try
+    for I := 0 to KeyCount - 1 do
+    begin
+      BusEnables := TPCSSwitchBusEnables.Create;
+
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbProgram, CheckListBoxSwitchKeyTakeKeysPGM.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbPreset, CheckListBoxSwitchKeyTakeKeysPST.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput1, CheckListBoxSwitchKeyTakeKeysOut1.Checked[I]));
+      BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput2, CheckListBoxSwitchKeyTakeKeysOut2.Checked[I]));
+
+      KeyEnables.Add(BusEnables);
+    end;
+
+    R := FSwitcherControl.KeyTransition(KeyEnables);
+    LogReceived(Format('ButtonKeyTransitionClick. Result: %d', [R]));
+  finally
+    FreeAndNil(KeyEnables);
+  end;
+end;
+
+procedure TForm12.ButtonMediaCloseClick(Sender: TObject);
+var
+  R: Integer;
+  Closed: Boolean;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].Close(Closed);
+  LogReceived(Format('ButtonMediaCloseClick. Result: %d, Closed: %s', [R, BoolToStr(Closed, True)]));
+end;
+
+procedure TForm12.ButtonMediaFileOpenClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(Self) do
+    try
+      Title := LabeledEditMediaFileName.EditLabel.Caption;
+      Filename := ExtractFileName(LabeledEditMediaFileName.Text);
+      InitialDir := ExtractFilePath(LabeledEditMediaFileName.Text);
+      Filter  := 'Video file|*.mxf;*.mov;*.mp4;*.mpg;*.mpeg;*.avi;*.wmv|Audio file|*.wav;*.mp3;*.wma|Any file(*.*)|*.*';
+      if Execute then
+      begin
+        if (LabeledEditMediaFileName.Text <> FileName) then
+        begin
+          LabeledEditMediaFileName.Text := FileName;
+        end;
+      end;
+    finally
+      Free;
+    end;
+end;
+
+procedure TForm12.ButtonMediaGetNoClick(Sender: TObject);
+var
+  R: Integer;
+  DeviceID: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetDeviceNo(DeviceID);
+  LogReceived(Format('ButtonMediaGetNoClick. Result: %d, DeviceID: %d', [R, DeviceID]));
+
+  StaticTextMediaGetDeviceNo.Caption := IntToStr(DeviceID);
+end;
+
+procedure TForm12.ButtonMediaGetRateClick(Sender: TObject);
+var
+  R: Integer;
+  Rate: Double;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetRate(Rate);
+  LogReceived(Format('ButtonMediaGetRateClick. Result: %d, Rate: %f', [R, Rate]));
+
+  StaticTextMediaGetRate.Caption := FloatToStr(Rate);
+end;
+
+procedure TForm12.ButtonMediaGetStatusClick(Sender: TObject);
+var
+  R: Integer;
+  Status: TPCSMediaStatus;
+  StatusStr: String;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].GetStatus(Status);
+  LogReceived(Format('ButtonMediaGetStatusClick. Result: %d', [R]));
+
+  StatusStr := '';
+  if (Status.Idle) then StatusStr := StatusStr + ', idle';
+  if (Status.Play) then StatusStr := StatusStr + ', play';
+  if (Status.Paused) then StatusStr := StatusStr + ', pause';
+  if (Status.Cue) then StatusStr := StatusStr + ', cueing';
+  if (Status.CueDone) then StatusStr := StatusStr + ', cue_done';
+
+  if (Length(StatusStr) > 0) and (StatusStr[1] = ',') then
+    StatusStr := Copy(StatusStr, 3, Length(StatusStr));
+
+  StaticTextMediaGetStatus.Caption := StatusStr;
+end;
+
+procedure TForm12.ButtonMediaOpenClick(Sender: TObject);
+var
+  R: Integer;
+  Opened: Boolean;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].Open(Opened);
+  LogReceived(Format('ButtonMediaOpenClick. Result: %d, Opened: %s', [R, BoolToStr(Opened, True)]));
+end;
+
+procedure TForm12.ButtonMediaPauseClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].Pause;
+  LogReceived(Format('ButtonMediaPauseClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonMediaPlayClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].Play;
+  LogReceived(Format('ButtonMediaPlayClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonMediaPlayCueClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].PlayCue(LabeledEditMediaFileName.Text);
+  LogReceived(Format('ButtonMediaPlayCueClick. Result: %d, FileName: %s', [R, LabeledEditMediaFileName.Text]));
+end;
+
+procedure TForm12.ButtonMediaPlayCueDataClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].PlayCueData(LabeledEditMediaFileName.Text, MaskEditMediaPlayCueDataStart.EditText, MaskEditMediaPlayCueDataDuration.EditText);
+  LogReceived(Format('ButtonMediaPlayCueDataClick. Result: %d, FileName: %s, Stat: %s, Stop: %s', [R, LabeledEditMediaFileName.Text, MaskEditMediaPlayCueDataStart.EditText, MaskEditMediaPlayCueDataDuration.EditText]));
+end;
+
+procedure TForm12.ButtonMediaSetRateClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].SetRate(StrToFloatDef(LabeledEditMediaSetRate.Text, 0));
+  LogReceived(Format('ButtonMediaSetRateClick. Result: %d, Rate: %f', [R, StrToFloatDef(LabeledEditMediaSetRate.Text, 0)]));
+end;
+
+procedure TForm12.ButtonMediaStopClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].Stop;
+  LogReceived(Format('ButtonMediaStopClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonRecordCloseClick(Sender: TObject);
+var
+  R: Integer;
+  Closed: Boolean;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].Close(Closed);
+  LogReceived(Format('ButtonRecordCloseClick. Result: %d, Closed: %s', [R, BoolToStr(Closed, True)]));
+end;
+
+procedure TForm12.ButtonRecordGetDeviceNoClick(Sender: TObject);
+var
+  R: Integer;
+  DeviceID: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].GetDeviceNo(DeviceID);
+  LogReceived(Format('ButtonRecordGetDeviceNoClick. Result: %d, DeviceID: %d', [R, DeviceID]));
+
+  StaticTextRecordGetDeviceNo.Caption := IntToStr(DeviceID);
+end;
+
+procedure TForm12.ButtonRecordGetStatusClick(Sender: TObject);
+var
+  R: Integer;
+  Status: TPCSMediaStatus;
+  StatusStr: String;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].GetStatus(Status);
+  LogReceived(Format('ButtonRecordGetStatusClick. Result: %d', [R]));
+
+  StatusStr := '';
+  if (Status.Idle) then StatusStr := StatusStr + ', idle';
+  if (Status.Play) then StatusStr := StatusStr + ', play';
+  if (Status.Paused) then StatusStr := StatusStr + ', pause';
+  if (Status.Cue) then StatusStr := StatusStr + ', cueing';
+  if (Status.CueDone) then StatusStr := StatusStr + ', cue_done';
+
+  if (Length(StatusStr) > 0) and (StatusStr[1] = ',') then
+    StatusStr := Copy(StatusStr, 3, Length(StatusStr));
+
+  StaticTextRecordGetStatus.Caption := StatusStr;
+end;
+
+procedure TForm12.ButtonRecordGetTimecodeClick(Sender: TObject);
+var
+  R: Integer;
+  TimeCodeType: TPCSTimecodeType;
+  Timecode: String;
+begin
+  case ComboBoxGetRecordTimecodeType.ItemIndex of
+    0: TimeCodeType := ttCurrent;
+    1: TimeCodeType := ttRemain;
+    else
+      TimeCodeType := ttCurrent;
+  end;
+
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].GetTimecode(TimeCodeType, Timecode);
+  LogReceived(Format('ButtonRecordGetTimecodeClick. Result: %d, Timecode: %s', [R, Timecode]));
+
+  StaticTextRecordGetTimecode.Caption := Timecode;
+end;
+
+procedure TForm12.ButtonRecordOPenClick(Sender: TObject);
+var
+  R: Integer;
+  Opened: Boolean;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].Open(Opened);
+  LogReceived(Format('ButtonRecordOPenClick. Result: %d, Opened: %s', [R, BoolToStr(Opened, True)]));
+end;
+
+procedure TForm12.ButtonRecordPauseClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].Pause;
+  LogReceived(Format('ButtonRecordPauseClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonRecordPlayClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].Play;
+  LogReceived(Format('ButtonRecordPlayClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonRecordRecordCueClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].RecordCue(LabeledEditRecordFileName.Text);
+  LogReceived(Format('ButtonRecordRecordCueClick. Result: %d, FileName: %s', [R, LabeledEditRecordFileName.Text]));
+end;
+
+procedure TForm12.ButtonRecordRecordCueDataClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].RecordCueData(LabeledEditRecordFileName.Text, MaskEditRecordRecordCueDataDuration.EditText);
+  LogReceived(Format('ButtonRecordRecordCueDataClick. Result: %d, FileName: %s, Stop: %s', [R, LabeledEditRecordFileName.Text, MaskEditRecordRecordCueDataDuration.EditText]));
+end;
+
+procedure TForm12.ButtonRecordStopClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].Stop;
+  LogReceived(Format('ButtonRecordStopClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonSetKeyTransitionRateClick(Sender: TObject);
+var
+  RateName: String;
+  RateFrames: Integer;
+
+  R: Integer;
+  KeyTransitionRates: TPCSKeyTransitionRates;
+
+  I: Integer;
+begin
+  RateName := LowerCase(ComboBoxSetKeyTransitionRate.Text);
+  RateFrames := 0;
+
+  if (ComboBoxSetKeyTransitionRate.ItemIndex < 0) then // text is not in list
+  begin
+    RateName := '';
+
+    // convert to int
+    RateFrames := StrToIntDef(ComboBoxSetKeyTransitionRate.Text, 0);
+  end;
+
+  KeyTransitionRates := TPCSKeyTransitionRates.Create;
+  try
+    for I := 0 to KeyCount - 1 do
+    begin
+      if (CheckListBoxSwitchKeyTransition.Checked[I]) then
+        KeyTransitionRates.Add(TPCSKeyTransitionRate.Create(RateName, RateFrames))
+      else
+        KeyTransitionRates.Add(TPCSKeyTransitionRate.Create('', 0));
+    end;
+
+    R := FSwitcherControl.SetKeyTransitionRate(KeyTransitionRates);
+    LogReceived(Format('ButtonSetKeyTransitionRateClick. Result: %d', [R]));
+  finally
+    FreeAndNil(KeyTransitionRates);
+  end;
+end;
+
+procedure TForm12.ButtonSetKeyTransitionTypeClick(Sender: TObject);
+var
+  R: Integer;
+  KeyTransitionTypes: TPCSKeyTransitionTypes;
+
+  I: Integer;
+begin
+  KeyTransitionTypes := TPCSKeyTransitionTypes.Create;
+  try
+    for I := 0 to KeyCount - 1 do
+    begin
+      if (CheckListBoxSwitchKeyTransition.Checked[I]) then
+        KeyTransitionTypes.Add(TPCSKeyTransitionType.Create(ComboBoxSetKeyTransitionType.Text, LabeledEditSetKeyTransitionParams.Text))
+      else
+        KeyTransitionTypes.Add(TPCSKeyTransitionType.Create('', ''));
+    end;
+
+    R := FSwitcherControl.SetKeyTransitionType(KeyTransitionTypes);
+    LogReceived(Format('ButtonSetKeyTransitionTypeClick. Result: %d', [R]));
+  finally
+    FreeAndNil(KeyTransitionTypes);
+  end;
+end;
+
+procedure TForm12.ButtonSetSCTE35Click(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FRecordControlList[ComboBoxRecordDeviceNumber.ItemIndex].SetSCTE35(LabeledEditRecordSpliceID.Text, MaskEditRecordSpliceTime.Text, MaskEditRecordSpliceDuration.Text);
+  LogReceived(Format('ButtonSetSCTE35Click. Result: %d, id: %s', [R, LabeledEditRecordSpliceID.Text]));
+end;
+
+procedure TForm12.ButtonSetTimecodeClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FPlayControlList[ComboBoxMediaDeviceNumber.ItemIndex].SetTimecode(MaskEditSetTimecode.EditText);
+  LogReceived(Format('ButtonSetTimecodeClick. Result: %d, Timecode: %s', [R, MaskEditSetTimecode.EditText]));
+end;
+
+procedure TForm12.ButtonSwitchCloseClick(Sender: TObject);
+var
+  R: Integer;
+  Closed: Boolean;
+begin
+  R := FSwitcherControl.Close(Closed);
+  LogReceived(Format('ButtonSwitchCloseClick. Result: %d, Closed: %s', [R, BoolToStr(Closed, True)]));
+end;
+
+procedure TForm12.ButtonSwitchCrosspointTakeClick(Sender: TObject);
+var
+  R: Integer;
+  BusEnables: TPCSSwitchBusEnables;
+begin
+  BusEnables := TPCSSwitchBusEnables.Create;
+  try
+    BusEnables.Add(TPCSSwitchBusEnable.Create(sbProgram, CheckBoxSwitchProgram.Checked));
+    BusEnables.Add(TPCSSwitchBusEnable.Create(sbPreset, CheckBoxSwitchPreset.Checked));
+    BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput1, CheckBoxSwitchOutput1.Checked));
+    BusEnables.Add(TPCSSwitchBusEnable.Create(sbOutput2, CheckBoxSwitchOutput2.Checked));
+
+    R := FSwitcherControl.CrosspointTake(StrToIntDef(LabeledEditSwitchID.Text, 0), BusEnables);
+    LogReceived(Format('ButtonSwitchCrosspointTakeClick. Result: %d', [R]));
+  finally
+    FreeAndNil(BusEnables);
+  end;
+end;
+
+procedure TForm12.ButtonSwitchGetCrosspointTakeClick(Sender: TObject);
+var
+  R: Integer;
+  SwitchBus: TPCSSwitchBus;
+  Crosspoint: Integer;
+begin
+  SwitchBus := TPCSSwitchBus(ComboBoxSwitchBuses.ItemIndex);
+  R := FSwitcherControl.GetCrosspointTake(SwitchBus, Crosspoint);
+  LogReceived(Format('ButtonSwitchGetCrosspointTakeClick. Result: %d, Crosspoint: %d', [R, Crosspoint]));
+
+  StaticTextSwitcID.Caption := IntToStr(Crosspoint);
+end;
+
+procedure TForm12.ButtonSwitchGetEnableKeyClick(Sender: TObject);
+var
+  R: Integer;
+  KeyEnables: TPCSKeyEnables;
+
+  I, J: Integer;
+begin
+  KeyEnables := TPCSKeyEnables.Create;
+  try
+    R := FSwitcherControl.GetEnableKey(KeyEnables);
+    LogReceived(Format('ButtonSwitchGetEnableKeyClick. Result: %d', [R]));
+
+    if (R = D_OK) then
+    begin
+      for I := 0 to KeyEnables.Count - 1 do
+      begin
+        CheckListBoxSwitchSetEnableKey.Checked[I] := KeyEnables[I];
+      end;
+    end;
+  finally
+    FreeAndNil(KeyEnables);
+  end;
+end;
+
+procedure TForm12.ButtonSwitchGetKeyTakeClick(Sender: TObject);
+var
+  R: Integer;
+  KeyEnables: TPCSKeyBusEnables;
+  BusEnables: TPCSSwitchBusEnables;
+
+  I, J: Integer;
+begin
+  KeyEnables := TPCSKeyBusEnables.Create;
+  try
+    R := FSwitcherControl.GetKeyTake(KeyEnables);
+    LogReceived(Format('ButtonSwitchGetKeyTakeClick. Result: %d', [R]));
+
+    if (R = D_OK) then
+    begin
+      for I := 0 to KeyEnables.Count - 1 do
+      begin
+        BusEnables := KeyEnables[I];
+        if (BusEnables <> nil) then
+        begin
+          for J := 0 to BusEnables.Count - 1 do
+          begin
+            case BusEnables[J].Bus of
+              sbProgram: CheckListBoxSwitchKeyTakeKeysPGM.Checked[I] := BusEnables[J].Enabled;
+              sbPreset: CheckListBoxSwitchKeyTakeKeysPST.Checked[I] := BusEnables[J].Enabled;
+              sbOutput1: CheckListBoxSwitchKeyTakeKeysOut1.Checked[I] := BusEnables[J].Enabled;
+              sbOutput2: CheckListBoxSwitchKeyTakeKeysOut2.Checked[I] := BusEnables[J].Enabled;
+            end;
+          end;
+        end;
+      end;
+    end;
+  finally
+    FreeAndNil(KeyEnables);
+  end;
+end;
+
+procedure TForm12.ButtonSwitchGetStatusClick(Sender: TObject);
+var
+  R: Integer;
+  Status: String;
+begin
+  R := FSwitcherControl.GetStatus(Status);
+  LogReceived(Format('ButtonSwitchGetStatusClick. Result: %d', [R]));
+
+  if (R = D_OK) then
+  begin
+    StaticTextSwitchGetStatus.Caption := Status;
+  end;
+end;
+
+procedure TForm12.ButtonSwitchGetTransitionRateClick(Sender: TObject);
+var
+  R: Integer;
+  RateName: String;
+  RateFrames: Integer;
+begin
+  R := FSwitcherControl.GetTransitionRate(RateName, RateFrames);
+  LogReceived(Format('ButtonSwitchGetTransitionRateClick. Result: %d', [R]));
+
+  if (R = D_OK) then
+  begin
+    if (RateName = '') then
+      StaticTextSwitchGetTransitionRate.Caption := IntToStr(RateFrames)
+    else
+      StaticTextSwitchGetTransitionRate.Caption := RateName;
+  end;
+end;
+
+procedure TForm12.ButtonSwitchGetTransitionTypeClick(Sender: TObject);
+var
+  R: Integer;
+  TypeName: String;
+  Params: String;
+begin
+  R := FSwitcherControl.GetTransitionType(TypeName, Params);
+  LogReceived(Format('ButtonSwitchGetTransitionTypeClick. Result: %d', [R]));
+
+  if (R = D_OK) then
+  begin
+    StaticTextSwitchGetTransitionType.Caption := TypeName;
+    LabeledEditSwitchGetTransitionParametrs.Text := Params;
+  end;
+end;
+
+procedure TForm12.ButtonSwitchOpenClick(Sender: TObject);
+var
+  R: Integer;
+  Opened: Boolean;
+begin
+  R := FSwitcherControl.Open(Opened);
+  LogReceived(Format('ButtonSwitchOpenClick. Result: %d, Opened: %s', [R, BoolToStr(Opened, True)]));
+end;
+
+procedure TForm12.ButtonSwitchSetEnableKeyClick(Sender: TObject);
+var
+  R: Integer;
+  KeyEnables: TPCSKeyEnables;
+
+  I: Integer;
+begin
+  KeyEnables := TPCSKeyEnables.Create;
+  try
+    for I := 0 to KeyCount - 1 do
+    begin
+      KeyEnables.Add(CheckListBoxSwitchSetEnableKey.Checked[I]);
+    end;
+
+    R := FSwitcherControl.SetEnableKey(KeyEnables);
+    LogReceived(Format('ButtonSwitchSetEnableKeyClick. Result: %d', [R]));
+  finally
+    FreeAndNil(KeyEnables);
+  end;
+end;
+
+procedure TForm12.ButtonSwitchSetNextTransitionClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FSwitcherControl.NextTransition(CheckListBoxSwitchSetNextTransition.Checked[0], CheckListBoxSwitchSetNextTransition.Checked[1]);
+  LogReceived(Format('ButtonSwitchSetNextTransitionClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonSwitchSetNextTransitionTypeClick(Sender: TObject);
+var
+  R: Integer;
+  TypeName: String;
+  Params: String;
+begin
+  TypeName := LowerCase(ComboBoxSwitchTransitionType.Text);
+  Params := LabeledEditTransitionParams.Text;
+
+  R := FSwitcherControl.SetTransitionType(TypeName, Params);
+  LogReceived(Format('ButtonSwitchSetNextTransitionTypeClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonSwitchSetTransitionRateClick(Sender: TObject);
+var
+  R: Integer;
+  RateName: String;
+  RateFrames: Integer;
+begin
+  RateName := LowerCase(ComboBoxSwitchSetTransitionRate.Text);
+  RateFrames := 0;
+
+  if (ComboBoxSwitchSetTransitionRate.ItemIndex < 0) then // text is not in list
+  begin
+    RateName := '';
+
+    // convert to int
+    RateFrames := StrToIntDef(ComboBoxSwitchSetTransitionRate.Text, 0);
+  end;
+
+  R := FSwitcherControl.SetTransitionRate(RateName, RateFrames);
+  LogReceived(Format('ButtonSwitchSetTransitionRateClick. Result: %d', [R]));
+end;
+
+procedure TForm12.ButtonSwitchStartTransitionClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FSwitcherControl.StartTransition;
+  LogReceived(Format('ButtonSwitchStartTransitionClick. Result: %d', [R]));
+end;
+
+procedure TForm12.FormCreate(Sender: TObject);
+begin
+  LabeledEditSwitchPort.Text := '2000';
+  LabeledEditMediaPort.Text := '1000';
+  LabeledEditCGPort.Text := '1100';
+  LabeledEditRecordPort.Text := '1300';
+
+  InitializeSwitcherRemoteControl;
+  InitializePlayRemoteControl;
+  InitializeCGRemoteControl;
+  InitializeRecordRemoteControl;
+end;
+
+procedure TForm12.FormDestroy(Sender: TObject);
+begin
+  FinalizeSwitcherRemoteControl;
+  FinalizePlayRemoteControl;
+  FinalizeCGRemoteControl;
+  FinalizeRecordRemoteControl;
+end;
+
+end.

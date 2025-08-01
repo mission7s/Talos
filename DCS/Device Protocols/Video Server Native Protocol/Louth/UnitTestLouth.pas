@@ -1,0 +1,386 @@
+unit UnitTestLouth;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, System.Win.Registry,
+  UnitBaseSerial, UnitLouth;
+
+type
+  TForm1 = class(TForm)
+    Connect: TButton;
+    Memo1: TMemo;
+    Disconnect: TButton;
+    OpenPort: TButton;
+    SelectPort: TButton;
+    ClosePort: TButton;
+    PlayCueWithData: TButton;
+    List: TButton;
+    Size: TButton;
+    Play: TButton;
+    RecordCueWithData: TButton;
+    Stop: TButton;
+    Rec: TButton;
+    pnlIDLE: TPanel;
+    pnlCUE: TPanel;
+    pnlPlayRecord: TPanel;
+    pnlStill: TPanel;
+    pnlJog: TPanel;
+    pnlShuttle: TPanel;
+    pnlPortBusy: TPanel;
+    pnlCueDone: TPanel;
+    PortStateStatus: TButton;
+    pnlSystemError: TPanel;
+    pnlIllegalValue: TPanel;
+    pnlInvalidPort: TPanel;
+    pnlWrongPortType: TPanel;
+    pnlPortLocked: TPanel;
+    pnlNotEnoughDiskSpace: TPanel;
+    pnlCMDWhileBusy: TPanel;
+    pnlNotSupported: TPanel;
+    pnlInvalidID: TPanel;
+    pnlIDNotFound: TPanel;
+    pnlIDAlreadyExist: TPanel;
+    pnlIDStillRecording: TPanel;
+    pnlIDCueOrPlaying: TPanel;
+    pnlXferFailed: TPanel;
+    pnlXferComplete: TPanel;
+    pnlIDDeleteProtected: TPanel;
+    pnlNotInCueState: TPanel;
+    pnlCueNotDone: TPanel;
+    pnlPortNotIdle: TPanel;
+    pnlPortActive: TPanel;
+    pnlPortIdle: TPanel;
+    pnlOperationFailed: TPanel;
+    pnlSystemReboot: TPanel;
+    PortErrorStatus: TButton;
+    cbComportNum: TComboBox;
+    CurrentTC: TButton;
+    cbPort: TComboBox;
+    StorageTime: TButton;
+    procedure ConnectClick(Sender: TObject);
+    procedure DisconnectClick(Sender: TObject);
+    procedure OpenPortClick(Sender: TObject);
+    procedure SelectPortClick(Sender: TObject);
+    procedure ClosePortClick(Sender: TObject);
+    procedure ListClick(Sender: TObject);
+    procedure SizeClick(Sender: TObject);
+    procedure PlayCueWithDataClick(Sender: TObject);
+    procedure PlayClick(Sender: TObject);
+    procedure RecordCueWithDataClick(Sender: TObject);
+    procedure StopClick(Sender: TObject);
+    procedure RecClick(Sender: TObject);
+    procedure PortStateStatusClick(Sender: TObject);
+    procedure PortErrorStatusClick(Sender: TObject);
+    procedure CurrentTCClick(Sender: TObject);
+    procedure StorageTimeClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+    DurationTC: String;
+
+    function PopulateComportNum: Integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function TForm1.PopulateComportNum: Integer;
+var
+  RegFile: TRegistry;
+  DeviceList: TStrings;
+  I: Integer;
+  CurrentPort: string;
+begin
+  Result := D_OK;
+  if cbComportNum.Items.Count > 0 then exit;
+
+  RegFile := TRegistry.Create;
+  try
+    RegFile.RootKey := HKEY_LOCAL_MACHINE;
+    RegFile.OpenKeyReadOnly('hardware\devicemap\serialcomm');
+    DeviceList := TStringList.Create;
+    try
+      RegFile.GetValueNames(DeviceList);
+      cbComportNum.Items.Clear;
+      for I := 0 to DeviceList.Count - 1 do
+      begin
+        CurrentPort := RegFile.ReadString(DeviceList.Strings[I]);
+        cbComportNum.Items.AddObject(CurrentPort, TObject(StrToInt(Copy(CurrentPort, 4, Length(CurrentPort)))));
+      end;
+    finally
+      FreeAndNil(DeviceList);
+    end;
+    RegFile.CloseKey;
+  finally
+    FreeAndNil(RegFile);
+  end;
+end;
+
+procedure TForm1.ConnectClick(Sender: TObject);
+begin
+  WMLouth1.ComPort := StrToInt(Copy(cbComport.Text, 4, Length(cbComport.Text)));
+  if WMLouth1.Connect then Memo1.Lines.Add('Connect Success')
+  else Memo1.Lines.Add('Connect Fail');
+end;
+
+procedure TForm1.DisconnectClick(Sender: TObject);
+begin
+  if WMLouth1.Connected then
+  begin
+    if WMLouth1.Disconnect then Memo1.Lines.Add('Disconnect Success')
+    else Memo1.Lines.Add('Disconnect Fail');
+  end
+  else Memo1.Lines.Add('Not Connected');
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  PopulateComportNum;
+end;
+
+procedure TForm1.OpenPortClick(Sender: TObject);
+var
+  PortNumber: Integer;
+begin
+  PortNumber := StrToInt(cbPort.Text);
+  if WMLouth1.Open(PortNumber, $01) = D_OK then
+  begin
+    Memo1.Lines.Add('Open Success');
+    Memo1.Lines.Add(Format('PortNumber = %d', [WMLouth1.PortNumber]));
+  end
+  else Memo1.Lines.Add('Open Fail');
+
+end;
+
+procedure TForm1.SelectPortClick(Sender: TObject);
+begin
+  if WMLouth1.SelectPort(WMLouth1.PortNumber) = D_OK then Memo1.Lines.Add('SelectPort Success')
+  else Memo1.Lines.Add('SelectPort Fail');
+end;
+
+procedure TForm1.ClosePortClick(Sender: TObject);
+begin
+  if WMLouth1.ClosePort(WMLouth1.PortNumber) = D_OK then Memo1.Lines.Add('ClosePort Success')
+  else Memo1.Lines.Add('ClosePort Fail');
+end;
+
+procedure TForm1.ListClick(Sender: TObject);
+var
+  I, RCount: Integer;
+  IDList: TStringList;
+begin
+  IDList := TStringList.Create;
+  if WMLouth1.GetList(ltAlphanumeric, RCount, IDList) = D_OK then
+  begin
+    Memo1.Lines.Add('GetList Success');
+    Memo1.Lines.Add(Format('Remain ID Count : %d', [RCount]));
+    for I := 0 to IDList.Count - 1 do
+      Memo1.Lines.Add(Format('%d ID : %s', [I + 1, IDList[I]]));
+  end
+  else Memo1.Lines.Add('GetList Fail');
+  IDList.Free;
+end;
+
+procedure TForm1.SizeClick(Sender: TObject);
+begin
+  if WMLouth1.GetSize('F3202', DurationTC) = D_OK then
+  begin
+    Memo1.Lines.Add('GetSize Success');
+    Memo1.Lines.Add(Format('Duration TC : %s', [DurationTC]));
+  end
+  else Memo1.Lines.Add('GetSize Fail');
+end;
+
+procedure TForm1.PlayCueWithDataClick(Sender: TObject);
+begin
+//  if WMLouth1.PlayCue('test001') = D_OK then Memo1.Lines.Add('PlayCueWithData Success')
+  if WMLouth1.PlayCueWithData('test001', '00:00:00:00', DurationTC) = D_OK then Memo1.Lines.Add('PlayCueWithData Success')
+  else Memo1.Lines.Add('PlayCueWithData Fail');
+end;
+
+procedure TForm1.PlayClick(Sender: TObject);
+begin
+  if WMLouth1.Play = D_OK then Memo1.Lines.Add('Play Success')
+  else Memo1.Lines.Add('Play Fail');
+end;
+
+procedure TForm1.RecordCueWithDataClick(Sender: TObject);
+begin
+{  if WMLouth1.SetVideoBitRate(50000000) = D_OK then
+    Memo1.Lines.Add('SetVideoBitRate Success')
+  else Memo1.Lines.Add('SetVideoBitRate Fail'); }
+
+  if WMLouth1.RecordCue('test006', '00:00:30:00') = D_OK then
+//  if WMLouth1.RecordCueWithData('test004', '00:00:00:00', '00:00:30:00') = D_OK then
+    Memo1.Lines.Add('RecordCueWithData Success')
+  else Memo1.Lines.Add('RecordCueWithData Fail');
+end;
+
+procedure TForm1.StopClick(Sender: TObject);
+begin
+  if WMLouth1.Stop = D_OK then Memo1.Lines.Add('Stop Success')
+  else Memo1.Lines.Add('Stop Fail');
+end;
+
+procedure TForm1.RecClick(Sender: TObject);
+begin
+  if WMLouth1.Rec = D_OK then Memo1.Lines.Add('Rec Success')
+  else Memo1.Lines.Add('Rec Fail');
+end;
+
+procedure TForm1.PortStateStatusClick(Sender: TObject);
+var
+  PortStateStatus: TPortStateStatus;
+begin
+  if WMLouth1.GetPortStateStatus(PortStateStatus) = D_OK then
+  begin
+    Memo1.Lines.Add('GetPortStateStatus Success');
+    pnlIdle.Color        := clBlack;
+    pnlCue.Color         := clBlack;
+    pnlPlayRecord.Color  := clBlack;
+    pnlStill.Color       := clBlack;
+    pnlJog.Color         := clBlack;
+    pnlShuttle.Color     := clBlack;
+    pnlPortBusy.Color    := clBlack;
+    pnlCueDone.Color     := clBlack;
+    if PortStateStatus.Idle then
+      pnlIdle.Color := clMaroon;
+    if PortStateStatus.Cue then
+      pnlCue.Color := clMaroon;
+    if PortStateStatus.PlayRecord then
+      pnlPlayRecord.Color := clMaroon;
+    if PortStateStatus.Still then
+      pnlStill.Color := clMaroon;
+    if PortStateStatus.Jog then
+      pnlJog.Color := clMaroon;
+    if PortStateStatus.Shuttle then
+      pnlShuttle.Color := clMaroon;
+    if PortStateStatus.PortBusy then
+      pnlPortBusy.Color := clMaroon;
+    if PortStateStatus.CueDone then
+      pnlCueDone.Color := clMaroon;
+  end
+  else Memo1.Lines.Add('GetPortStateStatus Fail');
+end;
+
+procedure TForm1.PortErrorStatusClick(Sender: TObject);
+var
+  PortErrorStatus: TPortErrorStatus;
+begin
+  if WMLouth1.GetPortErrorStatus(PortErrorStatus) = D_OK then
+  begin
+    Memo1.Lines.Add('GetPortStateStatus Success');
+    pnlSystemError.Color        := clBlack;
+    pnlIllegalValue.Color         := clBlack;
+    pnlInvalidPort.Color  := clBlack;
+    pnlWrongPortType.Color       := clBlack;
+    pnlPortLocked.Color         := clBlack;
+    pnlNotEnoughDiskSpace.Color     := clBlack;
+    pnlCMDWhileBusy.Color    := clBlack;
+    pnlNotSupported.Color     := clBlack;
+
+    pnlInvalidID.Color        := clBlack;
+    pnlIDNotFound.Color         := clBlack;
+    pnlIDAlreadyExist.Color  := clBlack;
+    pnlIDStillRecording.Color       := clBlack;
+    pnlIDCueOrPlaying.Color         := clBlack;
+    pnlXferFailed.Color     := clBlack;
+    pnlXferComplete.Color    := clBlack;
+    pnlIDDeleteProtected.Color     := clBlack;
+
+    pnlNotInCueState.Color        := clBlack;
+    pnlCueNotDone.Color         := clBlack;
+    pnlPortNotIdle.Color  := clBlack;
+    pnlPortActive.Color       := clBlack;
+    pnlPortIdle.Color         := clBlack;
+    pnlOperationFailed.Color     := clBlack;
+    pnlSystemReboot.Color    := clBlack;
+
+    if PortErrorStatus.SystemError then
+      pnlSystemError.Color := clMaroon;
+    if PortErrorStatus.IllegalValue then
+      pnlIllegalValue.Color := clMaroon;
+    if PortErrorStatus.InvalidPort then
+      pnlInvalidPort.Color := clMaroon;
+    if PortErrorStatus.WrongPortType then
+      pnlWrongPortType.Color := clMaroon;
+    if PortErrorStatus.PortLocked then
+      pnlPortLocked.Color := clMaroon;
+    if PortErrorStatus.NotEnoughDiskSpace then
+      pnlNotEnoughDiskSpace.Color := clMaroon;
+    if PortErrorStatus.CmdWhileBusy then
+      pnlCMDWhileBusy.Color := clMaroon;
+    if PortErrorStatus.NotSupported then
+      pnlNotSupported.Color := clMaroon;
+
+    if PortErrorStatus.InvalidID then
+      pnlInvalidID.Color := clMaroon;
+    if PortErrorStatus.IDNotFound then
+      pnlIDNotFound.Color := clMaroon;
+    if PortErrorStatus.IDAleadyExists then
+      pnlIDAlreadyExist.Color := clMaroon;
+    if PortErrorStatus.IDStillRecording then
+      pnlIDStillRecording.Color := clMaroon;
+    if PortErrorStatus.IDCuedOrPlaying then
+      pnlIDCueOrPlaying.Color := clMaroon;
+    if PortErrorStatus.XFerFailed then
+      pnlXferFailed.Color := clMaroon;
+    if PortErrorStatus.XFerComplete then
+      pnlXferComplete.Color := clMaroon;
+    if PortErrorStatus.IDDeleteProtected then
+      pnlIDDeleteProtected.Color := clMaroon;
+
+    if PortErrorStatus.NotInCueState then
+      pnlNotInCueState.Color := clMaroon;
+    if PortErrorStatus.CueNotDone then
+      pnlCueNotDone.Color := clMaroon;
+    if PortErrorStatus.PortNotIdle then
+      pnlPortNotIdle.Color := clMaroon;
+    if PortErrorStatus.PortActive then
+      pnlPortActive.Color := clMaroon;
+    if PortErrorStatus.PortIdle then
+      pnlPortIdle.Color := clMaroon;
+    if PortErrorStatus.OperationFailed then
+      pnlOperationFailed.Color := clMaroon;
+    if PortErrorStatus.SystemReboot then
+      pnlSystemReboot.Color := clMaroon;
+  end
+  else Memo1.Lines.Add('GetPortStateStatus Fail');
+end;
+
+procedure TForm1.CurrentTCClick(Sender: TObject);
+var
+  TC: String;
+begin
+  if WMLouth1.GetPositionRequest(ptCurrent, TC) = D_OK then
+  begin
+    Memo1.Lines.Add('GetPositionRequest Success');
+    Memo1.Lines.Add(Format('Current TC : %s', [TC]));
+  end
+  else Memo1.Lines.Add('GetPositionRequest Fail');
+end;
+
+procedure TForm1.StorageTimeClick(Sender: TObject);
+var
+  Total, Available: String;
+begin
+
+
+  if WMLouth1.GetStorageTimeRemaining(Total, Available, True) = D_OK then
+  begin
+    Memo1.Lines.Add('GetStorageTimeRemaining Success');
+    Memo1.Lines.Add(Format('Total TC : %s', [Total]));
+    Memo1.Lines.Add(Format('Available TC : %s', [Available]));
+  end
+  else Memo1.Lines.Add('GetStorageTimeRemaining Fail');
+end;
+
+end.

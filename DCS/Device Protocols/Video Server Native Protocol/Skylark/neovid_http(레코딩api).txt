@@ -1,0 +1,102 @@
+Storage:
+Tree xml description for subtree
+GET http://<IP_ADDR>:7901/storage/<NAME>[/<FOLDER>[/<FOLDER>...]][?param=val[&param=val...]]
+param values:
+ "format" - "StoredTree", "mam", "FolderList"
+ "datetime" - ISO date time 
+ "mimetype" - mimetype filter, possible values are:
+    "Audio", "Video", "AudioVideo", "StillImage", "Text", "Complex", "Tape", "Stream", "Graphics", "Note"
+
+Clip xml description
+GET http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>
+
+Medium bitrate MP4 proxy
+GET http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>/WP1
+
+Lower bitrate MP4 proxy
+GET http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>/WP2
+
+Get clip icon
+GET http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>/GETICON[?[pos=FRM][&dur=FRM][&w=PX][&h=PX][&param=NAME:VAL[&param=NAME:VAL]]]
+
+Delete an asset
+DELETE http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>
+
+Upload bulk XMP metadata
+PUT http://<IP_ADDR>:7901/storage/<NAME>?connector=<CONNECTOR_NAME>
+
+Execute command
+POST http://<IP_ADDR>:7901/storage/<NAME>@<TITLE>?command=<COMMAND_NAME>[&param=val...]
+commands:
+ "RESTORE" - restore HIRES from ARCHIVE copy
+ "COPYLINK" - create a new link to this asset
+    param1 - "title" - title of a new link
+    param2 - "folder" - folder where a new link will be created
+ "SETFIELD" - change link field value
+    param1 - "name" - field name ("type", "clip_name", "comment", "layer", "first_frame",
+                      "last_frame", "icon_pos", "user_1" ... "user_8")
+    param2 - "val" - new value for the field
+ "CREATESEGMENT" - add segment markers to the asset's metadata
+    param1 - "seg_num" - segment number to be created
+    param2 - "start_frame" - segment start (timecode in form HH:MM:SS[:;]FF or HH:MM:SS.ss or frame number)
+    param3 - "duration" - segment durtion (timecode in form HH:MM:SS[:;]FF or HH:MM:SS.ss or frame number)
+    param4 - "title" - segment name (optional)
+    param5 - "keywords" - keywords for search indexing (optional)
+ "DELETESEGMENT" - remove segment markers from the asset's metadata
+    param1 - "seg_num" - segment number to be deleted
+
+Use %0a symbol in order to pass a new line character:
+http://127.0.0.1:7901/storage/Storage_1@g1/GETICON?param=Text:This%20is%20sample%20text%0anew%20line%20here
+
+Use "\\" and "\/" escape sequence to pass a "\" or "/" character as part of a clip title or a folder name:
+http://127.0.0.1:7901/storage/Storage_1@g%5c%2f1/GETICON?param=Text:This%20is%20sample%20text%0anew%20line%20here
+http://127.0.0.1:7901/storage/Storage_1/qq%5c%2faa
+
+
+
+Feeder:
+GET http://<IP_ADDR>:7901/rss/<NAME>
+PUT http://<IP_ADDR>:7901/rss/<NAME>/<FNAME>
+DELETE http://<IP_ADDR>:7901/rss/<NAME>?guid=<GUID>
+
+Last GPI Event:
+GET http://<IP_ADDR>:7901/gpi?module_id=<N>
+
+AsRun:
+GET http://<IP_ADDR>:7901/as_run?module_id=<N>[&max_count=M][&datetime=YYYY-MM-DDTHH:MM:SS]
+
+
+Recorder:
+
+Request status
+GET http://<IP_ADDR>:7901/recorder?module_id=<N>
+
+Set recording profile
+POST http://<IP_ADDR>:7901/recorder?module_id=<N>&command=set_profile&profile=<NAME>
+
+Start recording
+POST http://<IP_ADDR>:7901/recorder?module_id=<N>&command=rec_start[&title=<TITLE>][&folder=<FOLDER>|.]
+
+Stop recording
+POST http://<IP_ADDR>:7901/recorder?module_id=<N>&command=rec_stop
+
+Returned XML fileds:
+"Result" - operation result:
+  "SUCCESS" - Operation successful
+  "ERR_JOB_FAILED" - Recording job creation failed
+  "ERR_NO_PRF" - No such recording profile
+  "ERR_REC_ACTIVE" - Can't change recording profile during active recording job
+  "ERR_INTERNAL" - Internal error
+  "ERR_UNK_CMD" - Unknown command
+  "ERR_COMM_FAILED" - Recorder server offline or not responding
+  "ERR_NO_CMD" - No command is given in the request
+"JobId" - current/created job id
+"Title" - job title/filename base
+"State" - job state
+  "INVALID", "INVACTIVE", "CUING", "CUED", "RECORDING", "STOPPED", "PAUSED"
+"Folder" - job folder
+"FramesDropped" - number of frames dropped during recording
+"StartTime" - server time when recording started
+"CurrentTime" - current server time
+"Profile" - current profile
+

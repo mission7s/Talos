@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{B29D5A83-5296-46F3-8826-365E06D9EB41}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TestCueSheet.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestCueSheet">
+        <MSBuild Projects="TestCueSheet.dproj"/>
+    </Target>
+    <Target Name="TestCueSheet:Clean">
+        <MSBuild Projects="TestCueSheet.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestCueSheet:Make">
+        <MSBuild Projects="TestCueSheet.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dcWiseMediaPack">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj"/>
+    </Target>
+    <Target Name="dcWiseMediaPack:Clean">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dcWiseMediaPack:Make">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestCueSheet;dcWiseMediaPack"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestCueSheet:Clean;dcWiseMediaPack:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestCueSheet:Make;dcWiseMediaPack:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

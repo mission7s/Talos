@@ -1,0 +1,14 @@
+program TestHLK20v01;
+
+uses
+  Forms,
+  Unit1 in '..\..\..\..\..\..\xe_lib\synapse\synapse40\source\demo\snmp\Unit1.pas' {Form1};
+
+{$R *.RES}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.
+

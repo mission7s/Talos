@@ -1,0 +1,154 @@
+object Form7: TForm7
+  Left = 0
+  Top = 0
+  Caption = 'Form7'
+  ClientHeight = 599
+  ClientWidth = 1057
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Button1: TButton
+    Left = 192
+    Top = 22
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object mmDesc: TMemo
+    Left = 552
+    Top = 8
+    Width = 497
+    Height = 553
+    ImeName = 'Microsoft IME 2010'
+    ScrollBars = ssVertical
+    TabOrder = 1
+  end
+  object btnOpen: TButton
+    Left = 24
+    Top = 22
+    Width = 75
+    Height = 25
+    Caption = 'Open'
+    TabOrder = 2
+    OnClick = btnOpenClick
+  end
+  object btnGetPlayerStatus: TButton
+    Left = 24
+    Top = 53
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status'
+    TabOrder = 3
+    OnClick = btnGetPlayerStatusClick
+  end
+  object btnPlayCue: TButton
+    Left = 24
+    Top = 228
+    Width = 75
+    Height = 25
+    Caption = 'PlayCue'
+    TabOrder = 4
+    OnClick = btnPlayCueClick
+  end
+  object btnPlay: TButton
+    Left = 24
+    Top = 259
+    Width = 75
+    Height = 25
+    Caption = 'Play'
+    TabOrder = 5
+    OnClick = btnPlayClick
+  end
+  object btnSetPos: TButton
+    Left = 120
+    Top = 228
+    Width = 75
+    Height = 25
+    Caption = 'SetPos'
+    TabOrder = 6
+    OnClick = btnSetPosClick
+  end
+  object edtPos: TEdit
+    Left = 201
+    Top = 230
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 7
+    Text = '0'
+  end
+  object btnStep: TButton
+    Left = 24
+    Top = 290
+    Width = 75
+    Height = 25
+    Caption = 'Step'
+    TabOrder = 8
+    OnClick = btnStepClick
+  end
+  object edtStep: TEdit
+    Left = 120
+    Top = 292
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 9
+    Text = '1'
+  end
+  object btnStop: TButton
+    Left = 24
+    Top = 321
+    Width = 75
+    Height = 25
+    Caption = 'Stop'
+    TabOrder = 10
+    OnClick = btnStopClick
+  end
+  object btnAttach: TButton
+    Left = 24
+    Top = 132
+    Width = 145
+    Height = 25
+    Caption = 'Attach'
+    TabOrder = 11
+    OnClick = btnAttachClick
+  end
+  object edtAttach: TEdit
+    Left = 175
+    Top = 134
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 12
+    Text = 'P2017100800094'
+  end
+  object btnGetClipList: TButton
+    Left = 24
+    Top = 84
+    Width = 145
+    Height = 25
+    Caption = 'Get Clip List'
+    TabOrder = 13
+    OnClick = btnGetClipListClick
+  end
+  object btnClipExist: TButton
+    Left = 24
+    Top = 163
+    Width = 145
+    Height = 25
+    Caption = 'Clip Exist'
+    TabOrder = 14
+    OnClick = btnClipExistClick
+  end
+end

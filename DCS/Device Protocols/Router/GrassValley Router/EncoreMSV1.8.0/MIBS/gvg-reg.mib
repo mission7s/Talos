@@ -1,0 +1,148 @@
+--
+-- Grass Valley Group Inc. Enterprise OID Registrations
+--
+
+GVG-REG DEFINITIONS ::= BEGIN
+
+	IMPORTS
+		MODULE-IDENTITY, OBJECT-IDENTITY, enterprises
+			FROM SNMPv2-SMI;
+
+	gvg MODULE-IDENTITY
+		LAST-UPDATED "9910210000Z"
+		ORGANIZATION "Grass Valley Group, Inc."
+		CONTACT-INFO
+			"Grass Valley Group Inc.
+			P.O. Box 1114,
+			Grass Valley, CA 95945, USA.
+			
+			+1 (530) 478-4148
+
+			http://www.grassvalleygroup.com"
+	DESCRIPTION
+		"This MIB module describes the upper level
+		OID registrations in the Grass Valley Group 
+		enterprise naming space.
+
+		This module will be extended, or modified as 
+		required.
+
+		Grass Valley Group Inc. reserves the right to
+		make changes in specification and other 
+		information contained in this document without 
+		prior notice. The reader should consult Grass 
+		Valley Group Inc. to determine whether any such 
+		changes have been made.
+
+		In no event shall Grass Valley Group Inc. be 
+		liable for any, incidental, indirect, special, 
+		or consequential damages whatsoever (including 
+		but not limited to lost profits) arising out of 
+		or related to this document or the information 
+		contained in it, even if Grass Valley Group Inc. 
+		has been advised of, known, or should have 
+		known, the possibility of such damages.
+
+		Grass Valley Group grants vendors, end-users, 
+		and other interested parties a non-exclusive 
+		license to use this specification in connection 
+		with the management of its products.
+
+		Copyright Nov 1999 Grass Valley Group Inc."
+	REVISION      "9911110000Z"
+	DESCRIPTION
+		"First draft."
+	REVISION      "0108230000Z"
+	DESCRIPTION
+		"Added product line registration for the
+		router and master control product line -
+		gvgRouter."
+	::= { enterprises 4947 }	-- assigned by IANA
+
+
+	-- Name space controlled by the IETF
+	-- enterprises	OBJECT IDENTIFIER ::=
+	--		{ iso org(3) dod(6) internet(1) private(4) 1 }
+
+	--
+	--  Grass Valley Group Enterprise Top-Level Registrations
+	--
+
+	gvgExperimental OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"gvgExperimental provides a root OID from 
+			which experimental MIBs are temperorily 
+			based. MIBs that are placed here are Grass 
+			Valley work-in-progress and have not been 
+			assigned a permanent OID by the Grass Valley 
+			assigned number authority, typically because 
+			the MIB was not ready for deployment."
+	::= { gvg 1 }
+
+	gvgRegistrations OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"Name space for Grass Valley Group's 
+			authoritatively assigned registrations and 
+			MIB modules."
+	::= { gvg 2 }
+
+	gvgOtherEnterprises OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"gvgOtherEnterprises provides a root OID 
+			where MIB modules and registrations 
+			specified by Grass Valley Group's acquired 
+			business units can be re-rooted for a 
+			controlled version.  It is mandatory that 
+			when registrations are made beneath this 
+			branch, the immediate next level 
+			registrations beneath this root, have a 
+			registration for the acquired Grass Valley 
+			business unit, so that it helps in uniquely 
+			identifying the acquired business units and 
+			the products developed by them."
+	::= { gvg 3 }
+
+	--
+	--  Grass Valley Group common managed objects
+	--
+	
+	--
+	--  The gvgElementMIB MIB module contains the definitions
+	--  of the objects that are common to all Grass Valley Group
+	--  managed physical devices. Refer the GVG-ELEMENT-MIB
+	--  module for more details.
+	--
+	--  gvgElementMIB	OBJECT IDENTIFIER ::= { gvgRegistrations 1 }
+	--
+
+	--
+	--  Grass Valley Group Product-Line Registrations
+	--
+
+	gvgVideoStorage OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"The root for the registration of Grass Valley 
+			video storage products and product MIB modules."
+	::= { gvgRegistrations 2 }
+
+	gvgModular OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"The root for the registration of Grass Valley 
+			modular products and product MIB modules."
+	::= { gvgRegistrations 3 }
+
+	gvgRouters OBJECT-IDENTITY
+		STATUS	current
+		DESCRIPTION
+			"The root for the registration of Grass Valley 
+			router and master control products and product 
+			MIB modules."
+	::= { gvgRegistrations 4 }
+
+END
+

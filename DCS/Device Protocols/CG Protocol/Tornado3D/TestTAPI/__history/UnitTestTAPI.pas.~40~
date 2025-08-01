@@ -1,0 +1,244 @@
+{$MINENUMSIZE 4}
+unit UnitTestTAPI;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Winapi.ActiveX,
+  UnitTAPI;
+
+type
+  TForm1 = class(TForm)
+    btnConnect: TButton;
+    Label1: TLabel;
+    edtServerIP: TEdit;
+    Label2: TLabel;
+    edtServerPort: TEdit;
+    cbConnectType: TComboBox;
+    Label3: TLabel;
+    mmDesc: TMemo;
+    btnDestroy: TButton;
+    edtCutFileName: TEdit;
+    btnLoadPage: TButton;
+    btnUnloadPage: TButton;
+    btnStop: TButton;
+    edtPageName: TEdit;
+    btnPrepare: TButton;
+    btnPlay: TButton;
+    edtProjectFileName: TEdit;
+    btnLoadProject: TButton;
+    btnQueryPageMode: TButton;
+    procedure btnConnectClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnDestroyClick(Sender: TObject);
+    procedure btnLoadPageClick(Sender: TObject);
+    procedure btnUnloadPageClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
+    procedure btnPrepareClick(Sender: TObject);
+    procedure btnPlayClick(Sender: TObject);
+    procedure btnLoadProjectClick(Sender: TObject);
+    procedure btnQueryPageModeClick(Sender: TObject);
+  private
+    { Private declarations }
+    FTAP: TTAP;
+    FTAPPaser: ITAPParser;
+    FTAPEventHandler: TTAPEventHandler;
+
+    procedure OnReceiveEvent(Sender: TObject; ReceiveData: String);
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.OnReceiveEvent(Sender: TObject; ReceiveData: String);
+begin
+  mmDesc.Lines.Add(ReceiveData);
+end;
+
+procedure TForm1.btnConnectClick(Sender: TObject);
+const
+  ModeNames: array[False..True] of String = ('UDP', 'TCP');
+var
+  R: Integer;
+
+  TCPFlag: Boolean;
+  IP: PChar;
+  Port: LongInt;
+begin
+//ShowMessage(IntToStr(SizeOf(TCPFlag)));
+  TCPFlag := (cbConnectType.ItemIndex = 0);
+  IP := PChar(edtServerIP.Text);
+  Port := StrToIntDef(edtServerPort.Text, 0);
+
+  R := FTAP.Connect(TCPFlag, IP, Port);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('Connect Success, Mode = %s, IP = %s, Port = %d', [ModeNames[TCPFlag], IP, Port]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Connect Error = %d', [R]));
+    exit;
+  end;
+
+  R := FTAP.Hello(False);
+end;
+
+procedure TForm1.btnDestroyClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.Destroys;
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('Destroys Success', []));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Destroys Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnLoadPageClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.LoadPage(edtCutFileName.Text, edtPageName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('LoadPage Success, CutFileName = %s, PageName = %s', [edtCutFileName.Text, edtPageName.Text]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('LoadPage Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnLoadProjectClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.LoadProject(edtProjectFileName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('LoadProject Success, ProjectFileName = %s', [edtProjectFileName.Text]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('LoadProject Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnPlayClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.Play(LAYER_BASE);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('Play Success', []));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Play Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnPrepareClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.PreparePage(edtPageName.Text, LAYER_BASE, True);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('PreparePage Success, PageName = %s, AutoPreview = %s', [edtPageName.Text, BoolToStr(True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('PreparePage Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnQueryPageModeClick(Sender: TObject);
+var
+  R: Integer;
+  PageMode: String;
+begin
+  R := FTAP.QueryPageMode(edtPageName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('QueryPageMode Success, PageName = %s, AutoPreview = %s', [edtPageName.Text, BoolToStr(True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('QueryPageMode Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnStopClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.Stop;
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('Stop Success', []));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Stop Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnUnloadPageClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FTAP.UnloadPage(edtPageName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('UnloadPage Success, PageName = %s', [edtPageName.Text]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('UnloadPage Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FTAP := TTAP.Create;
+  FTAP.OnReceiveEvent := OnReceiveEvent;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(FTAP);
+end;
+
+end.

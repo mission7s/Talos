@@ -1,0 +1,18 @@
+program TestRemoteControl;
+
+uses
+  Vcl.Forms,
+  UnitTestRemoteControl in 'UnitTestRemoteControl.pas' {Form12},
+  UnitUDPIn in '..\..\UDP\UnitUDPIn.pas',
+  UnitUDPCommons in '..\..\UDP\UnitUDPCommons.pas',
+  UnitClientRemoteControl in 'UnitClientRemoteControl.pas',
+  UnitUDPOut in '..\..\UDP\UnitUDPOut.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm12, Form12);
+  Application.Run;
+end.

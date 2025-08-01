@@ -1,0 +1,16 @@
+program TestUthaRCP3A;
+
+uses
+  Vcl.Forms,
+  UnitTestQuartz in '..\..\Quartz\TestQuartz\UnitTestQuartz.pas' {Form12},
+  UnitBaseSerial in '..\..\..\..\..\Common\UnitBaseSerial.pas',
+  UnitQuartz in '..\..\..\..\Device Units\Router\Quartz\UnitQuartz.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm12, Form12);
+  Application.Run;
+end.

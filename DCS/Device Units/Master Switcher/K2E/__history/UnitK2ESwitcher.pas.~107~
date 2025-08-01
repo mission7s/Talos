@@ -1,0 +1,1048 @@
+unit UnitK2ESwitcher;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs,
+  UnitBaseSerial;
+
+const
+  // Communication Constant Value
+  K2E_MCS_STX      = $FF;
+  K2E_MCS_PROTO_NO = $44;
+  K2E_MCS_SEND     = $10;
+  K2E_MCS_RECV     = $11;
+
+  // Communication Error, Error Bit
+  K2E_MCS_ERROR_STX      = $01;
+  K2E_MCS_ERROR_PROTO_NO = $02;
+  K2E_MCS_ERROR_SEND     = $04;
+  K2E_MCS_ERROR_RECV     = $08;
+
+  K2E_MCS_ERROR_CHECKSUM = $10;
+
+
+  // Response val3ue
+  K2E_RES_SUCCESS = $00;
+
+
+
+  // OK/False value
+  VTS_OK    = $4F;  // OK ('O' = 0x4f )
+  VTS_FALSE = $4E;  // Not OK ('N' = 0x4e )
+
+  // On/Off value
+  VTS_ON  = $30;
+  VTS_OFF = $31;
+
+  // Communication Error, Error Bit
+  VTS_ERROR_STX = $01;
+  VTS_ERROR_CHECKSUM = $02;
+  VTS_ERROR_DATA = $04;
+  VTS_ERROR_COUNTER = $08;
+
+type
+  TK2E_TransitionSpeed = (
+    K2E_TS_SLOW = 0,        // Slow
+    K2E_TS_NORMAL = 1,      // Normal
+    K2E_TS_FAST = 2         // Fast
+    );
+
+  TK2E_TransitionMode = (
+    K2E_TM_CUT = 0,         // Cut
+    K2E_TM_MIX = 1,         // Mix
+    K2E_TM_V_CUT = 2,       // V-cut
+    K2E_TM_DOWN_TO_CUT = 3, // Down to cut
+    K2E_TM_CUT_TO_UP = 4    // Cut to up
+    );
+
+  TK2E_RemoteMode = (
+    K2E_RM_NORMAL = 0,
+    K2E_RM_APS = 0
+    );
+
+  TK2E_OutFlag = (
+    K2E_OF_PGM = 0,
+    K2E_OF_PST = 1);
+
+  TK2E_MixFlag = record
+    Key1: Boolean;
+    Key2: Boolean;
+    Pip: Boolean;
+    Logo1: Boolean;
+    Logo2: Boolean;
+    Logo3: Boolean;
+    Logo4: Boolean;
+  END;
+
+  TK2E_Matrix = record
+    PGM: Byte;
+    PST: Byte;
+    Route: Byte;
+    OutFlag: TK2E_OutFlag;
+    MixPGM: TK2E_MixFlag;
+    MixPST: TK2E_MixFlag;
+  end;
+
+  TK2E_TransitionConfig = record
+    TrMode: TK2E_TransitionMode;
+    TrSpeed: TK2E_TransitionSpeed;
+    KeyTrMode: TK2E_TransitionMode;
+    LogoTrMode: TK2E_TransitionMode;
+    PipTrMode: TK2E_TransitionMode;
+  end;
+
+  TK2E_ReferenceType = (
+    K2E_RT_NONE = 0,
+    K2E_RT_59_94HZ = 1,
+    K2E_RT_50HZ = 3,
+    K2E_RT_60HZ = 5
+    );
+
+  TK2E_StatusType = (
+    K2E_ST_NONE = 0,
+    K2E_ST_OK = 1
+    );
+
+  TK2E_InputStatus = record
+    Reference: TK2E_ReferenceType;
+    PGM: TK2E_StatusType;
+    PST: TK2E_StatusType;
+    Key1: TK2E_StatusType;
+    Key2: TK2E_StatusType;
+    PIP: TK2E_StatusType;
+  end;
+
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+  TOnMatrixChanged = procedure(Sender: TComponent; AMatrix: TK2E_Matrix) of object;
+
+  TStatusThread = class;
+
+  TK2ESwitcher = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+
+    FMCSID: Byte;
+    FCTLID: Byte;
+
+    FMatrix: TK2E_Matrix;
+    FInputStatus: TK2E_InputStatus;
+
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+    FOnMatrixChanged: TOnMatrixChanged;
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    procedure SetMCSID(AValue: Byte);
+    procedure SetCTLID(AValue: Byte);
+
+    function SendCommand(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    function CheckSum(AValue: AnsiString): Boolean;
+    function TransmitStatus(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+    function TransmitCommand(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+    // Request command
+    // Request take
+    function Take: Integer;                                       // 0X03
+    // Request take key
+    function TakeKey(AKey1, AKey2, APip: Boolean): Integer;       // 0X04
+    // Request take logo
+    function TakeLogo(ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;                   // 0X05
+
+    // Request assign input program
+    function AssignInputPGM(ASource: Byte): Integer;              // 0X10
+    // Request assign input preset
+    function AssignInputPST(ASource: Byte): Integer;              // 0X11
+    // Request assign input router
+    function AssignInputRouter(ASource: Byte): Integer;           // 0X12
+
+    // Request set transition speed
+    function SetTransitionSpeed(ASpeed: TK2E_TransitionSpeed): Integer;           // 0X13
+    // Request set transition mode
+    function SetTransitionMode(AMode: TK2E_TransitionMode): Integer;              // 0X14
+
+    // Request set key to program
+    function SetKeyToPGM(AKeyMask1, AKeyMask2, AKey1, AKey2: Boolean): Integer;             // 0X20
+    // Request set key to preset
+    function SetKeyToPST(AKeyMask1, AKeyMask2, AKey1, AKey2: Boolean): Integer;             // 0X21
+    // Request set key transition mode
+    function SetKeyTransitionMode(AMode: TK2E_TransitionMode): Integer;           // 0X22
+
+    // Request set logo to program
+    function SetLogoToPGM(ALogoMask1, ALogoMask2, ALogoMask3, ALogoMask4, ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;  // 0X30
+    // Request set logo to preset
+    function SetLogoToPST(ALogoMask1, ALogoMask2, ALogoMask3, ALogoMask4, ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;  // 0X31
+    // Request set logo transition mode
+    function SetLogoTransitionMode(AMode: TK2E_TransitionMode): Integer;          // 0X32
+
+    // Request set pip to program
+    function SetPipToPGM(APipOn: Boolean): Integer;  // 0X38
+    // Request set pip to preset
+    function SetPipToPST(APipOn: Boolean): Integer;  // 0X39
+
+    // Request remote mode
+    function SetRemoteMode(AMode: TK2E_RemoteMode): Integer;  // 0X50
+    // Request remote lock
+    function SetRemoteLock(ALock: Boolean): Integer;          // 0X51
+
+    // Get matrix
+    function GetMatrix(var AMatrix: TK2E_Matrix): Integer;    // 0X60
+    // Get transition config
+    function GetTransitionConfig(var AConfig: TK2E_TransitionConfig): Integer;    // 0X61
+    // Get matrix
+    function GetSystemConfig(var AAPS: Boolean): Integer;    // 0X64
+    // Get input status
+    function GetInputStatus(var AStatus: TK2E_InputStatus): Integer;    // 0X65
+
+    property Matrix: TK2E_Matrix read FMatrix;
+//    property Status: TVtsStatus read FStatus;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property MCSID: Byte read FMCSID write SetMCSID;
+    property CTLID: Byte read FCTLID write SetCTLID;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+    property OnMatrixChanged: TOnMatrixChanged read FOnMatrixChanged write FOnMatrixChanged;
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FK2ESwitcher: TK2ESwitcher;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+    FSaveMatrix: TK2E_Matrix;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AK2ESwitcher: TK2ESwitcher);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TK2ESwitcher }
+
+constructor TK2ESwitcher.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  ZeroMemory(@FMatrix, SizeOf(TK2E_Matrix));
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TK2ESwitcher.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if FCriticalSection <> nil then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  inherited Destroy;
+end;
+
+procedure TK2ESwitcher.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TK2ESwitcher.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TK2ESwitcher.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Start;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+procedure TK2ESwitcher.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+procedure TK2ESwitcher.SetMCSID(AValue: Byte);
+begin
+  if (FMCSID <> AValue) then
+    FMCSID := AValue;
+end;
+
+procedure TK2ESwitcher.SetCTLID(AValue: Byte);
+begin
+  if (FCTLID <> AValue) then
+    FCTLID := AValue;
+end;
+
+function TK2ESwitcher.CheckSum(AValue: AnsiString): Boolean;
+var
+  I, Len: Integer;
+  CRC: Byte;
+begin
+  Result := False;
+
+  Len := Length(AValue);
+  CRC := 0;
+
+  if (Len >= 3) then
+  begin
+    for I := 2 to Len - 1 do
+      CRC := CRC xor Ord(AValue[I]);
+
+    Result := (CRC = Ord(AValue[Len]));
+  end;
+end;
+
+function TK2ESwitcher.SendCommand(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  Buffer: AnsiString;
+  CheckSum: Byte;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+  Buffer := AnsiChar(K2E_MCS_STX) + AnsiChar(FMCSID) + AnsiChar(FCTLID) + AnsiChar(ADataSize + 4) + AnsiChar(K2E_MCS_PROTO_NO) + AnsiChar(K2E_MCS_SEND) + AnsiChar(ACMD) + ADataBuf;
+
+  CheckSum := FMCSID xor FCTLID xor (ADataSize + 4) xor K2E_MCS_PROTO_NO xor K2E_MCS_SEND xor ACMD;
+  for I := 1 to ADataSize do
+    CheckSum := CheckSum xor Ord(ADataBuf[I]);
+
+  Buffer := Buffer + AnsiChar(CheckSum);
+
+  ErrCnt := 0;
+  while ErrCnt < MAX_RETRY do
+  begin
+    if SendData(Pointer(Buffer), ADataSize + 8) = D_FALSE then
+    begin
+      Inc(ErrCnt);
+      Continue;
+    end
+    else
+    begin
+      Result := D_OK;
+      break;
+    end;
+  end;
+
+  exit;
+
+{  Buffer := GetMemory(ADataSize + 7);
+  try
+    Buffer[0] := $02;
+
+    ByteCountStr := Format('%0.2x', [ADataSize + 3]);
+    Buffer[1] := Ord(ByteCountStr[1]);
+    Buffer[2] := Ord(ByteCountStr[2]);
+
+    Buffer[3] := $51; // Machine id, video tron master switcher always 0X51
+    Buffer[4] := ACMD1;
+    Buffer[5] := ACMD2;
+
+    for I := 6 to ADataSize + 5 do
+      Buffer[I] := Ord(ADataBuf[I - 5]);
+
+    CheckSum := $51 + ACMD1 + ACMD2;
+    for I := 1 to ADataSize do
+      CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+    CheckSum := CheckSum and $7F;
+    Buffer[ADataSize + 6] := CheckSum;
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), ADataSize + 7) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end; }
+end;
+
+function TK2ESwitcher.TransmitStatus(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  FReceivedBuffer := '';
+  FReceivedData := '';
+
+  FCriticalSection.Enter;
+  try
+    if SendCommand(ACMD, ADataBuf, ADataSize) = D_OK then
+    begin
+      ResetEvent(FSyncMsgEvent);
+      R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+      case R of
+        WAIT_OBJECT_0:
+        begin
+          Result := FLastResult;
+        end;
+       else
+         Result := E_TIMEOUT;
+       end;
+    end;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TK2ESwitcher.TransmitCommand(ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FCriticalSection.Enter;
+    try
+      ResetEvent(FSyncMsgEvent);
+      if SendCommand(ACMD, ADataBuf, ADataSize) = D_OK then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+procedure TK2ESwitcher.DataEvent;
+var
+  ByteCount: Integer;
+  CMD: Byte;
+  TempBuffer: AnsiString;
+label
+  ReParse;
+begin
+  inherited;
+
+ReParse:
+  if (Length(FReceivedBuffer) < 1) then exit;
+  case FReceivedBuffer[1] of
+    AnsiChar(K2E_MCS_STX):
+    begin
+      if (Length(FReceivedBuffer) < 4) then exit;
+      ByteCount := Ord(FReceivedBuffer[4]);
+
+      if (Length(FReceivedBuffer) >= ByteCount + 4) then
+      begin
+        TempBuffer := FReceivedBuffer;
+        FReceivedBuffer := Copy(TempBuffer, 1, ByteCount + 4);
+
+        // Check protocol no
+        if (Ord(FReceivedBuffer[5]) = K2E_MCS_PROTO_NO) then
+        begin
+          // Check receive byte
+          if (Ord(FReceivedBuffer[6]) = K2E_MCS_RECV) then
+          begin
+            if (CheckSum(FReceivedBuffer)) then
+            begin
+              CMD := Ord(FReceivedBuffer[7]);
+
+              // Response
+              if (Ord(FReceivedBuffer[8]) = K2E_RES_SUCCESS) then
+                FReceivedData := System.Copy(FReceivedBuffer, 9, ByteCount - 4)
+              else
+                FLastResult := Ord(FReceivedBuffer[8]);
+            end
+            else
+              FLastResult := K2E_MCS_ERROR_CHECKSUM;
+          end
+          else
+            FLastResult := K2E_MCS_ERROR_RECV;
+        end
+        else
+          FLastResult := K2E_MCS_ERROR_PROTO_NO;
+
+        if (Length(TempBuffer) > ByteCount + 4) then
+        begin
+          FReceivedBuffer := Copy(TempBuffer, ByteCount + 5, Length(TempBuffer));
+          goto ReParse;
+        end;
+
+        SetEvent(FSyncMsgEvent);
+      end
+      else if (ByteCount <= 0) {or (Length(FReceivedBuffer) > ByteCount + 4)} then
+      begin
+        FLastResult := D_FALSE;
+        SetEvent(FSyncMsgEvent);
+        FReceivedBuffer := '';
+      end;
+    end;
+  else
+    FLastResult := K2E_MCS_ERROR_STX;
+    SetEvent(FSyncMsgEvent);
+    FReceivedBuffer := '';
+  end;
+end;
+
+// Request commands
+// Request take
+function TK2ESwitcher.Take: Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := '';
+  Result := TransmitCommand($03, Buffer, Length(Buffer));
+end;
+
+// Request take key
+function TK2ESwitcher.TakeKey(AKey1, AKey2, APip: Boolean): Integer;
+var
+  Mask: Byte;
+  Buffer: AnsiString;
+begin
+  Mask := $00;
+
+  if (AKey1) then Mask := Mask or $01;
+
+  if (AKey2) then Mask := Mask or $02;
+
+  if (APip) then  Mask := Mask or $04;
+
+  Buffer := AnsiChar(Mask);
+  Result := TransmitCommand($04, Buffer, Length(Buffer));
+end;
+
+// Request take logo
+function TK2ESwitcher.TakeLogo(ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;
+var
+  Mask: Byte;
+  Buffer: AnsiString;
+begin
+  Mask := $00;
+
+  if (ALogo1) then Mask := Mask or $01;
+  if (ALogo2) then Mask := Mask or $02;
+  if (ALogo3) then Mask := Mask or $04;
+  if (ALogo4) then Mask := Mask or $08;
+
+  Buffer := AnsiChar(Mask);
+  Result := TransmitCommand($05, Buffer, Length(Buffer));
+end;
+
+// Request assign input program
+function TK2ESwitcher.AssignInputPGM(ASource: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ASource);
+  Result := TransmitCommand($10, Buffer, Length(Buffer));
+end;
+
+// Request assign input preset
+function TK2ESwitcher.AssignInputPST(ASource: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ASource);
+  Result := TransmitCommand($11, Buffer, Length(Buffer));
+end;
+
+// Request assign input router
+function TK2ESwitcher.AssignInputRouter(ASource: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ASource);
+  Result := TransmitCommand($12, Buffer, Length(Buffer));
+end;
+
+// Request set transition speed
+function TK2ESwitcher.SetTransitionSpeed(ASpeed: TK2E_TransitionSpeed): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ASpeed);
+  Result := TransmitCommand($13, Buffer, Length(Buffer));
+end;
+
+// Request set transition mode
+function TK2ESwitcher.SetTransitionMode(AMode: TK2E_TransitionMode): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AMode);
+  Result := TransmitCommand($14, Buffer, Length(Buffer));
+end;
+
+// Request set key to program
+function TK2ESwitcher.SetKeyToPGM(AKeyMask1, AKeyMask2, AKey1, AKey2: Boolean): Integer;
+var
+  KeyMask, Key: Byte;
+  Buffer: AnsiString;
+begin
+  KeyMask := $00;
+  Key     := $00;
+
+  if (AKeyMask1) then KeyMask := KeyMask or $01;
+
+  if (AKeyMask2) then KeyMask := KeyMask or $02;
+
+  if (AKey1) then Key := Key or $01;
+
+  if (AKey2) then Key := Key or $02;
+
+  Buffer := AnsiChar(KeyMask) + AnsiChar(Key);
+  Result := TransmitCommand($20, Buffer, Length(Buffer));
+end;
+
+// Request set key to preset
+function TK2ESwitcher.SetKeyToPST(AKeyMask1, AKeyMask2, AKey1, AKey2: Boolean): Integer;
+var
+  KeyMask, Key: Byte;
+  Buffer: AnsiString;
+begin
+  KeyMask := $00;
+  Key     := $00;
+
+  if (AKeyMask1) then KeyMask := KeyMask or $01;
+
+  if (AKeyMask2) then KeyMask := KeyMask or $02;
+
+  if (AKey1) then Key := Key or $01;
+
+  if (AKey2) then Key := Key or $02;
+
+  Buffer := AnsiChar(KeyMask) + AnsiChar(Key);
+  Result := TransmitCommand($21, Buffer, Length(Buffer));
+end;
+
+// Request set key transition mode
+function TK2ESwitcher.SetKeyTransitionMode(AMode: TK2E_TransitionMode): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AMode);
+  Result := TransmitCommand($22, Buffer, Length(Buffer));
+end;
+
+// Request set logo to program
+function TK2ESwitcher.SetLogoToPGM(ALogoMask1, ALogoMask2, ALogoMask3, ALogoMask4, ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;
+var
+  LogoMask, Logo: Byte;
+  Buffer: AnsiString;
+begin
+  LogoMask := $00;
+  Logo     := $00;
+
+  if (ALogoMask1) then LogoMask := LogoMask or $01;
+
+  if (ALogoMask2) then LogoMask := LogoMask or $02;
+
+  if (ALogoMask3) then LogoMask := LogoMask or $04;
+
+  if (ALogoMask4) then LogoMask := LogoMask or $08;
+
+  if (ALogo1) then Logo := Logo or $01;
+
+  if (ALogo2) then Logo := Logo or $02;
+
+  if (ALogo3) then Logo := Logo or $04;
+
+  if (ALogo4) then Logo := Logo or $08;
+
+  Buffer := AnsiChar(LogoMask) + AnsiChar(Logo);
+  Result := TransmitCommand($30, Buffer, Length(Buffer));
+end;
+
+// Request set logo to preset
+function TK2ESwitcher.SetLogoToPST(ALogoMask1, ALogoMask2, ALogoMask3, ALogoMask4, ALogo1, ALogo2, ALogo3, ALogo4: Boolean): Integer;
+var
+  LogoMask, Logo: Byte;
+  Buffer: AnsiString;
+begin
+  LogoMask := $00;
+  Logo     := $00;
+
+  if (ALogoMask1) then LogoMask := LogoMask or $01;
+
+  if (ALogoMask2) then LogoMask := LogoMask or $02;
+
+  if (ALogoMask3) then LogoMask := LogoMask or $04;
+
+  if (ALogoMask4) then LogoMask := LogoMask or $08;
+
+  if (ALogo1) then Logo := Logo or $01;
+
+  if (ALogo2) then Logo := Logo or $02;
+
+  if (ALogo3) then Logo := Logo or $04;
+
+  if (ALogo4) then Logo := Logo or $08;
+
+  Buffer := AnsiChar(LogoMask) + AnsiChar(Logo);
+  Result := TransmitCommand($31, Buffer, Length(Buffer));
+end;
+
+// Request set logo transition mode
+function TK2ESwitcher.SetLogoTransitionMode(AMode: TK2E_TransitionMode): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AMode);
+  Result := TransmitCommand($32, Buffer, Length(Buffer));
+end;
+
+// Request set pip to program
+function TK2ESwitcher.SetPipToPGM(APipOn: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(APipOn);
+  Result := TransmitCommand($38, Buffer, Length(Buffer));
+end;
+
+// Request set pip to preset
+function TK2ESwitcher.SetPipToPST(APipOn: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(APipOn);
+  Result := TransmitCommand($39, Buffer, Length(Buffer));
+end;
+
+// Request remote mode
+function TK2ESwitcher.SetRemoteMode(AMode: TK2E_RemoteMode): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AMode);
+  Result := TransmitCommand($50, Buffer, Length(Buffer));
+end;
+
+// Request remote lock
+function TK2ESwitcher.SetRemoteLock(ALock: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ALock);
+  Result := TransmitCommand($51, Buffer, Length(Buffer));
+end;
+
+// Get matrix
+function TK2ESwitcher.GetMatrix(var AMatrix: TK2E_Matrix): Integer;
+var
+  Buffer: AnsiString;
+begin
+  FillChar(AMatrix, SizeOf(TK2E_Matrix), #0);
+
+  Buffer := '';
+  Result := TransmitCommand($60, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) < 6) then exit;
+
+    AMatrix.PGM     := Ord(FReceivedData[1]);
+    AMatrix.PST     := Ord(FReceivedData[2]);
+    AMatrix.Route   := Ord(FReceivedData[3]);
+    AMatrix.OutFlag := TK2E_OutFlag(Ord(FReceivedData[4]));
+
+    AMatrix.MixPGM.Key1 := (Ord(FReceivedData[5]) and $01) = $01;
+    AMatrix.MixPGM.Key2 := (Ord(FReceivedData[5]) and $02) = $02;
+    AMatrix.MixPGM.Pip  := (Ord(FReceivedData[5]) and $04) = $04;
+    AMatrix.MixPGM.Logo1 := (Ord(FReceivedData[5]) and $10) = $10;
+    AMatrix.MixPGM.Logo2 := (Ord(FReceivedData[5]) and $20) = $20;
+    AMatrix.MixPGM.Logo3 := (Ord(FReceivedData[5]) and $40) = $40;
+    AMatrix.MixPGM.Logo4 := (Ord(FReceivedData[5]) and $80) = $80;
+
+    AMatrix.MixPST.Key1 := (Ord(FReceivedData[6]) and $01) = $01;
+    AMatrix.MixPST.Key2 := (Ord(FReceivedData[6]) and $02) = $02;
+    AMatrix.MixPST.Pip  := (Ord(FReceivedData[6]) and $04) = $04;
+    AMatrix.MixPST.Logo1 := (Ord(FReceivedData[6]) and $10) = $10;
+    AMatrix.MixPST.Logo2 := (Ord(FReceivedData[6]) and $20) = $20;
+    AMatrix.MixPST.Logo3 := (Ord(FReceivedData[6]) and $40) = $40;
+    AMatrix.MixPST.Logo4 := (Ord(FReceivedData[6]) and $80) = $80;
+  end;
+end;
+
+// Get transition config
+function TK2ESwitcher.GetTransitionConfig(var AConfig: TK2E_TransitionConfig): Integer;
+var
+  Buffer: AnsiString;
+begin
+  FillChar(AConfig, SizeOf(TK2E_TransitionConfig), #0);
+
+  Buffer := '';
+  Result := TransmitCommand($61, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) < 5) then exit;
+
+    AConfig.TrMode      := TK2E_TransitionMode(Ord(FReceivedData[1]));
+    AConfig.TrSpeed     := TK2E_TransitionSpeed(Ord(FReceivedData[2]));
+
+    AConfig.KeyTrMode   := TK2E_TransitionMode(Ord(FReceivedData[3]));
+    AConfig.LogoTrMode  := TK2E_TransitionMode(Ord(FReceivedData[4]));
+    AConfig.PipTrMode   := TK2E_TransitionMode(Ord(FReceivedData[5]));
+  end;
+end;
+
+// Get matrix
+function TK2ESwitcher.GetSystemConfig(var AAPS: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AAPS := False;
+
+  Buffer := '';
+  Result := TransmitCommand($64, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) < 1) then exit;
+
+    AAPS := (Ord(FReceivedData[1]) and $01) = $01;
+  end;
+end;
+
+// Get input status
+function TK2ESwitcher.GetInputStatus(var AStatus: TK2E_InputStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  FillChar(AStatus, SizeOf(TK2E_TransitionConfig), #0);
+
+  Buffer := '';
+  Result := TransmitCommand($65, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) < 6) then exit;
+
+    AStatus.Reference   := TK2E_ReferenceType(Ord(FReceivedData[1]));
+    AStatus.PGM         := TK2E_StatusType(Ord(FReceivedData[2]));
+    AStatus.PST         := TK2E_StatusType(Ord(FReceivedData[3]));
+    AStatus.Key1        := TK2E_StatusType(Ord(FReceivedData[4]));
+    AStatus.Key2        := TK2E_StatusType(Ord(FReceivedData[5]));
+    AStatus.PIP         := TK2E_StatusType(Ord(FReceivedData[6]));
+  end;
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(AK2ESwitcher: TK2ESwitcher);
+begin
+  FK2ESwitcher := AK2ESwitcher;
+  FreeOnTerminate := False;
+  inherited Create(False);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+
+  function GetMatrix(var AMatrix: TK2E_Matrix): Integer;
+  var
+    Buffer: AnsiString;
+  begin
+    Result := D_FALSE;
+    ZeroMemory(@AMatrix, SizeOf(TK2E_Matrix));
+
+    with FK2ESwitcher do
+    begin
+      Buffer := '';
+      Result := TransmitCommand($60, Buffer, Length(Buffer));
+
+      if (Result = D_OK) then
+      begin
+        if (Length(FReceivedData) < 6) then exit;
+
+        AMatrix.PGM     := Ord(FReceivedData[1]);
+        AMatrix.PST     := Ord(FReceivedData[2]);
+        AMatrix.Route   := Ord(FReceivedData[3]);
+        AMatrix.OutFlag := TK2E_OutFlag(Ord(FReceivedData[4]));
+
+        AMatrix.MixPGM.Key1 := (Ord(FReceivedData[5]) and $01) = $01;
+        AMatrix.MixPGM.Key2 := (Ord(FReceivedData[5]) and $02) = $02;
+        AMatrix.MixPGM.Pip  := (Ord(FReceivedData[5]) and $04) = $04;
+        AMatrix.MixPGM.Logo1 := (Ord(FReceivedData[5]) and $10) = $10;
+        AMatrix.MixPGM.Logo2 := (Ord(FReceivedData[5]) and $20) = $20;
+        AMatrix.MixPGM.Logo3 := (Ord(FReceivedData[5]) and $40) = $40;
+        AMatrix.MixPGM.Logo4 := (Ord(FReceivedData[5]) and $80) = $80;
+
+        AMatrix.MixPST.Key1 := (Ord(FReceivedData[6]) and $01) = $01;
+        AMatrix.MixPST.Key2 := (Ord(FReceivedData[6]) and $02) = $02;
+        AMatrix.MixPST.Pip  := (Ord(FReceivedData[6]) and $04) = $04;
+        AMatrix.MixPST.Logo1 := (Ord(FReceivedData[6]) and $10) = $10;
+        AMatrix.MixPST.Logo2 := (Ord(FReceivedData[6]) and $20) = $20;
+        AMatrix.MixPST.Logo3 := (Ord(FReceivedData[6]) and $40) = $40;
+        AMatrix.MixPST.Logo4 := (Ord(FReceivedData[6]) and $80) = $80;
+      end;
+    end;
+  end;
+
+begin
+  inherited;
+  if not FK2ESwitcher.Connected then exit;
+
+  with FK2ESwitcher do
+  begin
+    FSaveConnected := FConnected;
+    FSaveMatrix    := FMatrix;
+
+    if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+    begin
+      FConnected := False;
+      exit;
+    end;
+
+    R := GetMatrix(FMatrix);
+    if (R = D_OK) then FConnected := True
+    else FConnected := False;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+  with FK2ESwitcher do
+  begin
+    if Assigned(FOnConnectChanged) then
+      if FSaveConnected <> FConnected then
+        FOnConnectChanged(FK2ESwitcher, FConnected);
+
+    if Assigned(FOnMatrixChanged) then
+      if (FSaveMatrix.PGM <> FMatrix.PGM) or
+         (FSaveMatrix.PST <> FMatrix.PST) or
+         (FSaveMatrix.Route <> FMatrix.Route) or
+         (FSaveMatrix.OutFlag <> FMatrix.OutFlag) or
+         (FSaveMatrix.MixPGM.Key1 <> FMatrix.MixPGM.Key1) or
+         (FSaveMatrix.MixPGM.Key2 <> FMatrix.MixPGM.Key2) or
+         (FSaveMatrix.MixPGM.Pip <> FMatrix.MixPGM.Pip) or
+         (FSaveMatrix.MixPGM.Logo1 <> FMatrix.MixPGM.Logo1) or
+         (FSaveMatrix.MixPGM.Logo2 <> FMatrix.MixPGM.Logo2) or
+         (FSaveMatrix.MixPGM.Logo3 <> FMatrix.MixPGM.Logo3) or
+         (FSaveMatrix.MixPGM.Logo4 <> FMatrix.MixPGM.Logo4) or
+         (FSaveMatrix.MixPST.Key1 <> FMatrix.MixPGM.Key1) or
+         (FSaveMatrix.MixPST.Key2 <> FMatrix.MixPGM.Key2) or
+         (FSaveMatrix.MixPST.Pip <> FMatrix.MixPGM.Pip) or
+         (FSaveMatrix.MixPST.Logo1 <> FMatrix.MixPGM.Logo1) or
+         (FSaveMatrix.MixPST.Logo2 <> FMatrix.MixPGM.Logo2) or
+         (FSaveMatrix.MixPST.Logo3 <> FMatrix.MixPGM.Logo3) or
+         (FSaveMatrix.MixPST.Logo4 <> FMatrix.MixPGM.Logo4) then
+        FOnMatrixChanged(FK2ESwitcher, FMatrix);
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0 then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FK2ESwitcher.AutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

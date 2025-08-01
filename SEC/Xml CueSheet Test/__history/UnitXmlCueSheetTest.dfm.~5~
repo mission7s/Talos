@@ -1,0 +1,59 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 730
+  ClientWidth = 1068
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 96
+  TextHeight = 13
+  object mmXml: TMemo
+    Left = 640
+    Top = 8
+    Width = 420
+    Height = 714
+    TabOrder = 0
+  end
+  object edLoadXmlFile: TEdit
+    Left = 8
+    Top = 24
+    Width = 545
+    Height = 21
+    TabOrder = 1
+    Text = 
+      'D:\User Data\Git\APC\SEC\Win64\Debug\CueSheet\ebs_test_20180810_' +
+      #51221#44508#54200#49457'_1_endofnext.xml'
+  end
+  object edSaveXmlFile: TEdit
+    Left = 8
+    Top = 104
+    Width = 545
+    Height = 21
+    TabOrder = 2
+  end
+  object btnLoad: TButton
+    Left = 559
+    Top = 22
+    Width = 75
+    Height = 25
+    Caption = 'Load'
+    TabOrder = 3
+    OnClick = btnLoadClick
+  end
+  object btnSave: TButton
+    Left = 559
+    Top = 102
+    Width = 75
+    Height = 25
+    Caption = 'Save'
+    TabOrder = 4
+  end
+end

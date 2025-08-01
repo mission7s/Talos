@@ -1,0 +1,262 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 한국어 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
+#ifdef _WIN32
+LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
+#pragma code_page(949)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)\r\n"
+    "LANGUAGE 18, 1\r\n"
+    "#pragma code_page(949)\r\n"
+    "#include ""res\\TAPAnimation.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\TAPAnimation.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About TAPAnimation"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "TAPAnimation Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2008",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_TAPANIMATION_DIALOG DIALOGEX 0, 0, 629, 313
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "TAPAnimation"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Connect",IDC_CONNECT,240,17,67,19
+    LTEXT           "Server IP",IDC_STATIC,13,22,30,10
+    EDITTEXT        IDC_PORT,187,20,45,13,ES_AUTOHSCROLL
+    CONTROL         "",IDC_IP,"SysIPAddress32",WS_TABSTOP,47,20,94,13
+    LTEXT           "Server Port",IDC_STATIC,147,23,37,10
+    GROUPBOX        "Connect to Server(CG)",IDC_STATIC,7,7,305,39
+    EDITTEXT        IDC_MESSAGE,14,63,296,236,ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | WS_HSCROLL
+    LTEXT           "[Message View]",IDC_STATIC,133,50,51,10
+    LTEXT           "Tcf",IDC_STATIC,337,25,14,10
+    EDITTEXT        IDC_TCF_FILENAME1,357,24,177,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE1,545,23,67,14
+    EDITTEXT        IDC_BS_X,378,56,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BS_Y,420,56,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BS_Z,462,56,32,13,ES_AUTOHSCROLL
+    LTEXT           "BeginScale",IDC_STATIC,334,58,36,10
+    LTEXT           "X",IDC_STATIC,394,42,8,10
+    LTEXT           "Y",IDC_STATIC,434,42,8,10
+    LTEXT           "Z",IDC_STATIC,474,42,8,10
+    EDITTEXT        IDC_ES_X,378,74,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ES_Y,420,74,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ES_Z,462,74,32,13,ES_AUTOHSCROLL
+    LTEXT           "EndScale",IDC_STATIC,336,77,36,10
+    PUSHBUTTON      "SetScale",IDC_SET_SCALE,545,61,67,14
+    PUSHBUTTON      "Prepare",IDC_PREPARE1,372,94,67,19
+    PUSHBUTTON      "Play",IDC_PLAY1,448,94,67,19
+    PUSHBUTTON      "Clear",IDC_CLEAR1,522,94,67,19
+    LTEXT           "Tcf",IDC_STATIC,337,146,14,10
+    EDITTEXT        IDC_TCF_FILENAME2,357,144,177,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE2,545,143,67,14
+    PUSHBUTTON      "Prepare",IDC_PREPARE2,372,274,67,19
+    PUSHBUTTON      "Play",IDC_PLAY2,447,274,67,19
+    PUSHBUTTON      "Clear",IDC_CLEAR2,522,274,67,19
+    EDITTEXT        IDC_BF_1,357,177,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EF_1,400,177,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BD_1,460,177,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_1,502,177,32,13,ES_AUTOHSCROLL
+    LTEXT           "Pie1",IDC_STATIC,337,180,14,10
+    LTEXT           "BeginFrame",IDC_STATIC,357,164,39,10
+    LTEXT           "EndFrame",IDC_STATIC,400,163,34,10
+    LTEXT           "BeginDegree",IDC_STATIC,456,163,42,10
+    LTEXT           "EndDegree",IDC_STATIC,500,164,37,10
+    PUSHBUTTON      "SetCircleAngle",IDC_SET_CIRCLEANGLE_1,546,176,67,14
+    EDITTEXT        IDC_BF_2,357,195,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EF_2,400,195,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BD_2,460,195,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_2,502,195,32,13,ES_AUTOHSCROLL
+    LTEXT           "Pie2",IDC_STATIC,337,198,14,10
+    PUSHBUTTON      "SetCircleAngle",IDC_SET_CIRCLEANGLE_2,546,195,67,14
+    EDITTEXT        IDC_BF_3,357,214,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EF_3,400,214,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BD_3,460,214,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_3,502,214,32,13,ES_AUTOHSCROLL
+    LTEXT           "Pie3",IDC_STATIC,337,217,14,10
+    PUSHBUTTON      "SetCircleAngle",IDC_SET_CIRCLEANGLE_3,546,214,67,14
+    EDITTEXT        IDC_BF_4,357,233,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EF_4,400,233,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BD_4,460,233,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_4,502,233,32,13,ES_AUTOHSCROLL
+    LTEXT           "Pie4",IDC_STATIC,337,235,14,10
+    PUSHBUTTON      "SetCircleAngle",IDC_SET_CIRCLEANGLE_4,546,233,67,14
+    EDITTEXT        IDC_BF_5,357,253,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EF_5,400,253,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BD_5,460,253,32,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_5,502,253,32,13,ES_AUTOHSCROLL
+    LTEXT           "Pie5",IDC_STATIC,337,254,14,10
+    PUSHBUTTON      "SetCircleAngle",IDC_SET_CIRCLEANGLE_5,546,252,67,14
+    GROUPBOX        "Bar Animation",IDC_STATIC,321,7,297,114
+    GROUPBOX        "Pie Animation",IDC_STATIC,321,127,297,174
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "TAPAnimation.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "TAPAnimation.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_TAPANIMATION_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 622
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 306
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About TAPAnimation..."
+END
+
+#endif    // 한국어 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
+LANGUAGE 18, 1
+#pragma code_page(949)
+#include "res\TAPAnimation.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

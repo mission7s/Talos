@@ -1,0 +1,616 @@
+unit UnitXmlCISCueSheetImportTest;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  UnitCommons, UnitConsts, UnitCISXmlConsts, LibXmlParserU, Xml.VerySimple;
+
+type
+  TForm1 = class(TForm)
+    mmLoad: TMemo;
+    edLoadXmlFile: TEdit;
+    edSaveXmlFile: TEdit;
+    btnLoad: TButton;
+    btnSave: TButton;
+    mmSave: TMemo;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnLoadClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
+  private
+    { Private declarations }
+    FPlayListFileName: String;
+
+    FChannelID: Word;
+    FChannelCueSheet: PChannelCueSheet;
+
+    FLastDisplayNo: Integer;
+    FLastSerialNo: Integer;
+    FLastProgramNo: Integer;
+    FLastGroupNo: Integer;
+    FLastCount: Integer;
+  public
+    { Public declarations }
+    procedure ClearCueSheetList;
+
+    procedure OpenPlayList(AFileName: String);
+    procedure PlaylistFileParsing(AFileName: String);
+
+    procedure SavePlayList(AFileName: String);
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.btnLoadClick(Sender: TObject);
+begin
+  OpenPlayList(edLoadXmlFile.Text);
+end;
+
+procedure TForm1.btnSaveClick(Sender: TObject);
+begin
+  SavePlayList(edSaveXmlFile.Text);
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FChannelCueSheet := New(PChannelCueSheet);
+  FillChar(FChannelCueSheet^, SizeOf(TChannelCueSheet), #0);
+  FChannelCueSheet^.ChannelId := 0;
+  FChannelCueSheet^.CueSheetList := TCueSheetList.Create;
+
+  FLastDisplayNo := 0;
+  FLastSerialNo  := 0;
+  FLastProgramNo := 0;
+  FLastGroupNo   := 0;
+
+  FLastCount  := 0;
+
+  FPlayListFileName := NEW_CUESHEET_NAME;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  ClearCueSheetList;
+end;
+
+procedure TForm1.ClearCueSheetList;
+var
+  I: Integer;
+begin
+  if (FChannelCueSheet = nil) then exit;
+  if (FChannelCueSheet^.CueSheetList = nil) then exit;
+
+  for I := FChannelCueSheet^.CueSheetList.Count - 1 downto 0 do
+    Dispose(FChannelCueSheet^.CueSheetList[I]);
+
+  FChannelCueSheet^.CueSheetList.Clear;
+end;
+
+procedure TForm1.OpenPlayList(AFileName: String);
+var
+  Xml: TXmlVerySimple;
+  DataNode: TXmlNode;
+  EventListNode, EventInfoNode: TXmlNode;
+  EventType: String;
+  I, J: Integer;
+  Item: PCueSheetItem;
+begin
+  if (FChannelCueSheet = nil) then exit;
+  if (FChannelCueSheet^.CueSheetList = nil) then exit;
+
+  ClearCueSheetList;
+
+//  PlaylistFileParsing(AFileName);
+
+  EventType := '';
+
+  Xml := TXmlVerySimple.Create;
+  try
+    Xml.LoadFromFile(AFileName);
+//    DataNode := Xml.DocumentElement.Find('data');
+//    if (DataNode <> nil) then
+    begin
+      DataNode := Xml.DocumentElement.Find(CIS_XML_SOURCE_ID).NodeValue;
+      if (DataNode <> nil) then
+        FChannelCueSheet^.ChannelId := StrToIntDef(DataNode.NodeValue, 0);
+
+      DataNode := Xml.DocumentElement.Find(CIS_XML_SCHEDULE_DATE).NodeValue;
+      if (DataNode <> nil) then
+        StrPCopy(FChannelCueSheet^.OnairDate, DataNode.NodeValue);
+
+      FChannelCueSheet^.OnairFlag := FT_REGULAR;
+
+      FChannelCueSheet^.OnairNo := 0;
+
+      EventListNode := Xml.DocumentElement.Find(CIS_XML_EVENT_LIST);
+      if (EventListNode <> nil) then
+      begin
+        for I := 0 to EventListNode.ChildNodes.Count - 1 do
+        begin
+          EventInfoNode := EventListNode.ChildNodes[I];
+
+          Item := New(PCueSheetItem);
+          FillChar(Item^, SizeOf(TCueSheetItem), #0);
+          with Item^ do
+          begin
+            EventID.ChannelID := FChannelID;
+            StrCopy(EventID.OnAirDate, FChannelCueSheet^.OnairDate);
+            EventID.OnAirFlag := FChannelCueSheet^.OnairFlag;
+            EventID.OnAirNo   := FChannelCueSheet^.OnairNo;
+
+            // Serial No
+            DataNode := EventInfoNode.Find(CIS_XML_EVENT_NUMBER);
+            // Play list를 처음 open 했을 경우에만 큐시트의 SerialNo로 저장
+            if (DataNode <> nil) and (FLastCount <= 0) then
+              FLastSerialNo := StrToIntDef(DataNode.NodeValue, 0)
+            else
+              FLastSerialNo := FLastSerialNo + 1;
+
+            EventID.SerialNo := FLastSerialNo;
+
+            // Event Type
+            DataNode := EventInfoNode.Find(CIS_XML_EVENT_TYPE);
+            EventMode := EM_COMMENT;
+            if (DataNode <> nil) then
+            begin
+              if (UpperCase(DataNode.NodeValue) = 'T') then
+                EventMode := EM_MAIN
+              else if (UpperCase(DataNode.NodeValue) = 'S') then
+                EventMode := EM_SUB;
+            end;
+
+            if (EventType <> '') and (EventMode = EM_MAIN) then
+            begin
+              Inc(FLastProgramNo);
+              Inc(FLastGroupNo);
+            end;
+
+            if (DataNode <> nil) then
+              EventType := DataNode.NodeValue;
+
+            // Program No
+            // Play list를 처음 open 했을 경우에만 큐시트의 ProgramNo로 저장
+            if (FLastCount <= 0) then
+            begin
+              ProgramNo := FLastProgramNo;
+            end
+            else
+            begin
+              ProgramNo := ProgramNo + FLastProgramNo;
+            end;
+
+            // Group No
+            // Play list를 처음 open 했을 경우에만 큐시트의 GroupNo로 저장
+            if (FLastCount <= 0) then
+            begin
+              GroupNo := FLastGroupNo;
+            end
+            else
+            begin
+              GroupNo := GroupNo + FLastGroupNo;
+            end;
+
+            // Display No
+            if (EventMode = EM_MAIN) then
+              Inc(FLastDisplayNo);
+
+            DisplayNo := FLastDisplayNo;
+
+            // Start Mode
+            DataNode := EventInfoNode.Find(CIS_XML_TIME_TYPE);
+            StartMode := SM_AUTOFOLLOW;
+            if (DataNode <> nil) then
+            begin
+              if (DataNode.NodeValue = '') then
+                StartMode := SM_ABSOLUTE
+              else if (UpperCase(DataNode.NodeValue) = 'U') then
+                StartMode := SM_MANUAL
+              else if (UpperCase(DataNode.NodeValue) = 'BEGIN') then
+                StartMode := SM_SUBBEGIN
+              else if (UpperCase(DataNode.NodeValue) = 'END') then
+                StartMode := SM_SUBEND;
+            end;
+
+            // Start Time
+            DataNode := EventInfoNode.Find(CIS_XML_START_TIME);
+            if (DataNode <> nil) then
+              StartTime := DateTimecodeStrToEventTime(String(EventID.OnAirDate) + ' ' + DataNode.NodeValue);
+
+            DataNode := EventInfoNode.Find(CIS_XML_EVENT_MODE);
+            Input := IT_MAIN;
+            Output := Integer(OB_BOTH);
+            if (DataNode <> nil) then
+            begin
+              if (UpperCase(DataNode.NodeValue) = 'VA') then
+              begin
+                Input := IT_MAIN;
+                Output := Integer(OB_BOTH);
+              end
+              else if (UpperCase(DataNode.NodeValue) = 'BAK') then
+              begin
+                EventMode := EM_JOIN;
+                Input := IT_BACKUP;
+                Output := Integer(OB_BOTH);
+              end
+              else if (UpperCase(DataNode.NodeValue) = 'KEY') then
+              begin
+                Input := IT_KEYER1;
+                Output := Integer(OK_ON);
+              end;
+            end;
+
+            // Title
+            DataNode := EventInfoNode.Find(CIS_XML_TITLE);
+            if (DataNode <> nil) then
+              StrPCopy(Title, DataNode.NodeValue);
+
+            // Sub Title
+            DataNode := EventInfoNode.Find(CIS_XML_MEMO);
+            if (DataNode <> nil) then
+              StrPCopy(SubTitle, DataNode.NodeValue);
+
+            // Source
+            // Source ID로 재 구분 필요
+            DataNode := EventInfoNode.Find(CIS_XML_EVENT_SOURCE);
+            if (DataNode <> nil) then
+              StrPCopy(Source, DataNode.NodeValue);
+
+            // Media Id
+            DataNode := EventInfoNode.Find(CIS_XML_CLIP_ID);
+            if (DataNode <> nil) then
+            begin
+              if (Input in [IT_MAIN, IT_BACKUP]) then
+                StrPCopy(MediaId, DataNode.NodeValue)
+              else
+                StrPCopy(MediaId, DataNode.NodeValue); // 실제 Cut 파일명으로 매치해야 함
+            end;
+
+            // Duration
+            DataNode := EventInfoNode.Find(CIS_XML_DURATION);
+            if (DataNode <> nil) then
+              DurationTC := StringToTimecode(DataNode.NodeValue);
+
+            // In TC
+            DataNode := EventInfoNode.Find(CIS_XML_SOM);
+            if (DataNode <> nil) then
+              InTC := StringToTimecode(DataNode.NodeValue);
+
+            // Out TC
+            OutTC := GetMinusTimecode(GetPlusTimecode(InTC, DurationTC), StringToTimecode('00:00:00:01'));
+
+            // Video Type
+            VideoType := VT_HD;
+
+            // Audio Type
+            AudioType := AT_STEREO;
+
+            // Closed Caption
+            DataNode := EventInfoNode.Find(CIS_XML_CAPTION);
+            ClosedCaption := CC_NONE;
+            if (DataNode <> nil) then
+            begin
+              if (UpperCase(DataNode.NodeValue) = 'Y') then
+                ClosedCaption := CC_EXIST;
+            end;
+
+            // Voice Add
+            DataNode := EventInfoNode.Find(CIS_XML_VOICE_ADD);
+            VoiceAdd := VA_KOREA_SCREEN;
+            if (DataNode <> nil) then
+            begin
+              if (UpperCase(DataNode.NodeValue) = 'N') then
+                VoiceAdd := VA_NONE;
+            end;
+
+            // Transition Type
+            TransitionType := TT_FADE;
+
+            // Ytansition Rate
+            TransitionRate := TR_MEDIUM;
+
+            // Program Type
+            // 추후 event class로 분류
+            ProgramType := 0;
+
+            // Notes
+            StrPCopy(Notes, '');
+          end;
+
+          FChannelCueSheet^.CueSheetList.Add(Item);
+        end;
+      end;
+    end;
+
+    mmLoad.Text := Xml.Text;
+  finally
+    FreeAndNil(Xml);
+  end;
+
+  FPlayListFileName := AFileName;
+
+  FLastCount     := FChannelCueSheet^.CueSheetList.Count;
+
+  if (FLastCount > 0) then
+  begin
+    FLastProgramNo := FChannelCueSheet^.CueSheetList[FLastCount - 1]^.ProgramNo;
+    FLastGroupNo   := FChannelCueSheet^.CueSheetList[FLastCount - 1]^.GroupNo;
+  end
+  else
+  begin
+    FLastProgramNo := 0;
+    FLastGroupNo   := 0;
+  end;
+end;
+
+procedure TForm1.PlaylistFileParsing(AFileName: String);
+var
+  XmlParser: TXmlParser;
+  CueSheetItem: PCueSheetItem;
+
+  procedure ScanElement;
+  var
+    I: Integer;
+    ContentStr: AnsiString;
+  begin
+    while XmlParser.Scan do
+    begin
+      case XmlParser.CurPartType OF
+        ptStartTag,
+        ptEmptyTag:
+        begin
+          if (XmlParser.CurAttr.Count > 0) then
+          begin
+            if (XmlParser.CurName = XML_EVENT) then
+            begin
+              CueSheetItem := New(PCueSheetItem);
+              FillChar(CueSheetItem^, SizeOf(TCueSheetItem), #0);
+              with CueSheetItem^ do
+              begin
+                EventID.ChannelID := FChannelID;
+                StrCopy(EventID.OnAirDate, FChannelCueSheet^.OnairDate);
+                EventID.OnAirFlag := FChannelCueSheet^.OnairFlag;
+                EventID.OnAirNo   := FChannelCueSheet^.OnairNo;
+
+                for I := 0 to XmlParser.CurAttr.Count - 1 do
+                begin
+                  if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_SERIAL_NO) then
+                  begin
+                    // Play list를 처음 open 했을 경우에만 큐시트의 SerialNo로 저장
+                    if (FLastCount <= 0) then
+                    begin
+                      FLastSerialNo := StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0);
+                    end
+                    else
+                    begin
+                      FLastSerialNo := FLastSerialNo + 1;
+                    end;
+                    EventID.SerialNo := FLastSerialNo;
+                  end
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_PROGRAM_NO) then
+                  begin
+                    // Play list를 처음 open 했을 경우에만 큐시트의 ProgramNo로 저장
+                    FLastProgramNo := StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0);
+                    if (FLastCount <= 0) then
+                    begin
+                      ProgramNo := FLastProgramNo;
+                    end
+                    else
+                    begin
+                      ProgramNo := ProgramNo + FLastProgramNo;
+                    end;
+                  end
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_GROUP_NO) then
+                  begin
+                    // Play list를 처음 open 했을 경우에만 큐시트의 GroupNo로 저장
+                    FLastGroupNo := StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0);
+                    if (FLastCount <= 0) then
+                    begin
+                      GroupNo := FLastGroupNo;
+                    end
+                    else
+                    begin
+                      GroupNo := GroupNo + FLastGroupNo;
+                    end;
+                  end
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_EVENT_MODE) then
+                  begin
+                    EventMode := TEventMode(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0));
+                    if (EventMode = EM_MAIN) then
+                      Inc(FLastDisplayNo);
+
+                    DisplayNo := FLastDisplayNo;
+                  end
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_START_MODE) then
+                    StartMode := TStartMode(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_START_TIME) then
+                    StartTime := DateTimecodeStrToEventTime(TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_INPUT) then
+                    Input := TInputType(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_OUTPUT) then
+                    Output := StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_TITLE) then
+                    StrPCopy(Title, TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_SUB_TITLE) then
+                    StrPCopy(SubTitle, TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_SOURCE) then
+                    StrPCopy(Source, TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_MEDIA_ID) then
+                    StrPCopy(MediaId, TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_DURATION_TC) then
+                    DurationTC := StringToTimecode(TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_IN_TC) then
+                    InTC := StringToTimecode(TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_OUT_TC) then
+                    OutTC := StringToTimecode(TNvpNode(XmlParser.CurAttr[I]).Value)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_VIDEO_TYPE) then
+                    VideoType := TVideoType(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_AUDIO_TYPE) then
+                    AudioType := TAudioType(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_CLOSED_CAPTION) then
+                    ClosedCaption := TClosedCaption(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_VOICE_ADD) then
+                    VoiceAdd := TVoiceAdd(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_TRANSITION_TYPE) then
+                    TransitionType := TTRType(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_TRANSITION_RATE) then
+                    TransitionRate := TTRRate(StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0))
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_PROGRAM_TYPE) then
+                    ProgramType := StrToIntDef(TNvpNode(XmlParser.CurAttr[I]).Value, 0)
+                  else if (TNvpNode(XmlParser.CurAttr[I]).Name = XML_ATTR_NOTES) then
+                    StrPCopy(Notes, TNvpNode(XmlParser.CurAttr[I]).Value);
+                end;
+              end;
+              FChannelCueSheet^.CueSheetList.Add(CueSheetItem);
+            end;
+
+          end;
+
+          if (XmlParser.CurPartType = ptStartTag) then  // Recursion
+            ScanElement;
+        end;
+        ptEndTag: break;
+        ptContent,
+        ptCData:
+        begin
+          // Play list를 처음 open 했을 경우에만 채널의 큐시트 정보를 저장
+          if (FLastCount <= 0) then
+          begin
+            if (Length(XmlParser.CurContent) > 40) then
+              ContentStr := Copy (XmlParser.CurContent, 1, 40) + #133
+            else
+              ContentStr := XmlParser.CurContent;
+
+  {          if (XmlParser.CurName = XML_CHANNEL_ID) then
+            begin
+              FChannelCueSheet^.ChannelId := StrToIntDef(ContentStr, 0);
+            end
+            else} if (XmlParser.CurName = XML_ONAIR_DATE) then
+            begin
+              StrPCopy(FChannelCueSheet^.OnairDate, ContentStr);
+            end
+            else if (XmlParser.CurName = XML_ONAIR_FLAG) then
+            begin
+              if (Length(ContentStr) > 0) then
+                FChannelCueSheet^.OnairFlag := TOnAirFlagType(Ord(ContentStr[1]))
+              else
+                FChannelCueSheet^.OnairFlag := FT_REGULAR;
+            end
+            else if (XmlParser.CurName = XML_ONAIR_NO) then
+            begin
+              FChannelCueSheet^.OnairNo := StrToIntDef(ContentStr, 0);
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+begin
+  XmlParser := TXmlParser.Create;
+  try
+    XmlParser.LoadFromFile(AFileName);
+    XmlParser.Normalize := True;
+    XmlParser.StartScan;
+
+    ScanElement;
+
+    mmLoad.Text := AnsiString(XmlParser.DocBuffer);
+  finally
+    FreeAndNil(XmlParser);
+  end;
+end;
+
+procedure TForm1.SavePlayList(AFileName: String);
+var
+  Xml: TXmlVerySimple;
+  DocType: TXmlNode;
+  DataNode: TXmlNode;
+  EventsNode, EventNode: TXmlNode;
+  I: Integer;
+  Item: PCueSheetItem;
+begin
+  if (FPlayListFileName <> '') and
+     (FPlayListFileName <> NEW_CUESHEET_NAME) then
+  begin
+    // Create a XML document first, and save it
+    Xml := TXmlVerySimple.Create;
+    try
+      DocType := Xml.AddChild('DocType', ntDocType);
+      DocType.Text := 'data [' + #13#10 +
+                      '<!ELEMENT data (channelid, onairdate, onairflag, onairno, events)>' + #13#10 +
+                      '<!ELEMENT channelid (#PCDATA)>' + #13#10 +
+                      '<!ELEMENT onairdate (#PCDATA)>' + #13#10 +
+                      '<!ELEMENT onairflag (#PCDATA)>' + #13#10 +
+                      '<!ELEMENT onairno (#PCDATA)>' + #13#10 +
+                      '<!ELEMENT eventcount (#PCDATA)>' + #13#10 +
+                      '<!ELEMENT events (event)>' + #13#10 +
+                      '<!ELEMENT event (#PCDATA)>' + #13#10 +
+                      ']';
+
+      DataNode := Xml.AddChild('data');
+      DataNode.Addchild(XML_CHANNEL_ID).Text := Format('%d', [FChannelCueSheet^.ChannelId]);
+      DataNode.Addchild(XML_ONAIR_DATE).Text := String(FChannelCueSheet^.OnairDate);
+      DataNode.Addchild(XML_ONAIR_FLAG).Text := Char(FChannelCueSheet^.OnairFlag);
+      DataNode.Addchild(XML_ONAIR_NO).Text := Format('%d', [FChannelCueSheet^.OnairNo]);
+      DataNode.Addchild(XML_EVENT_COUNT).Text := Format('%d', [FChannelCueSheet^.CueSheetList.Count]);
+
+      EventsNode := DataNode.Addchild(XML_EVENTS);
+      for I := 0 to FChannelCueSheet^.CueSheetList.Count - 1 do
+      begin
+        Item := FChannelCueSheet^.CueSheetList[I];
+        EventNode := EventsNode.AddChild(XML_EVENT);
+        EventNode.SetAttribute(XML_ATTR_SERIAL_NO, Format('%d', [I]));
+        EventNode.SetAttribute(XML_ATTR_PROGRAM_NO, Format('%d', [Item^.ProgramNo]));
+        EventNode.SetAttribute(XML_ATTR_GROUP_NO, Format('%d', [Item^.GroupNo]));
+        EventNode.SetAttribute(XML_ATTR_EVENT_MODE, Format('%d', [Ord(Item^.EventMode)]));
+
+        if (Item^.EventMode in [EM_MAIN, EM_JOIN, EM_SUB]) then
+        begin
+          EventNode.SetAttribute(XML_ATTR_START_MODE, Format('%d', [Ord(Item^.StartMode)]));
+          EventNode.SetAttribute(XML_ATTR_START_TIME, EventTimeToString(Item^.StartTime));
+          EventNode.SetAttribute(XML_ATTR_INPUT, Format('%d', [Ord(Item^.Input)]));
+          EventNode.SetAttribute(XML_ATTR_OUTPUT, Format('%d', [Ord(Item^.Output)]));
+        end;
+
+        EventNode.SetAttribute(XML_ATTR_TITLE, String(Item^.Title));
+
+        if (Item^.EventMode <> EM_COMMENT) then
+        begin
+          EventNode.SetAttribute(XML_ATTR_SUB_TITLE, String(Item^.SubTitle));
+        end;
+
+        if (Item^.EventMode in [EM_MAIN, EM_JOIN, EM_SUB]) then
+        begin
+          EventNode.SetAttribute(XML_ATTR_SOURCE, String(Item^.Source));
+          EventNode.SetAttribute(XML_ATTR_MEDIA_ID, String(Item^.MediaId));
+          EventNode.SetAttribute(XML_ATTR_DURATION_TC, TimecodeToString(Item^.DurationTC));
+          EventNode.SetAttribute(XML_ATTR_IN_TC, TimecodeToString(Item^.InTC));
+          EventNode.SetAttribute(XML_ATTR_OUT_TC, TimecodeToString(Item^.OutTC));
+          EventNode.SetAttribute(XML_ATTR_VIDEO_TYPE, Format('%d', [Ord(Item^.VideoType)]));
+          EventNode.SetAttribute(XML_ATTR_AUDIO_TYPE, Format('%d', [Ord(Item^.AudioType)]));
+          EventNode.SetAttribute(XML_ATTR_CLOSED_CAPTION, Format('%d', [Ord(Item^.ClosedCaption)]));
+          EventNode.SetAttribute(XML_ATTR_VOICE_ADD, Format('%d', [Ord(Item^.VoiceAdd)]));
+          EventNode.SetAttribute(XML_ATTR_TRANSITION_TYPE, Format('%d', [Ord(Item^.TransitionType)]));
+          EventNode.SetAttribute(XML_ATTR_TRANSITION_RATE, Format('%d', [Ord(Item^.TransitionRate)]));
+          EventNode.SetAttribute(XML_ATTR_PROGRAM_TYPE, Format('%d', [Ord(Item^.ProgramType)]));
+          EventNode.SetAttribute(XML_ATTR_NOTES, String(Item^.Notes));
+        end;
+      end;
+
+      Xml.SaveToFile(AFileName);
+
+      mmSave.Text := Xml.Text;
+    finally
+      FreeAndNil(Xml);
+    end;
+  end;
+end;
+
+end.

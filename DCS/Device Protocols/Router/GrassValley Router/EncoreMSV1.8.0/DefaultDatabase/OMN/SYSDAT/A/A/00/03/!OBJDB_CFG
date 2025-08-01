@@ -1,0 +1,66 @@
+;OBJDB_CFG
+{
+;List[2]
+{
+:ServiceType
+:ServiceName
+:ServiceTag
+=0
+[20]=System Configuration
+[13]=SYSTEM_CONFIG
+=4
+[21]=Cue Service Providers
+[17]=OMNSVC_CUECONTROL
+}
+}
+;SYSTEM_CONFIG
+{
+;List[1]
+{
+:ServiceType
+:ServiceName
+:ServiceTag
+=1
+[19]=Media Configuration
+[12]=MEDIA_CONFIG
+}
+}
+;OMNSVC_CUECONTROL
+{
+;List[10]
+{
+:ServiceType
+:ServiceName
+:ServiceTag
+=1
+[17]=Caption Generator
+[15]=OMNSVC_CUE_TEXT
+=2
+[11]=Slate Clock
+[21]=OMNSVC_CUE_SLATECLOCK
+=3
+[12]=Vision Mixer
+[17]=OMNSVC_CUE_VISMIX
+=5
+[11]=Still Store
+[19]=OMNSVC_CUE_GRAPHICS
+=7
+[3]=VTR
+[14]=OMNSVC_CUE_VTR
+=8
+[17]=Video Disk Server
+[15]=OMNSVC_CUE_DISK
+=17
+[17]=Auxilliary Server
+[18]=OMNSVC_CUE_CBS_AUX
+=18
+[10]=Data Vault
+[16]=OMNSVC_CUE_VAULT
+=20
+[6]=Browse
+[17]=OMNSVC_CUE_BROWSE
+=24
+[7]=Web VDR
+[17]=OMNSVC_CUE_LOBROW
+}
+}

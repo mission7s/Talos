@@ -1,0 +1,3046 @@
+
+**************************************************************
+*****			Router 3 History File		******
+**************************************************************
+
+**************************************************************
+Router 4.08 build 6 - Mahendran 26/01/09
+********************CURRENT RELEASE***************************
+**************************************************************
+107531 - Undef status of Concerto crosspoints are shown as Source 1, after RCE reboots and the Concerto board is reinserted
+(cpl_driver.cpp,Matrix.cpp)
+
+88068 - CPL error messages should indicate the IP address of the device causing the error
+(cpl_driver.cpp,CMatrixData.h,CMatrixData.cpp,MatrixAttributes.h,MatrixAttributes.cpp,matrixVxx86.wpj)
+
+113234 -The dynamic audio attribute display on the Route Status screen is incorrect with a two level Mono Audio               configuration
+(rt_attr.c)
+
+111928 - Remove duplicate Logical Matrix Configuration
+(rt_ioedit.c,rt_db.h)
+
+107528 - "RouteHandle was NULL" console prints are seen continuously for some time during a Load operation from RCE
+(rt_main.c)
+
+113024 - Fix for CBS issue reported by John Liron. This is to avoid the switching delay (2 to 3 frames) seen with NVison routers.
+(matrixlib.c)
+
+112939 - Nexus driver shall support configuring of the Park input and tally back on RCE status screen.
+(mp_nexus.cpp)
+
+110596 - Encore RCE to control Stage Tec NEXUS Router
+(rt_confg.c, rt_dest.c, rt_file.c, rt_init.c, rt_logic.c, rt_main.c, rt_route.c, rt_rules.c, rt_src.c, rt_text.c, 
+rtdomain.c, rtomnsvc.c, rtpending.c, rt_db.h, mp_nexus.cpp, matrixlib.c, mlib_def.h, rguidata, rguitoke, rmessage, 
+MatrixLib.dsp, router3.dsp, router3.dsw, matrixlib.wpj, rt_tssalvo.c, rt_tssalvo.h)
+
+62675 -NP Matrix driver should show Parked as the status instead of <undef> for dis-connected destinations
+(rt_logic.c)
+
+112954 - Selecting local /hd0 when doing an Import or Export operation in RCE causes OpHandle Process to crash
+(rt_confg.c)
+
+112070 - RCE does not come online, when the redundant SCB is configured as stand alone.
+(rt_confg.c)
+
+100899 - Changes to RCE Time Stamp Mechanism - Master and Mirror to have same Time Stamp at all times.
+(rt_confg.c,rt_tlm.c,rt_file.c,rt_file.h)
+
+109160 -salvo execution causes switch delay
+(matrixlib.c)
+
+111266 - Performing ‘Resync Matrices’ reports Invalid Salvo element for Dst# error.
+(rt_logic.c)
+
+111386 - Sometimes RCE application exits at the startup.
+(rt_main.c)
+
+38543 - Added a validation while reporting an error as part of setting an dynamic attribute of REQ-006
+(rt_attr.c)
+
+99492 - TLM occasionally misses route request from the RCE. 
+(rt_tlm.c)
+
+107243 - In a redundant RCE setup, after an import operation the database of the Mirror RCE is not updated.
+(rt_config.c)
+
+68099 - NP matrix driver support for remote "NO_XPT" status
+(rt_route.c,mp_np.cpp)
+
+106503 - RCE import does not allow user to access local flash (SCB\\hd0) in specific scenario.
+(rt_config.c)
+
+105133 -The dynamic attribute status change is not propagated to routing clients 	for a repeated attribute set.
+(rt_attr.c,rt_dstm.c)
+
+106057 - The Export File Name field accepts NON DOS FS2 characters.
+(rt_config.c)
+
+95777 - OUI RCE Import overwrites the current configuration without warning the user, should prevent this.
+(rt_config.c)
+
+99318 - Changes for export of files to a PC shared drive 'hd0' fails with XP sp3, need to add user configurable username/password 
+		for smb client access to PC's. (REQ-078)
+(rt_config.c, rt_csv.c, rt_main.c)
+
+38543 - Added the debug statements for the below file as part of REQ-006 destination dynamic attributes
+(cpl_driver.cpp)
+
+34250 - Addressed Further review comments(Resolved the conflict between timed takes and chop) for REQ-005(Destination Chop - CR 34250)
+(rt_logic.c,rt_logic.h,rt_route.c_rt_omnsvc.c,rt_tssalvo.c,rt_virt.c)
+
+100591 - RCE Red button Indication ResyncComms / CommitChanges.
+(rt_confg.c,rt_ioedit.c,rt_xpt.c,rt_names.c)
+
+103114 - 'Save' does not turn RED in Physical matrix screen when Global Attributes is modified.
+(rt_attr.c)
+
+100591 - RCE Red button Indication ResyncComms / CommitChanges.
+(rt_xpt.c,rt_src.c,rt_logmx.c,rt_ioedit.c,rt_dest.c,rt_confg.c,rt_chan.c,rt_attr.c)
+
+59250 - Fix for CR 59250(Concerto crashes when given addresses 5 and 6.OUI validation done to qualify matrix type and not set above 3 for concerto's.)
+(rt_xpt.c,rt_confg.c)
+
+49049 - Support Multi Drop Port Router feature for dubbing.
+(rt_lvls.c, rt_file.h, cpl_driver.cpp, attributes.h, attributes.c, mp_np.cpp)
+
+38543 - Added support for REQ-006 destination dynamic attributes
+(rt_logic.h,rt_logic.c,rt_attr.h,rt_attr.c,rt_main.c,rt_route.c,cpl_driver.h,cpl_driver.c,matrixlib.c,mp_cpl.cpp,attributes.h
+ mlib_def.h)
+
+101803 - Fix for CR 101803(Chop operation initiated from RCE Route Screen is failing in a redundant RCE  setup.) 
+(rt_route.c,rt_logic.c,rt_virt.c)
+
+34250 - Fix for Issues found during development tests for REQ-005(Destination Chop - CR 34250)
+(rt_route.c,rt_logic.c,rt_text.c)
+
+94657 - FIx for CR 94657(If 'Copy&Inc' is done for Protected Destination, Protect status is also copied to next destination)
+(rt_dest.c,rt_src.c)
+
+34250 - Added support for 1.8 REQ-005(Destination Chop)
+(rtomnsvc.h,rtomnsvc.c,rt_logic.h,rt_logic.c,rt_db.h,rt_virt.c,rt_text.c,rt_route.c,rt_main.c,rt_init.c,rt_file.c,rt_confg.c)
+ 
+100449 - Logging RCE errors on to the OUI has to be removed. This causes the RCE OUI to time out and disconnect.
+(rt_main.c, rt_file.c, rt_logic.c)
+
+94548 - Notify the routing clients for no status change happen due to take requested source already present on that destination
+(routeuti.c)
+
+86805 - RCE and CPS will loose redundancy IP address if upgraded without Sharer and if SEEPROM was cleared earlier
+(rt_config.c, rt_main.c)
+
+94928 - Remove floppy option from the directory lists.
+(rt_config.c)
+
+87710 - RCE memory leak when doing Copy & Inc for destinations.
+(rt_ioedit.c)
+
+94839 - Maestro can't switch a local Tieline source when the dst is protected under Encore control.
+(rt_logic.c, rt_text.c, rt_tlm.c, rt_logic.h, rtomnsvc.h)
+
+97033 - The RCE lock text size 'RT_LOCK_LEN' is set to 10 instead of 11, which is incorrect.
+(rt_route.c, rt_text.c, rt_tlm.c)
+
+90835 - Virtual routes executed via salvos have 5-7 second latency.
+(cpl_driver.cpp)
+
+90890 - No Matrix is shown on Control panel when a RCE database is reloaded.
+(cpl_driver.cpp)
+
+100446 - Reduce the OPhandle thread priority while the Xref map is read from sharer.
+(rt_text.c, rt_db.c, rt_db.h)
+
+100856 - SCB becomes unresponsive when the RCE redundancy mode is changed from the OUI.
+(rt_config.c)
+
+100857 - Too many takes fired, while mirror RCE loads the DB, can bring down the Mirror SCB. Added CR references to code changes.
+(rt_config.c, rt_main.c, rt_file.c)
+
+100988 - Freed heap memory overwritten, error while loading RCE DB in Win32.
+(m_thread.c)
+
+103951 - "Commit Changes" button should not turn RED when a RCE Config is loaded
+(rt_confg.c)
+
+100591 - Issue in Commit Changes of Names Screen
+(rt_confg.c)
+
+94073 - Prevent CPS/RCE/TLM Master Mirror IP addresses from being identical
+(rt_confg.c)
+
+104853 - RCE Show status screen indicates incorrect status when Concerto Matrix Controller board is removed 
+and when a Chop operation is in progress. But Panels indicate the status correctly.
+(rt_db.h,rt_db.c,rt_route.c)
+
+70436 (Encore 1.8.0: REQ-06(l) & REQ-052), Support monitors and audio attributes in a Salvo.
+(rt_logic.h, rt_attr.h, rtomnsvc.c, rt_text.c, rt_route.c, rt_logic.c, rt_dstm.c, rt_attr.c)
+
+106435 - Configurations with complex source rules can cause a page fault in the RCE when exporting to a .csv.
+(rt_csv.c)
+
+64411 - {REQ-054} "Disconnect Unavailable Levels" function on Encore
+(rguidata, rguitoke, rtomnsvc.h, rt_logic.h, rt_tlm.c, rt_text.c, rt_logic.c , rt_confg.c, rtomnsvc.c) 
+
+101928 - Status problem with signals routed from SD level to HD level via interlevel routing.
+(rtpending.c, rtpending.h, rtomnsvc.c, rt_text.c, rt_logic.c)
+
+106473 - COPY and INCR not working for mono audio
+(rt_src.c, rt_dest.c)
+
+65294 - Alphanumeric sort is backwards on the RCE Import CSV file lookup
+(rt_confg.c)
+
+67365 - Never ending stream of errors from the cpl driver.
+(cpl_driver.cpp,m_thread.c,matrixlib.c,mp_cpl.cpp,mp_dummy.c,mp_ltch2.c,mp_nvisn.c,mp_philips.c,
+mp_probl.c,mp_quartz.c,mp_utah.c,mlib_int.h,mp_dummy.h,mp_horizon.c,mp_np.cpp,mp_prb08.c)
+
+106732 - {REQ-110(b) "Matrix Status Processing Enhancements" - Phantom Split Issue}
+(rt_init.c,rt_ioedit.c,rt_logic.c,rt_init.h,rt_logic.h,cpl_driver.cpp,m_thread.c,matrixlib.c,mp_cpl.cpp,cpl_driver.h,
+ mlib_int.h,matrixlib.h,rt_tssalvo.c,rt_tssalvo.h,rt_virt.c,rt_xpt.c)
+
+106732 - {REQ-110(b) "Matrix Status Processing Enhancements" - Phantom Split Issue - Added the Destination Primary Level None option}
+(rt_dest.c,rt_logic.c)
+
+106683 - Support for Tie Line Source Monitors
+(rt_db.c, rt_misc.c, rt_text.c, rt_tlm.c, rt_db.h, rtomnsvc.h)
+
+110026 - The Primary Level information is missing in RCE import/export CSV file.
+(rt_csv.c)
+
+34250 - Support breakaway chop status and stop chop functionality from Routing clients as part of 1.8 REQ-005(Destination Chop).
+(rt_chop.c,rt_chop.h,rt_attr.h,rt_attr.c,MatrixAttributes.h,attributes.h,Matrix.cpp,Router.wpj,router3.dsp,mlib_def.h,mlib_int.h,m_thread.c,rt_oui.h,rt_db_h)
+
+111351 - If blank and/or "\\" Username/Password is given during import/export, need to disconnect and connect the application to perform import/export from OUI.
+(rt_confg.c)
+
+111620, 111626, 111632 - Start/Stop Chop operation does not start/stop the chop on all applicable levels when a breakawy chop is performed, Chop button on the RCE turn green when chop mode is entered from panel, Stop Chop fails on RCE when a destination is protected from the Panel.
+(rt_chop.c,rt_oui.h,rt_route.c)
+
+111619 - The numerical pop up box shown while Chop Rate flag on RCE is selected always shows the default value (15) instead of the currently configured value.
+(rt_confg.c)
+
+111617 - Exporting and Importing a RCE config reverts back the chop rate to 0.
+(rt_csv.c)
+
+111948 - Blank file name is not validated while exporting an RCE config.
+(rt_confg.c)
+
+112504 - Resync comms button should not turn RED if changes are done to the source/destination names only
+(rt_src.c , rt_dest.c)
+
+112367 - Mystery 'Dynamic' named button in static attribute screen of RCE, which cause lockup if clicked
+(rt_attr.c)
+
+104554 - 'OpHandleProgt_thread_ma' thread suspends when RCE is configured with 32 levels
+(rt_text.c, rt_map.c)
+
+111625 - Performing a breakaway takes with the primary source (either from a panel/RCE) does not stop the physical Chopping.
+(rt_logic.c)
+
+103483 - RCE Time stamp is getting saved on "Commit Changes action and also when the mode files are changed, which should not have happened. Also happens with R4_Mode changes.
+(rt_confg.c)
+
+111951 - No Error is popped up upon importing an invalid .csv file in RCE.
+(rt_csv.c, rt_logic.c)
+
+111952 - Upon importing an RCE config, not all 'Rules' configurations are retained.
+(rt_csv.c)
+
+105131 -  The Mirror RCE remains in local mode even after performing a load operations in specific scenario.
+(rt_confg.c)
+**************************************************************
+Router 4.08 build 5 - JCH 01/11/07
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_43
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_4
+
+Celstream updates:
+  CR84339 Correct CSV import of dest gang levels with unexpected end of input text.
+  (rt_csv.c)
+
+  CR84986 Changes GUI button names & text from "Regenerate DB" to "Validate DB".
+  (rt_config.c, rt_ioedit.c, rt_logmx.c, rt_xpt.c, rguidata, rguitoke)
+
+  CR83029 Redundancy data to survive a Database Delete
+  (rt_config.c)
+
+  CR83341 Fixing phantom matrix type 32
+  (rt_init.c)
+
+  CR56532 Increased thread message buffer for StatusProc thread - for salvos.
+  (rt_main.c)
+
+  ????? Fixes for Horizon tens bits.
+  (mp_horizon.c)
+
+  CR84269 Resolving Encore & Horizon locks
+  (mp_horizon.c)
+
+
+OmniBus updates:
+  CR83341 Modified Fred's updates to handle old saved config with multiple
+           deleted controllers in a Xpt Group, plus GUI fix to prevent issue.
+  (rt_init.c, rt_xpt.c)
+
+  Fixed startup crash (seen in Win32 Release) due to late CSect creation.
+  (rt_main.c)
+
+
+
+
+
+**************************************************************
+Router 4.08 build 4 - JCH 13/09/07
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_42
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_3
+
+- OS023637 / CR 84131: RCE should be able to detect the time code format automatically
+  (m_tcode.c)
+
+Celstream updates:
+  CR81816 - "No Matrix" is default instead of "Undef"
+  (rt_config.c)
+
+  CR83027 - Quick link from Database error list to Src/Dst Screen
+  (rt_config.c, rt_db.c, rt_db.h)
+
+  CR79600 - Further updates for csv import of ganged dests - for different gangs on levels.
+  (rt_csv.c)
+
+  CR81570 - Decouple list order from matrix type id.
+  (rt_xpt.c, attributes.c, cpl_driver.cpp, mlib_atr.c, attributes.h, mlib_atr.h)
+
+  CR82896 - Show L & R suffix for Apex mono matrix connectors
+  (mp_cpl.cpp)
+
+  CR74464 - Add matrix offline support for NP
+  (mp_np.cpp)
+
+  Also updated rguidata & rguitoke
+
+
+
+**************************************************************
+Router 4.08 build 3 - JCH 24/08/07
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_41
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_3
+
+
+- OS019514/CR69699 SRC/DST lookup tables. Fixed issue with changing Xpt size when single ctrl & seg defined.
+  (rt_xpt.c)
+
+- OS019550/CR71769 Added logging for Takes executed from RCE Route Screen.
+  (rt_route.c)
+
+- OS020119/CR73273 Concerto board attributes can now be configured with matrix offline
+  (mlib_atr.c)
+
+- OS017240/CR63296 NP Re-order, support for Abstraction services.
+  (rt_csv.c, rt_db.c, rt_init.c, rt_ioedit.c, rt_text.c, rt_dest.c, rt_src.c, rt_xpt.c, rt_logmx, rt_chan,
+   rt_db.h, rt_init.h, m_text.c, matrixlib.c, mlib_int.h, matrixlib.h, mlib_def.h, mp_dummy_abs.c (New module))
+
+- Cleared DataBase warning flags when DataBase Reset.
+  (rt_config.c)
+
+Celstream updates.
+  OS022870/CR56532 - Increase size of Timestamp takes buffer to 16384 entries
+  OS020811/CR74727 - Memory leak when RCE config is reloaded from Sharer
+  OS019806/CR72340 - RouteLib heartbeat fails if first dest not configured
+  OS022387/CR79600 - csv file import error on ganged outputs
+  OS022246/CR78564 - RCE doesn't execute complete salvo when one or more sources are not defined.
+  CR76711          - Save/load redundancy config in SEEPROM
+  CR74606          - Add RCE Timestamp
+  CR80356          - Fix to RCE Timestamp
+  CR78397          - In Mirror, save mode updates prior to switching to Sharer filing.
+  CR81384          - Change text "No Mtx" to "NoMatrix"
+  CR80977          - Fix Horizon driver for dests > 99
+  CR80771          - Fix page fault on RCE startup when database fails to load
+  ????             - Updates to CPL driver
+  ????             - Adding attribute "Ref Stamping"                   
+
+
+
+
+**************************************************************
+Router 4.08 build 2 - NRT & JCH 20/04/07
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_41
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_3
+
+- OS017239/CR46964: Added new options which are used when a matrix is detected as offline:
+            "Process Mtx offline" - if set then detination sources are reported as "noMtx" or "undef",
+                  and if not set then the last valid source is displayed.
+            "Report noMtx" - if set then detination sources are reported as "noMtx", and if not set
+                  they are reported as "undef".
+  (rt_confg.c, rt_main.c, rt_text.c, rt_db.c, rt_logic.c, matrixlib.c, mlib_def.h, rt_db.h, rguidata, rguitoke)
+
+- OS017828/CR66397:  Added TLM Heartbeat processing to detect failed / offline TLMs.
+  (rt_config.c, rt_main.c, rt_tlm.c, rtomnsvc.h)
+
+
+- OS019514/CR69699 Src/Dst lookup tables, corrected processing for unsolicited updates to Park & other special src indices.
+  (rt_logic.c)
+
+- OS019514/CR69699 Src/Dst lookup tables, corrected loading of Dst Monitors with crosspoint conflict.
+  (rt_text.c)
+
+- OS019592/CR71899 Park Data levels if can not disconnect current data level user.
+  (rt_config.c, rt_logic.c, rt_text.c rguidata, rguitoke)
+
+- OS016995 / CR64255 Removed "Host I/P" field from Channel Config screen.
+  (rt_chan.c, rguidata, rguitoke)
+
+- Celstream update for NP driver.
+  (mp_np.cpp)
+
+- Minor update to ProBel SWP08 driver to fix compiler warning (VxWorks)
+  (mp_prb08.c)
+
+- Disabled test code inadvertantly left in 4.08 Build 1
+  (mp_dummy.c)
+
+
+
+
+**************************************************************
+Router 4.08 build 1 - JCH 13/04/07
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_1
+
+- OS019514/CR69699  Add SRC/DST lookup tables to RCE
+  (major upgrade, many sources updated)
+
+- Fixed Memory leak when deleting / reloading a database with Virtuals which had been routed.
+  (rt_init.c, rt_main.c)
+
+- Fixed memory overwrite when initialising dest gang members.
+  (rt_init.c)
+
+- Fixed potential crash when importing invalid cross-point config.
+  (rt_csv.c)
+
+
+
+
+**************************************************************
+Router 4.07 build 1 - JCH 10/10/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_1
+
+- Added Assignments - developed by Celstream (Neeraj).  New level (assignable data level) added.
+  (rt_logic.c, rt_lvls.c, rt_file.h)
+
+
+
+
+**************************************************************
+Router 4.06 build 8 - JCH 12/03/07
+**************************************************************
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_8
+
+- OS021131 Timestamped routing fixed for Virtual Dests
+  (rt_tssalvo.c)
+
+- OS021390 Added DTR/RTS control for Leitch & SWP_02 init comms (as per OS017891 / CR66307 for ES_Switch)
+   Applied update to all protocol drivers (except for ES_Switch which already has this update)
+  (mp_dtech.c, mp_horizon.c, mp_ltch2.c, mp_nvisn.c, mp_prc.c, mp_probl.c, mp_quartz.c, mp_utah.c)
+
+- Fixed issue with unknown src reported by Leitch driver
+  (mp_ltch2.c)
+
+- OS020989/CR75167 Fixed memory corruption found in Leitch driver processing unsolicited
+   updates.  Searched all drivers for similar issue - one more found in utah.
+  (mp_ltch2.c, mp_utah.c)
+
+- CR70346 GV Update (F Lee) to increase CPL pre-send time.
+  (matrixlib.c)
+
+- Uplifted SWP_02 driver as per Router_3 for improved processing of unsolicited data.
+  (mp_probel.c)
+
+- Added SWP_08 driver (requested by GV - J Liron), including DTR/RTS controls.
+  (matrixlib.c, mp_prb08.c, mlib_def.h)
+
+
+**************************************************************
+Router 4.06 build 7 - JCH 19/09/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_8
+
+- OS019365 / CR70147  Replaced indices with names for Route requested diagnostics.
+  (rt_logic.c, rtomnsvc.c)
+
+- Fixed Rules delete - used to copy too much memory with potential dynamic memory corruption.
+  (rt_init.c)
+
+- Removed multi pick option on Rules delete as multi pick deletes wrong rules (single pick OK)
+  (rt_rules.c)
+
+
+
+
+
+**************************************************************
+Router 4.06 build 6 - JCH 08/08/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_6
+
+- OS018792 / CR69258 partial fix - correction bug introduced in import.
+  (rt_csv.c)
+
+
+
+**************************************************************
+Router 4.06 build 5 - JCH 04/08/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_6
+
+- OS018792 / CR69258 partial fix for VxWorks priority inversion.  Reduced code whilst in semapphores, particularly
+   when reading / writing files.  Used a different strategy for filing mutex (now using flag that is updated in
+   a sempahore - hence not inversion safe, but unlikely to cause problems). Have reviewed code for loading named
+   database, changing redundancy mode, database import and dartabase modify.  RCE init was updated in previous
+   build.  Still need to review Database save, export, commit changes (with stale map) and all Resyncs.
+   (rt_config.c, rt_csv.c)
+
+- Lowered priority of MatrixStatus thread - this should have always been of low priority.
+   (rt_main.c)   
+
+- Changes from Fred for CPL driver.
+   (cpldriver.cpp, cpl_driver.h)
+
+
+**************************************************************
+Router 4.06 build 4 - JCH 27/07/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+-----
+- RCE start up issues fixed.  On RCE startup, the RCE thread could get elevated in VxWorks to 50 due
+   to creating an IP socket whilst in a semaphore with SEM_INVERSION_SAFE (default usage).  Have
+   reduced usage of rt_db worm during RCE init. The RCE no longer stays at priority 50 for long periods
+   during init.
+   (rt_file.c, rt_init.c, rt_logic.c, rt_main.c, rt_map.c, rt_text.c, rt_virt.c, rt_init.h)
+
+- Improved startup for dummy matrices by not searching for a source when the input is UNDEF.
+   (rt_logic.c)
+
+- Checked that the omnsvc has been opened before announcing RCE service (issue seen with Matrix Status
+   update in Windows following a debug break)
+  (rtomnsvc.c)
+
+
+
+
+**************************************************************
+Router 4.06 build 3 - JCH 13/07/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+-----
+
+- RCE start up issues fixed.  The StatusProc thread when processing matrix online/offline reads matrix status.
+   For CPL driver a matrix read can generate an unsolicited update (No_Xpt) and this can fill the queue into
+   StatusProc.  StatusProc is blocked by CPL driver not returning read status.  CPL driver is blocked as it can
+   no longer add to the StatusProc queue.  Solution - add a new thread to process matrix online / offline.
+   (rt_attr.c, rt_confg.c, rt_file.c, rt_logic.c, rt_main.c, rt_attr.h, rt_logic.h)
+
+- RCE start up issue - included updates from Fred for CPL driver.
+   (cpl_driver.c, cpl_driver.h)
+
+- Performance improvements from Fred for unsolicited updates.
+   (rt_logic.c)
+
+- Replaced RCE printf's with debugf(RLIB_DBG_REPORT,"...........")
+    (rt_file.c, rt_init.c, rt_main.c, rt_omnsvc.c)
+
+
+
+
+
+**************************************************************
+Router 4.06 build 2 - JCH 14/06/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+-----
+
+- OS018332 / CR68130 Dynamic attribute errors when attribute not implemented.
+   (rt_attr.c)
+
+
+**************************************************************
+Router 4.06 build 1 - JCH 09/06/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_38
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+-----
+
+- OS017956 / CR66930.  Added rt_db WORM to co-ordinate access from multiple threads and a re-organization of the
+    RCE database (loading a different config, changing size of database etc.)  Instances of access violation in
+    the heartbeat thread had been seen when loading a named config file.
+    This is a large change to the structure of the RCE affecting many files.
+
+
+- OS017891 / CR66307.   Added DTR / RTS control to ES_Switch driver. Requires OmniLibs RELEASE_17_8_MULTI_36 or later.
+   (mp_philips.c)
+
+- OS017239 / CR46964.  Put dstn map to UNDEF for all dests in a matrix that goes offline.  Also checked
+    that a matrix is online before proceeding with mlib_read_matrix(), mlib_get_dst_monitor() or mlib_get_attributes().
+    Also updated an on display Route / Status screen after matrix goes online / offline.
+   (rt_logic.c, matrixlib.c, mlib_atr.c, mlib_def.h)
+
+- Using filing_save_data() when saving to Sharer to march with RouteLibs filing_fetch_data() on load.  Problems seen
+    with loading router map when multiple RCE service announcements made within a short period.
+  (rt_file.c)
+
+- Fixed Timed Takes for non VxWorks platforms, so that timed takes can now be executed.
+   (rt_main.c)
+    
+- Corrected macro defns using mlib_get_attributes() - not currently used, so no current problem.
+  Corrected comments for set_sttributes and deleted duplicate defn
+   (mlib_atr.h)
+
+- Moved database export to the Oui Thread, and database export file name put back into OpList thread.
+   (rt_confg.c)
+
+- Removed h_load_gbl() as appears to be no longer used - part of thread saftey investigations.
+   (rt_confg.c)
+
+- Removed m_comms.c from VxWorks build
+   (matrixlib.wpj)
+
+- Removed matrixlib folder from Windows Matrixlib build
+   (MatrixLib.dsp)
+
+- Updates from Fred for cpl driver - matrix offline for OS017593 / CR65702  RCE startup sync
+   (cpl_driver.cpp)
+
+
+
+**************************************************************
+Router 4.05 build 14 - JCH 18/05/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_33
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+-----
+
+- OS017593 / CR65702  RCE startup sync.  Added Matrix online / offline status.  When going online
+     reads all dests for matrix and announces new service instead of multiple unsol updates.
+    (rt_attr.c, rt_confg.c, rt_file.c, rt_logic.c, rt_main.c, rt_xpt.c, rt_attr.h, rt_logic.h, 
+     matrixlib.c, mp_dummy.c, mlib_int.h, matrixlib.h, mlib_def.h)
+
+- Corrected Source / Destination config for Virtuals.
+    (rt_db.c, rt_ioedit.c, rt_db.h)
+
+- Ensure map is marked as updated when reading status or attributes.
+    (rt_logic.c)
+
+- Ensure map is marked as not updated before generating CBNP map (potential window for an update
+     during the CBNP generation to be lost)
+    (rtomnsvc.c)
+
+- Added dynamic memory allocation checks and better error reporting in MatrixLib
+    (matrixlib.c)
+
+- During sync startup ignoring RouteLib updates as cpl matrices (Trinix) generate a load of unsolicited
+     updates for No_Xpt.  This can cause the Mirror to go offline.
+    (rt_main.c)
+
+- Fixed compilation warning in DataTek Driver.
+    (mp_dtech.c)
+
+_ Updates from Fred Lee for cpl driver
+    (cpl_driver.cpp, cpl_driver.h)
+
+
+
+**************************************************************
+Router 4.05 build 13 - JCH 28/04/06
+**************************************************************
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_33
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_3
+
+Fixes
+-----
+
+- OS017593 / CR65702 (interim fix). Additional fix to OS017177 / CR64610.  Ensure Mirror updates Master
+     Sharer map and gives Master path
+    (rt_file.c, rtomnsvc.c, rt_file.h)
+
+- OS017593 / CR65702 (interim fix). Additional fix to OS017177 / CR64610. On Master startup by synching
+     with Mirror, inform clients so that clients do not have to flush existing status map. 
+    (rt_main.c, rtomnsvc.c, rtomnsvc.h)
+
+- Update from GV, for extra logging in CPL driver
+    (cpl_driver.cpp)
+
+
+
+**************************************************************
+Router 4.05 build 12 - JCH 10/02/06
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_33
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_2
+
+
+New Features:
+-------------
+
+- OS008463 / CR43504 Added a new thread to send router heartbeat updates to clients.
+    (rt_main.c)
+
+- Added router versioning support so that routers can tell which version they are and added area
+   to Broadcast Updates - required for RouteLibs to determine whether Router supports heartbeat.
+    (rtomnsvc.c)
+
+
+Fixes
+-----
+- OS017177 / CR64610 Reworked RCE resync at startup.
+    (rt_config.c, rt_file.c, rt_logic.c, rt_main.c, rt_logic.h, mp_dummy.c)
+   Plus update from Fred for CPL async status update.
+    (cpl_message.h)
+
+- OS014924 / CR60070 Segregated message files using ms_init_ex() and renaming ms() to msRCE()
+    with macro def of msRCE to ms_ex()
+    (rt_main.c, rt_chan.c, rt_config.c, rt_csv.c, rt_dest.c, rt_file.c, rt_ioedit.c, rt_lvls.c,
+     rt_misc.c, rt_names.c, rt_route.c, rt_rules.c, rt_src.c, rt_xpt.c, router3.h)
+
+- OS016994 - The default segment type should be "blocked"
+    (rt_xpt.c)
+
+- OS016993 / CR64253 - Re-jigged Route Status screen to show lock text (eg H:WWWWWWWW).
+    (rt_route.c, rt_db.h)
+
+- OS016887 / CR64100 - Corrected warning message when attempting to load a Mirror RCE.
+    (rt_config.c)
+
+- OS016087 / CR62083 Fixed copy rules.
+    (rt_rules.c)
+
+- OS012476 / CR53381 Added button to clear csv export path.
+    (rt_config.c, rguitoke, rguidata)
+
+- OS015428 / CR61483 Added "Commit Changes" button to Names screen.
+    (rt_config.c, rguitoke, rguidata)
+
+- OS007929 / CR40786 Added Ganged Output config within csv file.
+    (rt_csv.c)
+
+- OS016407 / CR63337 Use text name to index conversion when available in csv import.
+    (rt_csv.c)
+
+- OS009480 / CR42570 - Do not allow multiple protocol types on IP protocols.
+    (rt_chan.c)
+
+- GV Thomson Updates for Horizon & NP drivers.
+    (matrixlib.c, mp_horizon.c, mp_np.cpp)
+
+- GV Updates for CPL driver (via mail dated 24 March 06)
+    (cpl_driver.cpp)
+
+- Fixed potential crash when exporting database which has dest/src notes.
+    (rt_csv.c)
+
+- Fixed database save for dests with ganged outputs on more than one level.
+    (rt_text.c)
+
+- Fixed 2 param call to debug_level_control. Ref debug.c Ver 20
+    (rt_config.c, rt_init.c, rt_main.c)
+
+- Fixed issue with conflict over sArea with TLM, resulting in RCE flagging a db Save.
+    (rt_config.c, rt_file.c, rt_main.c, rt_text.c)
+
+- Modified build files
+    (Router3.dsp, MatrixLib.dsp, Router3.wpj, MatrixLib.wpj)
+
+
+
+**************************************************************
+Router 4.05 build 11 - JCH 20/10/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_28
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+
+Fixes
+-----
+- OS008240 / CR29359 Obey Rules removed from Options screen.
+    (rguidata, rguitoke)
+
+- OS010982 / CR48971 Allow reducing the size of the xpt group if
+  segments and controller are not configured.
+    (rt_init.c)
+
+- OS014922 / CR60147 Fix vitc timestamp test for take just after m'night
+    (rt_tssalvo.c)
+
+- OS014868 / CR54074 Fixes memory leak (VxWorks only) on  're-sync comms'.
+    (OmniLibs fix in RELEASE_17_8_MULTI_28 - freeing tls memory on thread termination)
+
+- Added error checking when displaying attribures.
+    (rt_xpt.c)
+
+- Fixed incorrect assumption about ganged destinations in timed
+  take code.
+    (rt_logic.c)
+
+- Removed unhelpful references to seg_step and test for seg around
+  all ganged crosspoint code.
+    (rt_logic.c, rt_attr.c)
+
+
+**************************************************************
+Router 4.05 build 10 - JCH 24/08/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_24
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+Fixes
+-----
+- OS014407/CR59196  configuration 'copy increment' fixed to copy and increment dst alias names.
+  (rt_dest.c)
+
+
+
+**************************************************************
+Router 4.05 build 9 - JCH 11/08/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_24
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+Fixes
+-----
+- OS014347/CR49174 Issue with updating attributes for a matrix with shared segments.
+  (rt_logic.c)
+
+- CR41993  Issue with destination monitors and multiple controllers.
+  (rt_dstm.c)
+
+
+
+
+**************************************************************
+Router 4.05 build 8 - JCH 26/07/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_24
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+Celstream updates for GVG NP driver.
+  (matrixlib.c, attributes.c, mp_np.cpp, mlib_def.h, attributes.h)
+
+
+
+**************************************************************
+Router 4.05 build 7 - JCH 19/07/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_24
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+New Features:
+-------------
+- OS007217 / CR38544 Added destination aliases revised.  Dest aliases now in separate file
+    (rt_main.c, rt_csv.c, rt_db.c, rt_names.c, rt_dest.c, rt_src.c, rt_file.c, rt_text.c,
+     rt_db.h, rt_file.h, rguitoke, rguidata)
+
+Fixes
+-----
+- OS006746/CR29614  Initialise Channel Button to turn red when channel needs to be initialised.
+    (rt_init.c, rt_chan.c, rt_xpt.c, rt_db.h, rguitoke, rguidata)
+
+- OS012595/CR53778 GVG updates to Support Native Protocol Matrix driver.
+    (m_text.c, m_thread.c, m_cpl.cpp, mp_dummy.c, mp_omni.c, cpl_driver.h, mlib_int.h)
+
+- Removed DEBUGMEM from Release builds - requires removal of memory used display in Options screen
+    (rt_config.c, rt_main.c)
+
+- GVG Updates for CR/LF at end of module
+    (filethread.h, cpl_message.h)
+
+- Other GVG updates
+    (attributes.c, cpl_driver.cpp)
+
+**************************************************************
+Router 4.05 build 6 - JCH 06/04/05
+**************************************************************
+
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_22
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_20
+
+New Features:
+-------------
+- OS007217 / CR38544 Added destination aliases
+    (rt_dest.c, rt_names.c, rt_csv.c, rt_text.c, rt_db.h, rguitoke, rguidata)
+
+- OS008231 / CR42430 / WO1787  Added DataTek Driver
+    (matrixlib.c, mlib_def.h, matrixlib.dsp)
+    New module: mp_dtech.h
+
+
+Fixes
+-----
+- OS006551 / CR30612 ReSync Router fixed to report failures
+    (rt_logic.c, rt_attr.c, rt_config.c, rt_file.c, matrixlib.c, rt_attr.h, rt_logic.h)
+
+
+- Corrected locks when reading hard locks from matrices.
+    (rt_logic.c)
+
+- Corrected port number in error messages when closing a serial port
+    (matrixlib.c)
+
+
+
+
+**************************************************************
+Router 4.05 build 5 - JCH 03/09/04
+**************************************************************
+
+Clear Case label: ROUTER405_BUILD5
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_19 plus
+    update for Common96/tcp_ip.c
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_17
+
+
+Fixes
+-----
+- OS009708/CR47971 when routing on a data level only consider levels within that
+   destination for Parking (to ensure a data source is taken to only a single dest)
+    (rt_logic.c)
+
+
+
+
+**************************************************************
+Router 4.05 build 4 - JCH 27/05/04
+**************************************************************
+
+Clear Case label: ROUTER405_BUILD4
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_19 plus
+    update for Common96/tcp_ip.c
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_17
+
+
+Fixes
+-----
+
+-  Thomson updates for No_Xpt fixes in CPL Driver
+    (cpl_driver.cpp)
+
+-  Detection of abnormal Sharer termination prior to Load / Modidy / Save
+    (rt_config.c)
+
+-  User spec change to only disconnect dest monitors if more than 1 controller
+    (rt_dstm.c)
+
+
+
+**************************************************************
+Router 4.05 build 3 - JCH 14/05/04
+**************************************************************
+
+Clear Case label: ROUTER405_BUILD3
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_19
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_16
+
+
+Fixes
+-----
+
+- OS008339 / CR30640 No_Xpt fixes
+   GVG updates for No_Xpt
+    (cpl_driver.cpp)
+   Make Status screen dynamic
+    (*rt_route.c, *rt_logic.c, *rt_attr.c, *rt_dstm.c, *rt_oui.h)
+
+- CR41993 Do not adjust dest - leave as absolute, but make zero based
+    (mp_cpl.cpp)
+
+
+
+
+**************************************************************
+Router 4.05 build 2 - JCH 22/04/04
+**************************************************************
+
+Clear Case label: ROUTER405_BUILD2
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_18
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_15
+
+
+Fixes
+-----
+
+- OS007743 / CR29632 Refresh Loop Back display on Cross Point Group screen
+   (rt_config.c, rt_xpt.c, rt_oui.h)
+
+- OS008190 / CR42138 Fixed Copy and Increment with a digit as first text char
+   (rt_misc.c)
+
+- OS008167 / CR41993 Fixed issues with Destination Monitors & multiple controllers
+   (rt_dstm.c, rt_db.c, rt_dest.c, matrixlib.c, mp_dummy.c)
+
+- OS008339 / CR30640 Added No_Xpt status to route & status displays and added No_Xpt
+    as a dynamic attribute to dummy protocol
+   (rt_route.c, rt_db.c, rt_map.c, rt_db.h, mp_dummy,c)
+
+- Changed csv name to "ROUTER CONFIG REPORT" (OMNIBUS removed)
+   Ensured config name persisted when importing a csv file.
+   (rt_csv.c)
+
+- When deleting a database, set the config name to the default name
+   (rt_confg.c, rt_text.c, rt_db.h)
+
+- Before Modify is used to save existing config, check named config exists. Do not
+   permit update if it does not exist and direst user to use Save.
+   (rt_config.c)
+
+
+**************************************************************
+Router 4.05 build 1 - JCH 31/03/04
+**************************************************************
+
+Clear Case label: ROUTER405_BUILD1
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_16
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_14
+
+
+New Features:
+-------------
+
+- OS003559 / CR35642  Added support for Named Configs on Sharer.
+    Moved config options to a new Options screen to make room for named config params
+    (rt_config.c, rt_file.c, rt_init.c, rt_main.c, rt_misc.c, rt_names.c, rt_text.c
+     rt_db.h, rt_file.h, rt_init.h, rt_text.h, rguidata, rguitoke)
+
+
+Fixes:
+------
+- OS008339 / CR30640 Added extra Dynamic attributes flag to process all zero attributes
+    Also fixes OS008425 / CR42662
+    (rt_attr.c, rt_logic.c, rt_main.c, rtomnsnvc.c, rtomnsvc.h, mp_dummy.c)
+
+- Thomson updates received as part of Encore 1.6.5_a6
+    (attributes.c, cpl_drver.cpp, mp_cpl.cpp, attributes.h, cpl_driver.h)
+
+- Fixed issue with displaying destination notes instead of source notes.
+    (rt_misc.c)
+
+
+**************************************************************
+Router 4.04 build 9 - JCH 28/11/03
+**************************************************************
+
+Clear Case label: ROUTER404_BUILD9
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_15
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_13
+
+Fixes:
+------
+
+- OS007452 / CR39697 fixes pending cache timeout errors.
+  (rt_tssalvo.c)
+
+
+
+
+**************************************************************
+Router 4.04 build 8 - JCH 12/11/03
+**************************************************************
+
+Clear Case label: ROUTER404_BUILD8
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_15
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_13
+
+Fixes:
+------
+
+- OS007369 / CR39419 Dest Monitor config.  Full fix (correct number of Dest
+  Monitors selectable for a Dummy Matrix).  Added dest monitors to mxparams_struct.
+  (rt_db.c, rt_init.c, mp_dummy.c, matrixlib.c, matrixlib.h, mlib_int.h)
+
+
+
+
+**************************************************************
+Router 4.04 build 7 - JCH 07/11/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD7
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_15
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_12
+
+Fixes:
+------
+
+- OS005616 / CR005616 Memory leak in CPL driver.
+  (cpl_driver.cpp)
+
+- OS007369 / CR39419 Dest Monitor config.  Partial fix (still has too many Dest
+  Monitors selectable for a Dummy Matrix - but can be configured).
+  (mp_dummy.c, rt_iodeit.c)
+
+- Thomson updates for CPL matrices (Fred's updates)
+  (attributes.c, cpl_driver.cpp, attributes.h)
+
+- Failed data level processing (Change Request).  Continue with
+  routing other levels when a Data Level release fails (used to abort all levels).
+  (rt_logic.)
+
+
+
+**************************************************************
+Router 4.04 build 6 - JCH 15/09/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD6
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_14
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_12
+
+Fixes:
+------
+
+- OS004919 / CR30931 Startup Options, Obey Rules Option, Split Salvos Option and Timecode
+  format can only be updated from a Master RCE (reported as missing from OS005970 / CR33482.
+  (rt_confg.c)
+
+
+- OS005348 / CR32209 When using Route screen to lock/unlock as a Super User, ensures 
+  redundant partner is updated correctly.
+  (rt_logic.c)
+
+- OS004757 Fixed possible memory corruption when using virtual routes with > 2048 dests.
+  (rt_virt.c)
+
+- Fixed string length error when using Route screen to lock/unlock from OUI with IP>=13 chars.
+  (rt_route.c)
+
+- Appdata.
+  Corrected title for destination monitors on Phys Matrix screen.
+  (rguidata, rguitoke)
+
+- Fixed a potential blocking loop in Nvision driver (unlikely to have blocked in Nvision Simple)
+  (mnvisn.c)
+
+- Removed m_comms.c from Win32 & VxWorks builds (these functions are in Common96)
+
+
+
+**************************************************************
+Router 4.04 build 5 - JCH 29/04/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD5
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_13 -- Update for typedefs.h
+                                                                    ======================
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_11
+
+Fixes:
+------
+
+- Appdata.
+    Added title for destination monitors on Phys Matrix screen.
+    Use the Modify button on the Names screen to save the config
+  (rguidata, rguitoke)
+
+- OS006053 / CR34735 Part 2.  Also check for Host Down error when attempting
+  to read config files from Master's Local file system.
+  (rt_file.c)
+
+- OS005969 / CR34534 Initialise Start up options to Obey Rules & Sync Router
+  when there are no config files or the database is deleted.
+  (rt_init.c)
+
+- OS005970 / CR33482 Added indication of unsaved config updates and warning prior
+  to log off.  Unsaved config shown as a red "modify" button.
+  (rt_config.c, rt_dest.c, rt_lvls.c, rt_misc.c, rt_names.c, rt_rules.c, rt_src.c
+  rt_main.c, rt_ioedit.c, rt_xpt.c, rt_logmx.c, rt_chan.c)
+
+- OS005928 / CR29878 Fixed spelling of Shared (was Shaired) in the Phys Matrix/
+  Connectors screen for outputs.
+  (rt_xpt.c)
+
+- OS005929 / CR28221 Fixed Rule name corrupting source inhibits.  Max rule name is
+  now 31 chars plus null terminator.
+  (rt_rules.c, rt_oui.h)
+
+- OS005616 / CR33179 Fixed memory leaks in Reload Database and Import / Export.
+  (rt_file.c, rt_config.c)
+
+- OS005927 / CR29390 Retrieve any update to Area Name from Sharer on startup & log on.
+  (rt_main.c, rt_config.c, rt_init.h)
+
+- OS005864 / CR34050 switch to Sharer filing after succesful Database save
+  (rt_config.c)
+
+- OS005866 / CR34057 Detecting engine not registered - used to give unending stream
+  of Sharer found / Sharer lost errors.
+  (rt_file.c, rt_main.c, rt_config.c, rt_file.h)
+
+- OS004919 / CR30931 Ensure start salvo is copied to Mirror.  Also copies Obey Rules,
+  Split Salvos, Startup and Timecode optons.  Displays start salvo as "None" whenever
+  start salvo is not selected.  Added Alpha Sort to saved config.
+  (rt_config.c, rt_file.c, rt_text.c)
+
+- OS005972 / CR32089 Retry ES_switch command on timeout upto max specified for protocol.
+  Also fixes OS005977 / CR32091.
+  (mp_philips.c)
+
+- OS005213 / CR31546 Encore too slow to Ack after "Resync Comms". Removed 200ms delay
+  on initialisation. Also increased priority of serial port driver threads to ensure
+  faster response to get Ack out faster.
+  (mp_philips.c, matrixlib.c)
+
+- OS005704 / CR33377 ES_Switch driver to process STUR command and reestablish the
+  unsolicited update regime. This occurs on reset/power cycle of Jupiter.
+  (mp_philips.c)
+
+- OS006399 / CR36027 Filing Mode set to Sharer only when logged-on user selects
+  database save (modify) or reload with a Sharer present. (Would also go into Sharer
+  mode on a restart).  Note Area Alias and Level files are not saved on database save.
+  (rt_main.c  )
+  Also using function rt_is_sharer_present() instead of variable rt_sharer_present
+  to detect when a Sharer is present.
+  (rt_config.c, rt_file.c, rt_main.c, rtomnsvc.c)
+  Also ensure area aliases are reloaded when the switching to Sharer mode - old flushed out
+  (rt_file.c)
+
+- Fixed warning about reducing number of destinations (used to check against number
+  of sources).
+  (rt_config.c)
+
+- Reduced App_Extra string length to be within max size for all IP addresses when
+  protecting a destination.
+  (rt_dest.c)
+
+- Reprime the text search timer after every key press.
+  (rt_misc.c)
+
+- When deleting src/dest notes an empty text string is no longer malloc-ed and
+  allocated to the src/dest.
+  (rt_misc.c)
+
+- May now select a destination level to be a virtual before setting the output number.
+  (rt_ioedit.c)
+
+- Ensure enough buffer space when updating a textual crosspoint name.
+  (rt_ioedit.c)
+
+- Correct processing of a virtual destination level (used to test against the source
+  config).
+  (rt_ioedit.c)
+
+- Ensure Physical Matrix screen is refreshed after updating config even when there
+  are insufficient resources to complete the requested update.
+  (rt_xpt.c)
+
+- When increasing number of controllers in a cross point group used to use two
+  controllers if insert after selected.
+  (rt_xpt.c)
+
+- Ensure a Netlink structure exists before copying, when triggering the OUI thread
+  (filethread.c)
+
+- Removed dummy.c and resolved crosspoint abstraction names, serial param text options.
+  and data router functions.
+  (rt_csv.c, rt_db.c, rt_init.c, rt_ioedit.c, rt_logic.c, rt_main.c, rt_text.c, dummy.c
+  rt_db.h, rt_init.h, m_text.c, matrixlib.c, mp_dummy.c, mlib_int.h, matrixlib.h, mlib_def.h)
+
+- Checked all ganged outputs are OK before giving green led for configured dest level.
+  (rt_dest.c)
+
+- Corrected diagnostic when saving a Sharer file to include file name.
+  (rt_file.c)
+
+- Added a data matrix to dummy - Use address 0xDA to select a DAta router.
+  (mp_dummy.c)
+
+- Added Park Source to matrix params (required for Dummy matrix as a data router)
+  (rt_init.c, matrixlib.c, matrixlib.h)
+
+- Ensure any existing matrix comms are shutdown prior to DB reload in rt_load_and_run().
+  (rt_main.c)
+
+- Display Load progress prompts when loading a Mirror without Sharer or Master.
+  (rt_main.c)
+
+- When reloading a redundant RCE ensure test for partner available is with partner and
+  not with self.
+  (rt_main.c)
+
+- When a client requests Routing service & there is no map to update & in Sharer filing
+  mode, ensure the Sharer is still running.  If not, go into local mode & provide local path.
+  (rtomnsvc.c)
+
+- Can now use mixed PC & Encore as master / mirror RCEs.  Requires all RCE PCs to have a 
+  folder short cut in C:\route_db called route_db which points to C:\route_db.
+  (rt_file.h)
+
+- Removed mserial_stub.c and now use comm_flush_port() instead of ms_flushport() &
+  comm_flush_port() instead of ms_flushport() for all builds.
+  (mserial_stub.c, mp_horizon.c, mp_nvisn.c, mp_prc.c, mp_probl.c, mp_quartz.c, mp_utah.c)
+
+
+
+**************************************************************
+Router 4.04 build 4 - JCH 15/05/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD4
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_13
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_11
+
+Fixes:
+------
+
+- OS005896 / CR33951 Fixed NVRAM size on NVRAM init to allow unsolicited 
+  updates prior to loading the map (eg ES_Switch protocol)
+  (rt_map.c)
+
+- OS005703 / CR33421 More fixes for processing of max size level names
+  (rt_logmx.c)
+
+- OS005984 / CR34545 Ensure Partner's RouteLib database is fully loaded prior
+  to synchronising on warm start.
+  (rt_main.c)
+
+- OS006053 / CR34735 Ensure sym Mirror uses own file path if Sharer & Master not
+  present.  Also fixes OS006052 / CR34715
+  (rt_init.c, rtomnsvc.c, rt_lvls.c, rt_confg.c)
+
+
+
+**************************************************************
+Router 4.04 build 3 - JCH 08/04/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD3
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_12
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_10
+
+Fixes:
+------
+
+- GVG updates
+  (cpl_driver.cpp, mp_horizon.c)
+
+- Fixed MatrixLib error text in mlib_error()
+  (matrixlib.c)
+
+- Fixed warm start detection of Partner when RouteLibs already open
+  (rt_main.c)
+  
+
+
+
+**************************************************************
+Router 4.04 build 2 - JCH 08/04/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD2
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_12
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_10
+
+Fixes:
+------
+
+- OS005349 / CR32107   Startup options to survive a database import
+     (rt_csv.c)
+- Fixed issue with error reported when importing with the RCE offline.
+     (rt_config.c)
+- Fixed startup failure for a standalone Router
+     (rt_file.c)
+- OS005214 / CR31535 Include user handle in TLM error message
+     (rt_tlm.c, rtomnsvc.h, rt_logic.h)
+- OS005216 / CR31384 Trailing space removed from default Level names 
+     (rt_file.c)
+- Ensure App_extra string is within limits for routes from Route screen.
+     (rt_route.c)
+- OS005703 / CR33421 Fixed processing of max size level names
+     (rt_dest.c, rt_csv.c, rt_ioedit)
+- Removed unnecessary coding whilst processing lavel labels
+     (rt_lvls.c)
+- OS005092 / CR27899 Fixed Copy and Increment with a digit as first text char
+     (rt_misc.c)
+- Copied across trailing text in Copy and Increment
+     (rt_misc.c)
+
+
+
+
+
+
+**************************************************************
+Router 4.04 build 1 - JCH 08/04/03
+*************************************************************
+
+Clear Case label: ROUTER404_BUILD1
+
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_12
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD6_9
+
+Fixes:
+------
+
+- OS004545 / CR29982.  Startup of redundant Router Controller synchronises
+with its partner to obtain current map and lock status.  Also segregated
+crosspoint config from sources and destinations files to their own
+crosspoint file.
+
+Many files updated.
+
+
+- OS005348 / CR32209 Locks from the Route Screen are now forwarded to a Mirror partner
+  (rt_route.c)
+
+- Fixed timestamp text is dependant on timestamp format in ts_salvo_convert_timestamp()
+  (rt_tssalvo.c)
+
+
+
+
+**************************************************************
+Router 4.03 build 13 - JCH 19/12/02
+*************************************************************
+
+Clear Case label: ROUTER403_BUILD13
+
+Built with Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_11
+  plus updated Common96 - typedefs.h, tcp_ip.c and common96.dsp (replaces WSOCK32.LIB with
+                          WS2_32.lib) to resolve missing UDP packets in Win2K
+  plus updated System   - vitcbrd.c to assist with GVG vitc driver
+
+New Features:
+-------------
+WO1350 Added 8 destination monitors per Cross Point Group
+-GUI screen updates.  Added No of Monitors to Xpt Group config  (rguidata, rguitoke)
+-Define max no of dest monitors per Cross Point Group (=8) (rt_db.h)
+-Config no of dest monitors per Cross Point Group (rt_xpt.c, rt_db.h)
+-Added no of dest monitors to config load/save (rt_text.c)
+_Added no of dest monitors to CSV import/export (rt_csv.c)
+-Added RT_ defs to support Source/Dest/Dest Monitors textual names to differentiate
+  between Router logic and MatrixLib usage (rt_csv.c, rt_db.c, rt_ioedit.c, rt_src.c, rt_text.c, rt_db.h)
+-Added default conversion for dest monitor textual connector names (rt_db.c)
+-Added connector config for dest monitors to specify monitor 1 to 8. (rt_dest.c, rt_ioedit.c)
+-Added dest monitor index (1 to 8) when processing monitor routes
+   (rt_dstm.c, rt_logic.c, rt_main.c, rt_dstm.h, m_thread.c, matrixlib.c, matrixlib.h, mlib_def.h mlib_int.h)
+-Added 8 dest monitors to dummy protocol (mp_dummy.c)
+
+Fixes
+-----
+OS004658 / CR30421 correct processing of NTSC DF when loading R4_MODE (rt_text.c)
+OS004547 / CR30124 increased size of dummy matrix to 4096 x 4096 (mp_dummy.c)
+OS003826 / CR26885 Fixed default level names for all levels (rt_file.c)
+OS004682 / CR30451 When selecting a dest to configure via its index (Dest. button) this
+                   now defaults to current destination selected (used to go to first) (rt_dest.c)
+OS004395 / CR29463 Matrix lock (hard lock) added to CSV import/export
+Ensure valid dest/source in utility functions (rt_db.c)
+Ensure that a valid dest has been selected for local monitor command - Route screen. (rt_route.c)
+
+When determining primary destination level, include levels with a virtual output. (more fixes)
+(rt_dest.c)
+Changed Router3 build to remove extra library WS2_32.lib (as this is now included in Common96)
+Changed Router3 and MatrixLib build to access library headers using relative folders instead of L:/
+
+
+**************************************************************
+Router 4.03 beta 12.2 - JCH 30/10/02
+*************************************************************
+
+Clear Case label: ROUTER403_BETA12_2
+
+Built with Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_11
+  plus updated typedefs.h and tcp_ip.c to resolve missing UDP packets in Win2K
+
+New Features:
+-------------
+CR29475 GVG request to keep a locked destination in the locked state (for the client view)
+         during an unlock, take, lock salvo sequence.
+		 (rt_logic.c, rt_text.c, rtomnsvc.c, rt_db.h, rtomnsvc.h)
+
+**************************************************************
+Router 4.03 beta 12.1 - JCH 04/10/02
+*************************************************************
+
+Clear Case label: ROUTER403_BETA12_1
+
+Built with Omnibus Libraries using CC_Label  RELEASE_17_7_MULTI_BUGFIX_11
+  plus updated typedefs.h and tcp_ip.c to resolve missing UDP packets in Win2K
+
+New Features:
+-------------
+
+WO1349 Added enhanced lock text support including lock text broadcasts.
+- Added lock text when writing CBNP map file (rt_text.c)
+- Added lock text to broadcast updates (rt_omnsvc.c)
+
+
+Fixes:
+------
+
+Added Winsock2 (ws2_32.lib) to Windows build to resolve missing UDP packets
+
+Moved lock text and attributes to new structure - RouteMapExtra at begining of CBNP map file.
+  Previously at end which caused conflicits with clients using RouteLibs_2 and early RouteLibs_3
+  Modified writing and reading functions - can still read old format.  (rt_text.c)
+
+Always write lock status to map file to ensure clients remain in sync;
+  used to only include locked dests. (rt_text.c)
+
+Fixed test for leaving DynamicAttributes and LockStatus structure when reading CBNP map file.
+    (rt_text.c)
+
+
+
+**************************************************************
+Router 4.03 build 12 - JCH 07/08/02
+*************************************************************
+
+Clear Case label: ROUTER403_BUILD12
+
+Built with Omnibus Libraries using CC_Label  MULTIPLE_OPLIST_HANDLERS_1_01
+
+New Features:
+-------------
+
+Added destination monitor (single monitor per cross point group)
+- New files (rt_dstm.c, rt_dstm.h)
+- GUI screen updates (rguidata, rguitoke)
+- Attributes not supported (rt_attr.c)
+- Destination configuration (rt_dest.c, rt_iodeit.c)
+- Logic processing (rt_logic.c, rt_main.c, rt_route.c, rt_src.c, rt_omnsvc.c, rt_db.h, rt_logic.h,
+                    rt_text.h, rt_omnsvc.h, m_thread.c, matrixlib.c, matrixlib.h, mlib_int.h)
+- Null destination monitor drivers (mp_cpl.cpp, mp_ltch2.c, mp_nvisn.c, mp_omni.c, mp_philips.c,
+                    mp_prc.c, mp_probl.c, mp_quartz.c, mp_utah.c)
+- Dummy destination monitor driver (mp_dummy.c)
+- Supporting functions (rt_db.c, rt_misc.c)
+
+Fixes:
+------
+
+GVG CR23978 / OS003485 Typo's in GUI. (rguidata, rguitoke)
+
+GVG CR23975  Typo's in GUI. (rguidata, rguitoke)
+
+GVG CR23685 / OS 003360 Do not allocate serial ports for network protocols.
+Note needs GVG to fix CR26434 before full testing is possible.
+(rt_chan.c, rt_csv.c, rt_init.c, rt_text.c, mp_cpl.cpp)
+
+GVG CR24078 / OS003482. NVision data routers give UNDEF status instead of PARKed when
+disconnected.  Also processing of async updates for disconnected destinations was corrected.
+(rt_logic.c, rt_virt.c, mp_nvisn.c)
+
+GVG CR23529 / OS003486  Max lenth level name causes Router Controller to lock up.
+(rt_lvls.c)
+
+GVG CR23675 / OS003170  Philips protocol has no flow control and overflows occurred.  Processing
+of FAIL messages from Philips plus a back off and retry after a NACK have been added. 
+(mp_philips.c)
+
+When using "Copy & Inc" save any existing notes and clear down crosspoint names for the copied to
+   source/destination; apply output increment to ganged dsetinations and check that the new
+   destination outputs are unique
+(rt_dest.c, rt_iodeit.c, rt_src.c)
+
+When determining primary destination level, include levels with a virtual output.
+(rt_dest.c)
+
+Ensure map is allocated before starting matrix comms as this action may result in unsolicited
+updates, especially from the Philips.
+(rt_file.c)
+
+Use filing_free to release memory allocated by filing functions (Could give errors if DEBUGMEM
+not consistant with Omnibus Libraries)
+(rt_file.c)
+
+Process failed levels in a take, broadcasting new state for the destination/levels as UNDEF.
+(rt_logic.c, rt_tssalvo.c, rt_pending.c, rt_pending.h)
+
+When calling mlib_read_matrix use current input id for the destination/level (previously used
+Omnibus source index)
+(rt_logic.c)
+
+When reading the source from a matrix (mlib_read_matrix) determine Omnibus source index by taking
+into account the primary level.
+(rt_logic.c)
+
+Tided up source index. This is an integer (range 1 to Max levels or zero) and not a UINT bit flag.
+(rt_logic.c, rt_pending.c)
+
+When shutting down the Router Controller, delete the pending cache.
+(rt_main.c)
+
+Provide an error response if an OUI user attempts to log on to the Router Controller as it is
+starting up.
+(rt_main.c)
+
+Corrected order of Attributes and Lock in CBNP message when broadcasting a status update.
+(rt_omnsvc.c)
+
+Only send error messages when IP address of client is known.
+(rt_omnsvc.c)
+
+Do not free a mutex if not successfully entered.
+(rt_pending.c)
+
+Fixed memory leak when loading/saving matrix config files.
+(m_thread.c)
+
+Added error text support for CPL driver errors.
+(matrixlib.c)
+
+Return hard lock status when reading crosspoint status in dummy protocol.
+(mp_dummy.c)
+
+Only save Source Aliases when Modify actioned.
+(rt_names.c, rt_src.c)
+
+Minor updates to resolve Tornado compilation warnings.
+(rt_text.c, mp_ltch2.c)
+
+GVG updates (FL) for handling errors with mutexes.
+(cpl_driver.cpp, mlib_def.h)
+
+
+**************************************************************
+Router 4.03 build 11 - TT 10/04/02
+*************************************************************
+GVG CR##22267 - clients would loose the router database if one router controller
+in a mirrored pair is taken offline. CBNP flag was not set in router service message
+causing clients to believe the message was from a legacy binary router.
+
+
+
+**************************************************************
+Router 4.03 build 10 - TT 08/04/02
+*************************************************************
+Binary Level labels are now saved to the sharer containing
+only sixteen levels (previously was 32 levels). Was Causing array
+overflow on legacy clients and routers.
+
+
+**************************************************************
+Router 4.03 build 9 - TT 03/04/02
+*************************************************************
+- removed fast tally option from GUI and configuration storage
+this means fast tally if effectivley disabled but the code still 
+exists for future reference
+
+**************************************************************
+Router 4.03 build 8 - TT 01/04/02
+*************************************************************
+- added throughput monitor thread to measure throughput and latency 
+using test client application.
+
+- tweaks for throughput and latency. status thread moved to below normal priority
+so as not to interfer with incoming takes, pending cache checking mechanism improved
+so as not to cause invalid timeouts
+
+- added low priority thread for oui filng operations and protected with mutexs
+
+- merged in CBNP tie line manager protocol (includes tie line locking fixes)
+- merged in Foreign Tie Line support.
+
+- fast tally is now only activated for salvos containing only 1 element - so as not to slow 
+salvos down.
+
+
+
+**************************************************************
+Router 4.03 build 7 - TT 06/03/02
+*************************************************************
+
+- Thread priority changes to improve latency and throughput
+
+- Clarified Verbose and Low Level debug levels. Low Level debug now only shows debug 
+from the actual matrix protocol driver - to make debugging easier
+
+- Change CPL frame buffer thread from 'above normal' priority to 'high' priority
+
+- When configuring a new segment - number of outputs and inputs now set properley.
+previously where left as 0 which cause problems with attributes.
+
+- GVG CR#21608 - Router Controller now can load both old style binary salvos and CBNP salvos
+for the start up salvo.
+ 
+**************************************************************
+Router 4.03 build 6 - TT 28/02/02
+*************************************************************
+- GVG CR#21666 - Interlevel Routing not fully functional - repaired
+
+**************************************************************
+Router 4.03 build 5 - TT 26/02/02
+*************************************************************
+- GVG CR#21606 - spelling mistake in Resync Matrices popup help.
+
+- GVG CR#21403	- Unsolicited tally from concerto was offset by 1
+
+**************************************************************
+Router 4.03 build 4 - TT 22/02/02
+*************************************************************
+- GVG CR#21516 - Fixed hard lock timeouts errors - broken as a result of GVG CR#20441
+
+- GVG CR#21548 When the application is busy processing many routes - pending cache is now only checked every 2 seconds
+instead of being checked every 10 status update events
+
+- GVG CR#21548 (continuation) When Timeouts are found in the Pending Cache - current map status is sent to clients along with error - so that fast tally works properley
+
+**************************************************************
+Router 4.03 build 3 - TT 21/02/02
+*************************************************************
+- when deleting an io_channels files- using mlib_save_iochannel_ex,
+comma now appended to the filepath to be consistent with other io_channel 
+filing calls
+
+- increased CPL frame buffer manager thread to high priority to reduce latency.
+
+- pending routes cache not cheked so frequently when router is busy
+
+**************************************************************
+Router 4.03 build 2 - TT 18/02/02
+*************************************************************
+
+- Revised VX Works debugging mechanism so that logging output to screen is always on - 
+so as not to intefer with other apps running in the same namespace in VX Works	
+
+- Changed debugging levels so as not to intefer with Router Controller running in the same namespace in VX Works
+
+- GVG CR#22183 - Fixed problem where router would not remeber that its online over a reboot
+
+- GVG CR#21117 - Delete Database button now informs I/O channel threads to clear there config
+
+- GVG CR#20901 - Router now remembers area alias names after reboot with no sharer present
+
+- GVG CR#21114 - fixed Global Files (UMD Aliases, Levels & Area Aliases) syncronization problems between applications & during loss of sharer
+
+- GVG CR#20357 - Added Matrix type to Crosspoint Groups in CSV spreadsheet import/export
+
+- Added Notes to CSV import export
+
+- GVG CR#21292 - Mispelling of 'successive' in commit changes dialogue
+
+- GVG CR#20098 - Intermittent tally with Philips VM3000 - migrated Router 3.50 build 7 Philips driver to Router 4
+
+- GVG CR#20441 - Large salvos cause Timeout errors - improved pending cache timeout mechanism for salvos
+
+
+**************************************************************
+Router 4.03 build 1 - TT 14/01/02
+*************************************************************
+- New functionality - Added Mirrored Tie Line Routing support
+
+- GVG CR#19723  Fixed bug where router would go offline 
+if rebooted when sharer is not present
+
+- GVG CR#20172 Fixed Minor spelling mistakes in Router Config screen  
+
+- fixed Faulty Error message which could cause a crash if CSV import fails 
+
+- GVG CR#19968 Loosing Source Connector Configuration
+due to picking up the wrong file size for the Source Config file on sharer
+
+JCH Updates
+***********
+
+- Ensure virtual map is updated even for physical routes. Used to remember a previous virtual route
+    for a dest and a subsequent route to that virtual dest would fire an unwanted physical crosspoint
+- Fixed generation of local file names for loading - problem created in Alpha 10.
+
+
+**************************************************************
+Router 4.02 build 1 - TT 07/12/01
+*************************************************************
+- Added fast tally - immediate (non timestamped) takes are false tallied
+before they occur - this is to compensate for the latency of the cpl driver
+If the take command fails the original source will be restored
+Timestamped takes are treated as normal - i.e only true tally reported.
+
+Immediate (non timestamped takes) are now timestamped with the current frame + 1
+before being split into levels and sent to the matrix library 
+so all the levels of the take will switch on same frame
+
+
+**************************************************************
+Router 4.01 build 1 - TT 28/11/01
+*************************************************************
+-Added Physical Output ganging functionality
+-Added Associate Sources functionality 
+-Fixed minor bug in popup destination attributes. 
+- Fixed Quartz unsolicted Tally 
+-GVG CR#18944 Fixed issues with failing over to local filing mode when sharer not present
+-The save names button in the names screen is now pointed at modify database handler 
+(previously pointed at commit changes)
+-Fixed faults in Mirror Database logic
+- Added Duplicate Re-Sync Comms buttons to Channel & Crosspoint group config screens
+
+
+**************************************************************
+Router 4.00 build 7 - TT 17/11/01
+**************************************************************
+- Miscellaneous Attributes Fixes
+- GVG Bug - CR#18434 Controller Attributes sends command to incorrect controller. Fixed
+- GVG Bug - CR#17642 Sometimes Router would go into local filing mode with sharer present. Fixed
+- Init Channel - When closing channel- After releasing matrices, all matrix handles are now invalidated.
+- Init Comms - Matrices are initialised in order of channel index. Each Controller is only queried once for attribute metadata.
+- update_seg_io - now sets segment input/output sizes correclty
+- CSV Import File is loaded into memory in 1 chunk - to combat SMB server performance.
+- Optimzed CPL Attributes filing - data is cached and written/read in a single block for max efficiency.
+- CPL Driver adds current timestamp + 2 frames to a take - only if MLIB_TAKE_IMMEDIATE is specified
+- Fixed CPL driver crosspoint offset problems
+- Fixed VITC detection problem in NT 
+- Removed some annoying error messages
+- GVG - CR#18805/18806 No longer allows user to one more than 1 CPL Channel
+**************************************************************
+Router 4.00 build 6 - TT 07/11/01
+**************************************************************
+- Split offline/online mode, redundancy mode & startup flags to separate config file.
+(this data was previously stored with the matrix configuration)
+This file is auto updated everytime a user changes one of these options.
+This has been done to make the online/offline flag less confusing,
+And also so that mirrored router controller pairs can share the same matrix configuration.
+(without sharing the same redundancy mode and start-up options)
+
+
+**************************************************************
+Router 4.00 build 5 - TT 06/11/01
+**************************************************************
+
+Disable remebering online-offline flag between reboots
+as this is confusing customers. In the next release
+this flag will be stored in a seperate config file
+
+Fixed GVG Bug CR#17755
+- Crosspoint Status stored on NVRAM was getting corrupted during configuration & reboot
+
+Fixed GVG Bug CR#17948 
+- misspelled warning message 
+
+Removed dependancies between number of channels and ports
+Delete database button - now deletes matrix config as well as names and rules.
+
+
+**************************************************************
+Router 4.00 build 4 - Fred Lee - date unknown
+**************************************************************
+CPL protocol fixes/enhancments
+
+**************************************************************
+Router 4.00 build 3 - TT 25/09/01
+**************************************************************
+SMS7000 protocol does not request health check, if enhanced controller
+found as this command is not implemented properely on this board.
+
+
+**************************************************************
+Router 4.00 build 2 - TT 17/09/01
+**************************************************************
+
+Physical Connectors EDL was not being closed at logoff - causing a 20k 
+memory leak each logon.
+
+**************************************************************
+**************************************************************
+**************************************************************
+Router 4.00 build 1 - TT 14/09/01
+**************************************************************
+**************************************************************
+**************************************************************
+
+
+TT 13/09/01 Router 4 beta 1
+******************
+Added controller attributes.
+Other minor fixes found during testing
+
+
+Router 4 alpha 10
+******************
+
+JCH Updates
+***********
+
+- Minor issue with led display for last level in Dest and Source screens.
+- Added interlevel support for both implied routes (with default source levels) and explicit
+    inter-level route (with source level given by client).  Unsolicited inter-level updates supported.
+- Corrected loading of map file from the Sharer and general file loading issue with name separator.
+- Ensure map is updated if source is Undef or Parked.
+- Minor issue with dummy_functionIII(void) in mp_omni.c.
+
+
+TT Updates 
+******************
+
+- Init Comms button in I/O Channel config screen always closes IO channel
+before opening
+- Lock Status Stored in CBNP Map
+- Startup Salvo converted to use CBNP files
+- Client Return Code now returned in error messages as first part of 
+error text encapulated by [] brackets. Will be Filtered by Routing clients.
+
+
+Router 4 alpha 9
+******************
+
+TT Updates 
+******************
+- more app data refinement
+- tidyed up error reporting - so that errors that occur from a logged on user are always displayed on the OUI.
+- added no crosspoint dynamic attribute - minor attributes bugfixes
+- bugfix, if route command src & dst were in different areas and no tlm is present - router would do nothing.
+- changed fn_param (mirrors ip address) to textual ip address in CBNP config files
+- Added 'are you sure?' prompts to all matrix extension delete buttons
+- Fixed Locking bug introduced in Router400 Alpha 5 - where only first destionation could be locked
+
+* Major Change * - revamped mirroring.
+
+
+
+Router 4 alpha 7
+******************
+
+
+TT Updates 23/07/01
+******************
+- minor fixes to new import/export to path code
+
+
+Router 4 alpha 6 
+******************
+- Added Import/Export to shared directory
+
+- Added CBNP Levels file support
+
+- Fixed 32 levels scrolling GUI Bugs
+
+- Ported code to work with new Omnibus Common 96 - Comms Module (taken from Router 4 Comms module)
+- define MLIB_USE_MSERIAL in the matrix library to use older libraries
+
+- Change order of operation in mlib_close_iochannel - function now kills io channel thread first,
+then kills comms. This is to stop io channel threads using comm handles that have been closed already.
+ 
+
+TT Updates 11/07/01
+******************
+
+- Major Functionality: Added Router Attributes Support
+
+- rt_config - when saving the database - if sharer save fails, router will still be able to go online in local filing mode.
+
+- added global alpha sort button for popup lists. Previously Alpha Sort was always enabled
+
+- changed level bit fields in the map code from int to UINT to avoid sign extension problems during bit shifting.
+
+
+TT Updates 19/06/01
+******************
+
+- rt_csv.c Changed CSV routines to import from OUI floppy - intead of Engine's floppy
+
+- rt_xpt.c  In vaildate_segs() the variable 'segment' could be -1 which was being used as an array index.
+
+- reinstated router notes and import export progress bars, lost in last code merge
+
+- Revised Centralized filing functionality for a simpler design.
+
+- Added NVRAM map storage - for VX Works only
+
+- Added new Redundancy Mode - Mirrored Matrices - When this mode is set the config will be immdediatley loaded
+from the master router in the same was as a normal mirror. However The whole configuration can be changed and saved
+to the sharer in a seperate location. This is to allow mirror Routers to control dissimilar redundant matrices. 
+
+- Added filing mode indicator to config screen
+
+- Stopped secondary ip-address field in IO-Channel config from being displayed until needed.
+
+- Change 'from File' GUI startup option to 'Resync-matrices' by request of Stuart Pearce 
+
+- Minor tidy up of appdata layout
+
+- Ported Local filing code to VX Works
+
+- Changed Timed Takes Proc to sleep 2 milliseconds - 1 millisecond is a little to eager on VX Works
+
+
+
+TT Updates 06/06/01
+******************
+
+Various Files:
+
+- Major Functionality: Added Local Filing Support
+
+- Added Prototype NVRAM map storage for VX Works - untested
+
+- Modified startup sequence and installation of handlers
+for local filing mode. Also modified so that user can log on 
+while app is still initialising. Previously when a user logged on at this time they would see
+a blank screen on the OUI and have to drop the application and log on again.
+
+- Removed all logging to disk functionality for VX_WORKS
+
+- Changed Log to Screen button to Log to Console, as this is a more accurate description
+
+- Repair Broken Level Configuration Screen, App data had changed slighty
+
+- Prohibited user from changing database in mirror mode, only crosspoint and matrix configuration 
+can be changed.
+
+- Global Files can only be saved when the Sharer is Present. User is warned on attempt.
+
+- in Mirror mode only crosspoint and matrix configuration can be changed. User is warned on attempt.
+
+
+TT Updates 03/05/01 
+******************
+
+- Removed Attempts to Log to Disk from VX Works Version
+
+- Various Files
+Added Router Source, Destination notes support.
+
+- rt_csv.c
+Added Notes support to router database CSV spreadsheet version 5.
+Version 5 also supports 32 levels 
+
+- rt_csv.c
+Fixed CSV spreadsheet import code to cope with old 16 level databases
+
+- rt_main.c
+Moved pcache_init() to before router threads are started up. 
+This is because pcache_init() creates a Mutex which other threads rely on
+
+- rt_config.c, rt_csv.c
+Added progress bars for CSV database import/export functions
+
+- rt_config.c, rt_file.c
+Added progress bars for Database modify and reload functions
+
+
+
+*************************************************************
+*************************************************************
+// Router 4 - Split from Router 350 build 2 
+*************************************************************
+*************************************************************
+
+Added Support for Asynchronous Ethernet Protocols
+
+Expanded max database size to 8192 sources x 8192 destinations x 32 levels
+
+Changed matrix library crosspoint data type from int to short
+
+Removed all Level 4 compiler warnings.
+
+When 'sync router' startup option is set, Router now loads map.
+and for all read_matrix calls sets the source parameter to the source indicated by the map.
+
+
+TT Updates
+***********
+
+-rt_rules.c - default rule changed from 1 to 0 as rule 1 doesn't always exist.
+
+
+-rtomnsvc.c
+Router Controller nows sends correct error number to clients instead of 1
+
+
+*************************************************************
+Version 3.50 build 2  TT 29/02/01
+*************************************************************
+Built with Libraries Version 17 Build 7
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER350_BUILD2
+
+
+- rt_tssalvo.c - original timestamp was being over written by 
+  internal timestamp in ts_salvo_convert_timestamp()
+
+
+- rt_logic.h - RT_ERR_END restored to proper value, was less than RT_ERR_START
+
+- m_tcode.c
+mlib_get_current_timestamp() now calls vitc_timecode() because
+vitc_fieldcnt() does not return fields since mindight;
+
+- m_code.c
+module now uses vitc_status() to detect whether timecode is present 
+
+-m_tcode.c, m_tcode.h
+add mlib_set_internal_timecode_format() to allow user to set timecode format
+instead of trying to autodetect from VITC card.
+
+-mp_probel.c
+sms7000 init node controller commands checksum fixed,
+sms7000 reply length bug fixed
+probel timeout changed from 100 msecs to 250 msecs as sms7000
+legacy node controllers are slow.
+Node controller extended health response supported in
+addition to normal health response
+
+-rt_config.c
+added popup list to allow user to set timecode format
+
+- rt_text.c
+added internal timecode format to router3cfg file 
+
+- GUIDATA, GUITOKEN, messages, rt_config.c
+CBC feature request - changed Reset Database button and all associated text to Delete Database,
+to make the button look more dangerous!
+
+- m_text.c 
+downgraded invalid matrix and iohandle errors to verbose debug.
+g, as these errors can occur in a valid configuration, 
+if matrix is not online really messes up the debug stream!
+
+*************************************************************
+Merged changes in:
+Version 3.04 beta 16  JCH 15/03/00
+to Router 350 build 2
+*************************************************************
+Built with Libraries Version 17 Build 6 bugfix 9   - includes VITC logging
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA16
+
+
+- rt_config.c, user name and oui address are displayed and logged when user deletes the database
+
+- rt_logic.c, function exec_salvoII() 
+  fixed memory leak if salvo contains no routes
+
+- various files, every time memeory is allocated for a req_info structure
+  calloc is now used instead of malloc, so all mebers are initialzed as 0
+
+- rt_main.c, edls are now closed when user logs off
+
+- various files, made sure all list windows are closed properly
+
+
+JCH Updates
+***********
+
+- rt_omnsvc.c,  do not write the database map & dests if the instance is -1 (database reset). When
+ & rt_domain.c  the database is manually saved, instance is incremented and all files saved for consistency.
+
+- mp_philips.c, recoded to ignore response on set matrix (no response if crosspoint already set),
+                lengthened timeout when expecting first byte of a response, added more diagnostics
+
+- rt_route.c,   corrected display of source names in Status display.
+
+- m_comms.c,    corrected error message in comm_rxbytes.
+
+- rt_matrix.c   when init channel via OUI and an error occurs the associated matrix handles are
+                marked as invalid.
+
+- rt_db.c       ensure input/output structures exist in rt_dbdest & rt_dbsrc (potential race
+                condition when re-init I/O channel which supports unsolicited messages).
+
+- rt_logic.c    check that a dest record exists before upating in rt_async_update (as rt_db.c).
+
+- rt_map.c      check that a map record exists before updating in rt_setmap (as rt_db.c).
+
+- m_comms.c     corrected error message when reporting a failed RX.
+
+- matrixlib.c   On failure of an I/O chann close, all attached matrices are released by a backwards
+                search. (previously a forward search interacts with the delete mechanism)
+                When receiving a port message check that the matrix is valid (possible race as rt_db.c)
+
+- rt_main.c     Ensure EDLs have been opened before closing them on an OUI Logoff.
+
+
+
+*************************************************************
+Version 3.50 build 1  TT 27/02/01
+*************************************************************
+TT 27/02/01
+Built with Libraries Version 17 Build 6 bugfix 9   - includes VITC logging
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER305_BUILD1
+
+Added Timestamped Salvo module.(various files changed)
+- files added - rt_tssalvo.c, rt_tssalvo.h, m_tcode.c, m_tcode.h
+
+- rt_config.c 
+ user parameter set to RT_CBNP_REFRESH_MIRROR to differentiate from CBNP take commands
+ when sending reload command to mirror router
+
+- rt_logic.c 
+implemented pre-unlocking & post-locking for CBNP salvos, 
+
+- rt_main.c
+ rearranged the router application layer threading model.
+ The main thread now just listens for keyboard events,
+ a normal priority thread listens for messages from the matrix library 
+ and an above normal priority thread manages the timed takes queue
+
+
+*************************************************************
+Version 3.04 Build 3  JCH  26/02/01
+*************************************************************
+
+Built from beta 15
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BUILD3
+
+
+
+*************************************************************
+Version 3.04 beta 15  JCH 20/02/00
+*************************************************************
+Built with Libraries Version 17 Build 6 bugfix 9   - includes VITC logging
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA15
+
+JCH Updates
+***********
+
+Corrected allocation of default Area Aliases names (when file on Sharer not found). (rt_file.c)
+Added extra error messages to Philips & modified ACK/NACK message procesing. (mp_philips.c)
+
+
+*************************************************************
+Version 3.04 beta 14  TT 01/02/01
+*************************************************************
+Built with Libraries Version 17 Build 6 bugfix 9   - includes VITC logging
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA14
+
+TT Updates
+***********
+rt_matrix.c - init_matrix() - changed IO channel validation check from >0 to >=0
+	- broken in beta 11
+
+rt_db.h - rt_logic.c - rt_config.c - GUIDATA
+- added split salvo option - when this option is set 
+the contents of salvos will be treated as individual take commands. 
+i.e no salvo start/fire commands sent to the matrix
+
+rt_omnsvc.c - 
+- Changed incoming route request debug messages from verbose to normal debugging level
+
+rt_main.c
+- added verobse debug for status updates from matrix library
+
+
+*************************************************************
+Version 3.04 beta 13  JCH  30/01/01
+*************************************************************
+
+Built with Libraries Version 17 Build 6 bugfix 8   ** New **
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA13
+
+
+JCH Updates
+***********
+Corrected buffer management in Philips protocol (Ref CBC-0003-KK)
+
+
+*************************************************************
+Version 3.04 beta 12  JCH  16/01/01
+*************************************************************
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA12
+
+
+JCH Updates
+***********
+Corrected management of list windows for Rules (memory leak & incorrect memory release) (rt_rules.c,rt_dest.c)
+
+
+
+
+*************************************************************
+Version 3.04 beta 11  JCH  08/01/01
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA11
+
+
+JCH Updates
+***********
+
+Repaired area config broken in Beta 2. (rt_config.c)
+Repaired display of formats with levels. (rt_lvls.c)
+Added source level (=dest level) when broadcasting route parks. (rt_logic.c)
+Improved test for invalid I/O channels whilst configuring (rt_init.c,rtmatrix.c)
+
+
+
+*************************************************************
+Version 3.04 beta 10  JCH  19/12/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA10
+
+JCH Updates
+***********
+
+Never modify Instance for a Mirror (rt_file.c)
+Improved checking of mirror's IP address when configuring a Mirror Master or a Mirror Slave
+   and before letting a Mirror Slave go online (rt_confg.c)
+Re-instated leaving Router offline after changing Mode or Mirror IP address (part of Beta 5 mods) (rt_confg.c)
+After saving (modify) database for a Mirror Master, prompt for Mirror Slave reload and reload if requested. 
+                                  (rt_confg.c, rt_file.c, rt_text.c, rtomnsvc.c)
+Do not permit Mirror Slaves to Reset their database. (rt_confg.c)
+Ensure correct display of Mirror's IP address (rt_confg.c)
+Ensured a Mirror Slave's Database is read from the Master's folder on startup. (rt_file.c)
+When sending Service Data (new client found or change of Router status) only save Map and Dst
+   config to Sharer when the Router is online (when offline path may not be valid for a Mirror) (rtomnsvc.c)
+   and its OK to send offline status in the Service Data even if the Sharer path is not valid (rtomnsvc.c)
+Ensure logging flags are setup and any service changes are broadcast on all database loads. (rt_config.c, rt_file.c, rt_main.c, rtomnsvc.c)
+
+
+
+*************************************************************
+Version 3.04 beta 9  JCH  14/12/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA9
+
+JCH Updates
+***********
+
+Re-instated Instance within Service Data from a Mirror as clients using new CBNP can not
+    cope without the Instance being reported (rtomnsvc.c)
+
+
+
+*************************************************************
+Version 3.04 beta 8  JCH  11/12/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA8
+
+JCH Updates
+***********
+
+Save Router Dest files prior to announcing service, to ensure Lock state is correct. (rtomnsvc.c)
+Revised error checking when attaching a matrix (rtmatrix.c and rt_init.c)
+
+
+
+*************************************************************
+Version 3.04 Build 2  JCH  8/12/00
+*************************************************************
+
+Built from beta 7
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BUILD2
+
+
+*************************************************************
+Version 3.04 beta 7  JCH  7/12/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA7
+
+JCH Updates
+***********
+
+Tested for an Unknown Area and displayed as such on config screens. (rt_main.c, rt_config.c)
+Revised Mirror processing to avoid conflicts with Instance between Master and Mirror:
+  If a mirror, exclude "Instance" from the Service Data. (rtomnsvc.c) Reinstated in Beta 9
+  If a mirror, a database save only saves Route3_CFG and displays a warning. (rt_file.c) 
+  If a mirror master, on saving a database display a message to prompt user to reload Mirror
+      database to ensure consistency (rt_file.c) Prompt changed to Mirror reload option in Beta 10
+
+
+
+*************************************************************
+Version 3.04 beta 6  JCH  5/12/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA6
+
+JCH Updates
+***********
+
+Modified poll algorithm (Nvision protocol) to poll offline matrices every 10 secs and to raise 
+  error reports only when online/offline status changes (ie no error for failed poll when offline)
+Correctected Matrix Lib error messages for messages 911120 and greater. (matrixlib.c)
+Shortened CBNP Extra text content to fit within limits.  Affects route made broadcasts
+      for routes requested from a logged on OUI. (rt_route.c)
+When initialising a matrix (logged on OUI), release it if it alreadt exists. (rtmatrix.c) Possible
+      memory leak.
+When I/O Channel re-init fails, the channel is closed (matrixlib.c) and the handle is cleared in
+      the configuration (rtmatrix.c) - Used to access memory at location 0.
+Corrected failed message in mlib_init_matrix. (matrixlib.c)
+Initialised error code in comm_rxbytes to give no error response when requesting zero byte read (m_comms.c)
+Broadcasts unsolicited updates in rt_async_update (rt_logic.c).
+
+
+*************************************************************
+Version 3.04 beta 5  JCH 15/11/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA5
+
+JCH Updates
+***********
+
+Increased Leitch timeouts from 20 ms to 50 ms.
+Added Leitch unsolicited message diagnostics.
+Modified Mirroring config updates for loading of database.
+
+
+TT Updates
+**********
+
+Nvision Simple protocol index updated to be the last index.
+
+
+
+*************************************************************
+Version 3.04 beta 4  TT 10/11/00
+*************************************************************
+
+TT Updates
+***********
+
+Built with Libraries Version 17 Build 5 
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA4
+
+Added protocol 'NVision simple' 
+- this is idencital to the normal Nvision protocol except that 
+it does not poll for unsolicted status
+This is a temporary measure because the NVision matrices at KABC
+Crash When Polled. 
+
+Fixed Mirroring bug. When setting the router to mirror mode it
+would reset itself to master mode. Now this operation
+only reloads the router database and not the router configuration
+file
+
+
+*************************************************************
+Version 3.04 beta 3  JCH 08/11/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA3
+
+
+
+JCH Updates
+***********
+
+
+Check list window is open before closing it (rt_rules.c).
+Close list window before re-opening it to prevent memory leak (rt_rules.c).
+Rationalised rule allocation to one rule (Default Rule) when reseting database or on failure to load rules config.
+Fixed memory error message when adding a destination on the rules config screen.
+Extended CSV file to include source aliases (V4 of CSV file).
+Added option to load or ignore source aliases when importing CSV - flag button next to import button.
+   (Note V3 & V2 CSV use long source name for alias when aliases are to be imported).
+When loading source alias file, the aliases are resized to match quantity of sources.
+Fixed problem with discrepancy in source alias space and number when decreasing sources.
+When displaying source, dest or rule config ensure index within range (was a problem when decreasing database).
+Before saving a source alias ensure sufficient space available (rt_src.c & rt_names.c).
+When importing CSV V2 extra matrices could be added to srcs/dsts - fixed by clearing buffer before reading.
+Ensure correct parsing of CSV import for matrices attached to srcs/dsts - potential compiler optimisation issue.
+
+
+*************************************************************
+Version 3.04 beta 2  JCH 01/11/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA2
+
+
+
+JCH Updates
+***********
+
+Name for NVision protocol changed to NVision (was Nvision) - case sensitive when searching for a match (eg on CSV load)
+When initialising rules, the name 'No Rule' is reinstated for the default rule. (init_route_db)
+Corrected memory initialisation for source aliases if increasing number of sources (previously could corrupt memory) (rdb_input_size)
+Corrected CSV import (h_importdb):
+   Loading of Matrices corrected for standard router v router gateway (#ifndef is now #ifdef)
+   Loading of Matrices (standard router) tests for port already defined instead of protocol being used
+   Loading of Matrices (standard router) uses standard serial port params for protocol
+   Loading of Matrices uses correct (MX_NAME_LEN) bytes for storing matrix name (used to overwrite memory)
+   Loading of sources & destinations increase database size if needed (previously ignored extra srcs & dsts)
+   Loading of rules corrected (Rule index was one out if a rule was being created)
+Using alpha sortable List Windows.
+Corrected source name In Router error text (enum_error function).
+Corrected error name text index in MatrixLib (mlib_error function).
+Corrected park source test when checking rules (src_avail function).
+Probel salvo on clears salvo buffer in matrix.
+Probel salvo no longer tests for crosspoints set as a salvo can be issued without any routes.
+Rewritten timeout loop in comm_wait_event to wait for elapsed time.
+Rewritten Quartz and Probel protocol receive drivers.
+Corrected log messages for Leitch, Pesa PRC and Utah protocols.
+
+
+
+
+*************************************************************
+Version 3.04 Build 1  JCH 12/10/00
+*************************************************************
+
+Built from beta 1
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BUILD1
+
+*************************************************************
+Version 3.04 beta 1  JCH 11/10/00
+*************************************************************
+
+Built with Libraries Version 17 Build 5 bugfix 2
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER304_BETA1
+
+
+
+JCH Updates
+***********
+
+Corrected error message for failing to write CSV file to Router's floppy (Not OUI's floppy)
+
+Router source config - copy and increment now includes alias.
+
+Corrected Dummy matrix salvo log message.
+
+Downgraded a number of Router 3 log messages from REPORT (always issued) to DETAIL (issued only if detail logging selected)
+
+Tidied message formatting in enum_error and rt_async_lock.
+
+Ensured salvo flags are cleared when starting to a build a salvo. 1)reading back state of all
+matrices (grab_state), 2) on receipt of a client salvo (textual_cmd_to_route_salvo).
+
+Returned a no error state at end of functions loading inputs (router_read_input_levels_array,router_read_inputs_array).
+
+Do not broadcast errors on start up when executing a startup salvo or setting matrices to a saved map.
+
+
+TT Updates
+**********
+
+Added SMS7000 extensions to probel protocol
+
+Loading CBNP Map bug. If map is only file on the sharer the app goes into an infinite loop.
+bug fix taken from router303 beta3
+
+Matrix library: reinitialising channel will not continue any further if an error is encountered
+
+
+Modified route command post processing for more accurate error reporting
+
+Corrected HW_CLASS_VIRTUAL_END from 20 to 19 
+
+All 32 levels are now accesible from the GUI 
+
+Change signal format names Audio1 & Audio2 to Audio L & Audio R respectivley and used ? as the symbol for unknown
+
+Rule Name is displayed as main title for Rule EDL
+
+Matrix Screen - when new I/O channel is selected for matrix
+-I/O channel display will be updated to reflect new channel
+
+Extra checking added in copy_and_inc router source/dest name to makes sure maximumn name limit is never exceeded
+
+Bidirectional Datamatrix processing - when looking for level type - level index was 1 based (should be zero based)
+
+Broadcast Router Status updates - put trap in to stop updates being broadcast if router is offline
+
+UMD Source Aliases is version 6 - denotes support for 8192 sources
+- version 5 supports 1024 - if database is smaller than 1025 sources version 5 will be used
+
+Route Screen - defaults to hold levels mode on startup
+- cannot select levels that are not supported by selected destination
+- refined view level logic
+
+Fixed minor bug where I/O Channel shown in matrix config screen at startup
+may not belong to the selected matrix
+
+Fixed bug where long destination name could not be deleted
+
+Improved error reporting for the filing module - inlucding more specific popup prompts
+
+Added complete error checking and reporting for every CBNP function used
+
+Revised Error reporting to clients to reflect revised error code defintitions 
+
+Revised Router Errors
+
+Revised Matrix Library error reporting and debug messages.
+
+Router Status updates that happen before the Routing Omn Service is opened
+will now not attempt to broadcast router status. The changes will be included in the map
+
+Resync Matrices now uses new style salvo. It also doesn't broadcast the changes to the network.
+as this is not neccesary - clients already have the latest map
+
+Optimized & Untangled loading database routines.
+Rules now get free'd when the database is loaded.
+
+Global Router Files get loaded seperatley only once at startup.
+Filing Change notifications handlers take care of keeping these up to date. 
+
+When reloading the database - rules are free'd
+
+ReSync Matrices now broadcasts changes to network
+
+Added flags member to route_req_info struct so that rt_route() 
+-flags will be passed back from matrix library with route acknowledgments
+
+Optimized bi-directional data router preprocessing
+- and moved into a seperate function 
+
+matrix library set salvo function is now asychronous.
+
+Extended salvos to unlimited size
+Extended umd aliases to unlimited size
+
+Port Proc threads now free their IOHandle when dying
+ - mlib_close_iochannel used to do this but was causing threading issues 
+
+Reviewed Probel Protocol- Optimized protocol for speed
+
+Reviewed Quartz Protocol - Optimized protocol for speed.Expanded protocol to support 8 levels.
+
+Tidyied Up code and removed redundancies
+
+Merged in New CBNP API code to migrate Router 3 to omnibus libraries version 17
+
+
+*************************************************************
+Version 3.03 beta 3  TT  17/08/00
+*************************************************************
+Fixed problem where if CBNP map was the only file on the sharer
+program would go into infinite loop
+
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER303_BETA3
+
+*************************************************************
+Version 3.03 beta 2  JCH 07/07/00
+*************************************************************
+Increased ports to 8 (from 7)
+Removed salvo support for Nvision
+Added check for valid matrix handle prior to testing for abstraction services
+
+Clearcase Config Spec:
+load \Router_3
+element * ROUTER303_BETA2
+
+
+*************************************************************
+Version 3.03 beta 1  JCH 12/6/00
+*************************************************************
+Restructured to use MatrixLib.
+Added support for Nvision protocol.
+Added support for bi-directional data routers.
+Use Codes DBG_ROUTER+1,2 & 3 for debug levels within MatrixLib - Set up in Router 3.
+Set client IP address to self (in cur_job) when initialising & when doing master reinit.
+Clear salvo mode flag when abandoning salvo in Leitch protocol.
+Ignore pop up window error during initialisation for failed TLM services.
+Corrected test for parking the current destination for a Data Router source prior to switching to another destination.
+Broadcast any parked destination when switching within a Data Router.
+Created a new thread to receive keyboard input - previously part of main thread.
+Put a 1 milli second wait in m_thread when waiting for a message - previously immediate return.
+The above 2 updates result in significant reduction of CPU usage by Router3 in NT. (96% reduced to 3%).
+Quartz salvo message size corrected to actual message length and not buffer size. (TT)
+Corrected saving of Area Alias names.
+
+*************************************************************
+Version 3.02 beta 11 TT 25/04/00
+*************************************************************
+UMD aliases default to source names 
+
+*************************************************************
+Version 3.02 beta 10 TT 25/04/00
+*************************************************************
+
+When Client requests database only map is saved to sharer. Saving whole database was too intensive with many clients
+This will result in lock info getting out of sync. But this should be in the map anyway. Still needs to be addressed
+
+
+JCH Updates
+***********
+
+Fixed hole in matrixhandle[] when releasing a matrix
+Corrected test for invalid channel in h_init_matrix
+
+
+
+
+JCH Updates (up to 19/4/00)
+***********
+
+Persistant I/O comms failure with Bad porthandle error messages resolved by ignoring I/O port errors after initialisation.
+Old Port Proc threads now deleted when reloading data base from sharer - prevously multiple copies were running.
+Fixed change of virtual route map (depends on no. of physical outputs + virtuals) corrupting random memory.
+No longer issuing route commands to matrices when setting up a virtual source (still updates virtual map for subsequent routes to that virtual).
+Added further error checking for virtual routing.
+
+
+
+
+*************************************************************
+Version 3.02 beta 9 TT 17/04/00
+*************************************************************
+
+When alerting user about duplicate crosspoints, If users dismissed popup by pressing enter this would set selected xpoint to 0 - FIXED
+Popup list that shows other sources/dests using crosspoint has source/dest index prefixed to it.
+
+Leitch Protocol now uses 0 based xpoints
+
+
+
+*************************************************************
+Version 3.02 beta 8 TT 29/03/00
+*************************************************************
+Routes Made in Local router panel where not sending out correct header info in router status messages.
+router status header member 'Extra' now says 'OUI @ <ouis IP address>
+router status header member 'Handle' is set to 0
+
+Mirror IP dialogue box max length set to 16 instead of 13 doh! 
+ 
+Popup List Windows that show what other sources/destinations are sharing the same crosspoint 
+
+*************************************************************
+Version 3.03 beta 1 TT 07/04/00
+*************************************************************
+
+Used New CBNP API
+
+built with libraries 17 bugfix 1
+
+Client Requests for database will only invoke router to save map (not whole database)
+Too time consuming. 
+
+*************************************************************
+Version 3.02 beta 7 TT 29/03/00
+*************************************************************
+
+Router Status messages contained spurious source level information
+This was broke during the asyncronous set xpoint development
+
+Set xpoint acknowledgemts now use the same update method as unsolicted xpoint status.
+i.e they look for other destinations that share the same crosspoint and update them as well
+this may reduce the speed at which aknowledgments get back to the user as the database has to be searched
+each time an aknowledgement is recieved. However this will not reduce the speed of setting xpoints as this is done in a different thread.
+
+
+Commit Changes now displays wait prompt until completed
+If the router is offline and the user tries to get online by presing the offline button again - a popup prompt will 
+tell the user to press commit changes (this has confused some engineers)
+
+Selecting a source in the route screen will popup a list with the currently selected source at the top , highlighted
+instead of the previous source 
+
+Levels panel now shows level names again, broken during optimization of screen update routines 
+
+
+*************************************************************
+Version 3.02 beta 6 John Hopper 24/03/00
+*************************************************************
+
+Made Salvos asnyc
+
+Logging async error messages
+
+
+
+*************************************************************
+Version 3.02 beta 5 John Hopper 21/03/00
+*************************************************************
+
+Fixed memory leak when receiving route status from another router
+
+Fixed memory leak associated with async error report from Philips protocol
+
+Tidied up usage of rlib_msg_struct for future additional error reporting
+
+Modified code to avoid compiler grumbles
+
+TT Routes made locally (by user logged on to the app) will be sent to the mirrored router (if any)
+ 
+
+
+*************************************************************
+Version 3.02 beta 4 Tom Taylor 02/03/00
+*************************************************************
+
+fifo control enabled when opening a serial comms port
+
+Quartz Unsolcited support added
+
+rlib_inform_xpt_change() checks for invalid matrix handle when posting unsolicted message to main thread
+
+
+*************************************************************
+Version 3.02 beta 3 Tom Taylor 02/03/00
+*************************************************************
+
+Leitch Protocol - sends echo off command when initializing iochannel
+
+CSV Import was not setting the serial parameters for matrix protocols
+
+CSV Import, If the protocol name was unknown this would crash application
+
+Reset Button resets the database 32x32, attempted in last version but not compiled correctly
+
+Coudln't configure source/dest crosspoints when matrices are offline
+
+CBNP, writing the crosspoints for a source/dest to a file - could possibly write to many elements to the array.
+
+User cannot log on to the application before the application is ready.
+
+If the area is changed during run time, CSV export would not export correct area
+
+CSV Export, If IO channel is off line, protocol was exported as 'none'
+ 
+Rule Size always = MAX_INPUTS to stop memory overflow when adding more sources
+
+
+
+*************************************************************
+Version 3.02 beta 2 Tom Taylor 28/2/00
+*************************************************************
+
+Router Database defaults to 32x32 when no database is present
+
+'Virtual Matrix' protocol is renamed 'dummy matrix' to avoid confusion
+
+Source Aliases can be renamed in the source configuration screen 
+
+Screen update routines optimized for faster logon and more economical screen updates
+
+A few help bar messages changed and minor appdata changes
+
+When listing destinations using a rule the popup list now displays the rule name or number instead of ''
+
+Offline Question dialogue now tells the user how to put the router back on line
+
+Couldn't delete source names in source config screen
+
+Old style salvo support broken in last version
+
+Startup salvo displays 'none' instead '' if no salvo is selected
+
+several problems when Importing databases fixed
+
+Bug in CBNP which causes NULL characters to appear located - compiled with libs 15_8 with special cbnp.c version
+(more info see Bruce Brown)
+
+*************************************************************
+Version 3.02 beta 1 Tom Taylor 14/2/00
+*************************************************************
+
+Various Appdata alterations - spelling mistakes, resizing objects
+
+Routes with the source in another area were getting passed to TLM without any level information
+
+When the Probel driver was waiting for a response from a serial command
+ it would sometimes timeout before the whole message was recieved.
+The driver now waits 10msec after recieving the first byte of a message to allow the whole message to arrive
+
+Route Requestor Info functionality added. (as featured in router 2.5)
+Clients will be informed which application at which ip address made the route.
+
+Set crosspoint commands are now asyncronous, the network thread sends the command to the protocol layer
+with a route_req_info_structure (see above) and doesn't wait for a response. The response is sent 
+to the system thread wich deals with acknowledgements
+
+Wimpslot is set to >2Mb so that the application will run on Acorn 5000's
+
+'Commit changes' button will now ask users if they are sure, and displays a 'waiting' message while the
+event is in progress. Commit changes cannot be pressed within 10 seconds of the last 'commit changes'
+
+Commit changes now saves the whole database to the sharer instead of the map, so that clients
+get the most up to date locking status (stored in Route_Dsts)
+
+pressing <Ctrl><D> on the engine's keyboard performs a memory-dump
+
+Sources and Destinations can now share crosspoints.
+
+When a user enters a crosspoint which is already shared a list will popup showing all the other 
+sources/dests which use the crosspoint
+
+The Area the router appears in can be changed on the fly by pressing the 'change areas' button 
+in the applications main configuration screen 
+
+Matrices can be unassigned from an IO channel
+
+The levels configuration screen always displays the options panel instead of popping it up when 
+a level button is pressed. 
+
+The crosspoint configuration EDL in the sources & destinations configuration screen now highlights 
+the selected row.
+
+Hard locking architecture in place. A lock made in Omnibus will be locked on the matrix (and vice versa).
+None of the drivers supplied with this version support this yet
+
+The read-matrix commands can return 'locked' so that 'resync router' can find which destinations
+are locked on the matrix. None of the drivers supplied in this version support this yet.
+
+Textual crosspoint configuration
+Instead of entering the crosspoint number the user can select from a list of crosspoint names supplied by 
+the attached matrix. None of the drivers supplied in this version support this yet.
+
+Could not import/export to floppy (acorns only) in the last version.
+
+Disabled the Escape key because this was causing messy shutdowns of the application
+<Ctrl><C> still works
+
+
+ 
+ 
+
+
+*************************************************************
+Version 1 build 1  Tom Taylor 15/10/99
+*************************************************************
+First Release
+Please note that this version does not support route request extended information 
+Built with Omnilibs v15 bugfix 8
+Routing Clients should be built with Routelibs v2.2 or higher (preferably the latest version)
+
+Protocol Support:
+Leitch 
+Pesa PRC
+Artel (UTAH) RCP 1
+Philips ESswitch
+Quartz type 1
+Probel SWp02
+ 
+please raise dp notes for other drivers if required

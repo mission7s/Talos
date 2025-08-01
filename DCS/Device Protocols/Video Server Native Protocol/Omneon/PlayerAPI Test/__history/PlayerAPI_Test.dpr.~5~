@@ -1,0 +1,19 @@
+program PlayerAPI_Test;
+
+uses
+  Vcl.Forms,
+  UnitMain in 'UnitMain.pas' {Form7},
+  UnitOmMediaDefs in '..\..\..\DCS\Device Units\Omneon\UnitOmMediaDefs.pas',
+  UnitOmPlrClnt in '..\..\..\DCS\Device Units\Omneon\UnitOmPlrClnt.pas',
+  UnitOmPlrDefs in '..\..\..\DCS\Device Units\Omneon\UnitOmPlrDefs.pas',
+  UnitOmTcData in '..\..\..\DCS\Device Units\Omneon\UnitOmTcData.pas',
+  UnitOmClipFileDefs in '..\..\..\DCS\Device Units\Omneon\UnitOmClipFileDefs.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm7, Form7);
+  Application.Run;
+end.

@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.395,D:\User Data\Git\xe_lib\synapse\synapse40\source\demo\snmp\Unit1.pas=D:\User Data\Git\APC\DCS\Device Protocols\Logo\K2E Logo Inserter\TestHLK20v01\UnitTestHLK20v01.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.395,D:\User Data\Git\xe_lib\synapse\synapse40\source\demo\snmp\Unit1.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Logo\K2E Logo Inserter\TestHLK20v01\UnitTestHLK20v01.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.591,D:\User Data\Git\xe_lib\synapse\synapse40\source\demo\snmp\SnmpTest.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Logo\K2E Logo Inserter\TestHLK20v01\TestHLK20v01.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

@@ -1,0 +1,44 @@
+unit UnitCISXmlConsts;
+
+interface
+
+const
+  // CIS CueSheet List XML Node & Attribute Name'
+  CIS_XML_CHANNEL_NAME  = 'CHName';
+  CIS_XML_SOURCE_ID     = 'SourceID';
+  CIS_XML_SCHEDULE_DATE = 'ScheduleDate';
+  CIS_XML_BEGIN_TIME    = 'BeginTime';
+  CIS_XML_LAST_TIME     = 'LastTime';
+
+  CIS_XML_EVENT_LIST        = 'EventList';
+  CIS_XML_ATTR_EVENT_COUNT  = 'EventCount';
+
+  CIS_XML_EVENT_INFO          = 'EventInfo';
+  CIS_XML_EVENT_NUMBER          = 'EventNumber';
+  CIS_XML_TIME_TYPE       = 'TimeType';
+  CIS_XML_START_TIME      = 'StartTime';
+  CIS_XML_DURATION        = 'Duration';
+  CIS_XML_EVENT_TYPE      = 'EventType';
+  CIS_XML_EVENT_MODE      = 'EventMode';
+  CIS_XML_CLIP_ID      = 'ClipID';
+  CIS_XML_EVENT_CLASS           = 'EventClass';
+  CIS_XML_TITLE           = 'Title';
+  CIS_XML_MEMO       = 'Memo';
+  CIS_XML_LOGO_ID          = 'LogoID';
+  CIS_XML_MEDIA_ID        = 'mediaid';
+  CIS_XML_DURATION_TC     = 'durationtc';
+  CIS_XML_IN_TC           = 'intc';
+  CIS_XML_OUT_TC          = 'outtc';
+  CIS_XML_TRANSITION_TYPE = 'transitiontype';
+  CIS_XML_TRANSITION_RATE = 'transitionrate';
+  CIS_XML_VIDEO_TYPE      = 'videotype';
+  CIS_XML_AUDIO_TYPE      = 'audiotype';
+  CIS_XML_CLOSED_CAPTION  = 'closedcaption';
+  CIS_XML_VOICE_ADD       = 'voiceadd';
+  CIS_XML_PROGRAM_TYPE    = 'programtype';
+  CIS_XML_NOTES           = 'notes';
+
+
+implementation
+
+end.

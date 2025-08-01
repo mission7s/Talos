@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" value="IE=9" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    
+
+    <title>Transitions between playlist items</title>
+    <meta name="Title" content="Transitions between playlist items"/>    
+    
+
+
+</head>
+
+<body>
+
+
+<p class="hs-toggler">Here is a list of transitions:</p>
+
+<div class="hs-toggler-container" >
+    <p class="hs-toggler">Barn</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a motion that resembles doors opening or closing.</p>
+
+        <ul type="square">
+            <li><b>Motion</b> - Indicates whether new content is revealed from the outside or the inside first.<br />
+            <em>out</em> - The transition moves from the center of the object toward the borders of the object;<br />
+            <em>in</em> - The transition moves from the borders of the object toward the center.</li>
+
+            <li><b>Orientation</b> - Indicates whether the filter effect is horizontal or vertical.<br />
+            <em>horizontal</em> - Transition lines are horizontal;<br />
+            <em>vertical</em> - Transition lines are vertical.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Blinds</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a motion that appears to open or close blinds.</p>
+
+        <ul type="square">
+            <li><b>Bands</b> - The number of strips into which the content is divided during the transition. Valid range: 1...100.</li>
+
+            <li><b>Direction</b> - The direction of motion in the transition (up, down, right, left).</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">CheckerBoard</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by uncovering squares placed like a checkerboard over the original content.</p>
+
+        <ul type="square">
+            <li><b>Direction</b> - The direction of motion in the transition (up, down, right, left).</li>
+
+            <li><b>SquaresX</b> - The number of columns. Valid range: 2 or more.</li>
+
+            <li><b>SquaresY</b> - The number of rows. Valid range: 2 or more.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Fade</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by fading out the original content.</p>
+
+        <ul type="square">
+            <li><b>Overlap</b> - The fraction of the transition duration that both original and new content are displayed. Valid range: 0.0 ... 1.0.</li>
+        </ul>
+
+        <p>Also it is possible to do transitions to colored screen or custom image. To do it you should use file path or color name as parameter of this transition: <em>fade(c:\temp.jpg)</em> or <em>fade(black)</em>.</p>
+
+        <ul type="square"></ul>
+    </div>
+
+    <p class="hs-toggler">GradientWipe</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by passing a gradient band over the original content.</p>
+
+        <ul type="square">
+            <li><b>GradientSize</b> - Percentage of the object that is covered by the gradient band. Valid range: 0.0 ... 1.0.</li>
+
+            <li><b>WipeStyle</b> - Indicates whether the gradient band moves vertically or horizontally. Valid range: 0...1 (horizontally, vertically).</li>
+
+            <li><b>Motion</b> - Indicates whether content is revealed as defined by the WipeStyle property setting, or in the opposite direction.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Inset</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object diagonally.<br />
+        This transition does not support any additional features. <!-- no parameters --></p>
+    </div>
+
+    <p class="hs-toggler">Iris</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with an iris effect, similar to the opening of a camera aperture.</p>
+
+        <ul type="square">
+            <li><b>irisStyle</b> - The shape of the Iris filter aperture.<br />
+            <em>DIAMOND</em> - Diamond-shaped aperture;<br />
+            <em>CIRCLE</em> - Circular aperture;<br />
+            <em>CROSS</em> - X-shaped aperture;<br />
+            <em>PLUS</em> - Plus sign-shaped aperture;<br />
+            <em>SQUARE</em> - Square aperture;<br />
+            <em>STAR</em> - Star-shaped aperture.</li>
+
+            <li><b>Motion</b> - Indicates whether new content is revealed from the outside or the inside first (out, in).</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Pixelate</p>
+
+    <div class="hs-toggler-container" >
+        <p>Displays the content of the object as colored squares that take the average color value of the pixels they replace.</p>
+
+        <ul type="square">
+            <li><b>MaxSquare</b> - Maximum width in pixels of a pixelated square. The larger the number, the larger the squares and the coarser the picture. Valid range: 2...50.</li>
+        </ul>The Pixelate transition is a complex visual effect. In the first half of the transition, the content is displayed as expanding pixelated squares. The width of the pixelated squares increases from one pixel to MaxSquare pixels at the halfway point of the transition. The final half of the transition reduces the pixelated squares back to individual pixels, revealing the new content. During this transition, the original content fades into the new content. The fade effect is produced by reducing the opacity of the original content to zero while the opacity of the new content is raised to 100 percent at the same time.
+    </div>
+
+    <p class="hs-toggler">RadialWipe</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a radial wipe, like a windshield-wiper blade.</p>
+
+        <ul type="square">
+            <li><b>WipeStyle</b> - Method used to reveal the new content.<br />
+            <em>CLOCK</em> - Sweeps around the center, clockwise from the top;<br />
+            <em>WEDGE</em> - Sweeps around the center in both directions from the top;<br />
+            <em>RADIAL</em> - Sweeps from the top to the left side, with one end of the sweep anchored on the upper left corner.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">RandomBars</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by exposing random lines of pixels.</p>
+
+        <ul type="square">
+            <li><b>Orientation</b> - Indicates whether the filter effect is horizontal or vertical.<br />
+            <em>horizontal</em> - Transition lines are horizontal;<br />
+            <em>vertical</em> - Transition lines are vertical.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">RandomDissolve</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by exposing random pixels.<br />
+        This transition does not support any additional features. <!-- no parameters --></p>
+    </div>
+
+    <p class="hs-toggler">Slide</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by sliding sections of the image into place.</p>
+
+        <ul type="square">
+            <li><b>bands</b> - The number of strips into which the content is divided during the transition. Valid range: 1...100.</li>
+
+            <li><b>slideStyle</b> - Method used to reveal the new content.<br />
+            <em>HIDE</em> - Slides bands of original content out, exposing new content;<br />
+            <em>PUSH</em> - Slides bands of new content in, pushing original content out;<br />
+            <em>SWAP</em> - Alternating bands expose new content, or push original content out, at the same time.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Spiral</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a spiral motion.</p>
+
+        <ul type="square">
+            <li><b>gridSizeX</b> - Number of grid columns used for the filter. Valid range: 1...100.</li>
+
+            <li><b>gridSizeY</b> - Number of grid rows used for the filter. Valid range: 1...100.</li>
+        </ul>The combination of the GridSizeX and GridSizeY property values divides the content of an object into a grid for the filter to use.
+    </div>
+
+    <p class="hs-toggler">Stretch</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a stretching motion to cover the original content.</p>
+
+        <ul type="square">
+            <li><b>stretchStyle</b> - Method used to reveal the new content.<br />
+            <em>HIDE</em> - Stretches new content over original content from left to right;<br />
+            <em>PUSH</em> - Stretches new content in and squeezes original content out, moving from left to right. This motion resembles a cube rotating from one face to another;<br />
+            <em>SPIN</em> - Stretches new content over original content from the center outward.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Strips</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object by moving successive strips into place, like a diagonal saw blade passing across the original content.</p>
+
+        <ul type="square">
+            <li><b>Motion</b> - Corner from which new content is revealed during a Strips transition.<br />
+            <em>leftdown</em> - from the upper left corner to the lower right;<br />
+            <em>leftup</em> - from the lower left corner to the upper right;<br />
+            <em>rightdown</em> - from the upper right corner to the lower left;<br />
+            <em>rightup</em> - from the lower right corner to the upper left.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">Wheel</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a rotating motion, like spokes of a wheel covering the original content.</p>
+
+        <ul type="square">
+            <li><b>Spokes</b> - Number of wedges that the content is divided into during the transition. Valid range: 2...20.</li>
+        </ul>
+    </div>
+
+    <p class="hs-toggler">ZigZag</p>
+
+    <div class="hs-toggler-container" >
+        <p>Reveals new content of the object with a forward and back motion that moves down the object.</p>
+
+        <ul type="square">
+            <li><b>gridSizeX</b> - Number of grid columns used for the filter. Valid range: 1...100.</li>
+
+            <li><b>gridSizeY</b> - Number of grid rows used for the filter. Valid range: 1...100.</li>
+        </ul>The combination of the GridSizeX and GridSizeY property values divides the content of an object into a grid for the filter to use.
+    </div>
+</div>
+
+   
+</body>
+</html>

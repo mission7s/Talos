@@ -1,0 +1,22 @@
+- Systembase USB Serial - Video Tron Switcher(MS-6416)
+	- 2 - 7
+	- 3 - 3
+	- 7 - 2
+	- 8 - 8
+
+
+
+
+- SG1161 RJ45 -> Omneon Louth DB9
+	- 2 TX-	- 3 RX-
+	- 3 RX+	- 2 TX+
+	- 4 RX-	- 7 TX-
+	- 7 TX+	- 8 RX+
+
+
+
+- SG1161 RJ45 -> Video Tron Switcher(MS-6416) DB9
+	- 2 TX-	- 8 RX-
+	- 3 RX+	- 7 TX+
+	- 4 RX-	- 2 TX-
+	- 7 TX+	- 3 RX+

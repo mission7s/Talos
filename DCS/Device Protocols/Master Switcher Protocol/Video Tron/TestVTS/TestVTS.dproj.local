@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.192,=D:\User Data\Git\APC\DCS\Device Units\Master Switcher\Video Tron\UnitVideoTronSwitcher.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.593,=D:\User Data\Git\APC\DCS\Device Units\Serial Protocol\Video Tron\UnitSerialVideoTronSwitcher.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.293,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.258,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.968,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\TestVTS.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.258,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.257,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

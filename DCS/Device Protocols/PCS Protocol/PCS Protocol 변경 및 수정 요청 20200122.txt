@@ -1,0 +1,54 @@
+- Open 명령 호출 시 이미 Open되어 있는 경우, Open을 호출한 클라이언트가 같으면 성공으로 처리
+	PCS는 Open 명령을 받으면 내부적으로 클라이언트 IP 정보를 가지고 있어야 함
+
+- Close 명령은 결과값이 항상 fail로 들어옴
+
+- device id는 Device preview display screen 순서대로 설정하였으면 함
+
+- Media Device 
+	- set_rate 설정하면 자동으로 재생됨 -> 재생중인 경우에는 즉시 반영, 나머지 상태인 경우에는 rate만 변경하고 재생시 적용되어야 함
+	- record_cue 파일명 설정이 되지 않음
+	- stop 명령 시 play_cue를 여러번 했을 경우 화면이 블랙으로 바뀌지 않는 현상 있음
+	- pause 상태에서도 다음 play_cue를 할 수 있어야 함
+	- 다음 play_cue가 되어 있는 상태에서 play 명령을 해야 다음 play_cue 파일이 즉시 재생되도록 수정, play명령을 하지 않으면 현재 재생되고 있는 클립이 끝까지 재생된 후 일시 정지 상태여야 함
+
+- Switcher Device
+	- set_transition_rate 명령에 예외 정보 보내면 'Abnormal terminate; 에러 발생 후 강제 종료됨 
+
+- Device preview display screen에 output1,2 도 볼 수 있었으면 함
+
+
+
+
+
+
+
+
+I am satisfied with the overall function of PCS. Good job.
+
+Please check the contents below and reply.
+
+
+- If it is already open device when calling 'open' command, it is success if the same client calling 'open'. PCS should have client IP information internally when it receives 'open' command.
+
+- 'close' command works normally but result always fail.
+
+- Device ID should be set in the order of 'Device preview display screen'.
+
+- I want to see output1,2 on the 'Device preview display screen'.
+
+- Media device
+	- If 'set_rate' is set, it is automatically play.-> If it is playing, it is immediately apply. If it is in the rest state, only rate is set changed and it must be applied when playing.
+	- 'record_cue' command file name cannot be set.
+	- If 'play_cue' call many times and 'stop' command call, the screen does not turn black.
+	- Must be able to next 'play_cue' even when pause state.
+	- Play the next 'play_cue' file to 'play' command call. If 'play' command is not execute, current playing clip must be played to the end and paused.
+
+-Switcher device
+	- If send exception information to the 'set_transition_rate' command, 'Abnormal terminate; forced to quit after error.
+	
+
+Please check.
+
+Thanks,
+Bong. 

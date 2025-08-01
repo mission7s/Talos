@@ -1,0 +1,801 @@
+unit UnitVideoTronSwitcher;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs,
+  UnitBaseSerial;
+
+const
+  // OK/False value
+  VTS_OK    = $4F;  // OK ('O' = 0x4f )
+  VTS_FALSE = $4E;  // Not OK ('N' = 0x4e )
+
+  // On/Off value
+  VTS_ON  = $30;
+  VTS_OFF = $31;
+
+  // Communication Error, Error Bit
+  VTS_ERROR_STX = $01;
+  VTS_ERROR_CHECKSUM = $02;
+  VTS_ERROR_DATA = $04;
+  VTS_ERROR_COUNTER = $08;
+
+type
+  TVtsTakeType = (
+    vtsTtTransition = Ord('0'),    // 0 (0X30), On-Air the Preset Channel and reports the Status Change
+    vtsTtDropPGMAndPST = Ord('1'), // 1 (0X31), Drop the On-Air PGM and PST Over level.
+    vtsTtDropKey = Ord('2')        // 2 (0X32), Drop the On-Air Key level.
+    );
+
+  TVtsTransitionType = (
+    vtsTsCut = Ord('T'),      // T, (0x54): Cut-out and cut-in.
+    vtsTsMix = Ord('M'),      // M, (0x4d): Dissolve or Mix.
+    vtsTsFade = Ord('F'),     // F, (0x46): Fade-out and Fade-in.
+    vtsTsFadeCut = Ord('>'),  // >, (0x3e): Fade-out and Cut-in.
+    vtsTsCutFade = Ord('<'),  // <, (0x3c): Cut-out and Fade-in.
+    vtsTsWipe = Ord('W'),     // W, (0x57): Wipe.
+    vtsTsDsk = Ord('K')       // K, (0x4b): Select DSK channel as DATA 1-2 **
+    );
+
+  TVtsTransitionRate = (
+    vtsTrCut = Ord('C'),      // Cut.
+    vtsTrFast = Ord('F'),     // Fast transition rate.
+    vtsTrMiddle = Ord('M'),   // Middle transition rate.
+    vtsTrSlow = Ord('S')      // Slow transition rate.
+    );
+
+  TVtsInOut = (
+    vtsIn = Ord('0'),         // Over or key in.
+    vtsOut = Ord('1')         // Over or key out.
+    );
+
+  TVtsOverType = (
+    vtsOtPST = Ord('0'),      // PST over.
+    vtsOtPGM = Ord('1')       // PGM over.
+    );
+
+  TVtsMachineStatus = record
+    OnAirVideoChannel: Byte;            // On-Air Video Channel number
+    OnAirAudioChannel: Byte;            // On-Air Audio Channel number
+    KeyChannelNumber: Byte;             // DSK Key In Channel number
+                                        // 0, (0x36 0x33): All DSK are Key Out.
+                                        // 1, (0x30 0x31): DSK1 is Key In.
+                                        // 2, (0x30 0x32): DSK2 is Key In.
+                                        // 3, (0x30 0x33): DSK3 is Key In.
+                                        // 4, (0x30 0x34): DSK1 and 2 are Key In.
+                                        // 5, (0x30 0x35): DSK1 and 3 are Key In.
+                                        // 6, (0x30 0x36): DSK2 and 3 are Key In.
+                                        // 7, (0x30 0x37): DSK1, 2 and 3 are Key In.
+    AudioOverChannel: Byte;             // Audio Over Channel number.
+                                        // 0, (0x36 0x33): All Over are off.
+                                        // 1, (0x30 0x31): PST EXT1 Audio Over.
+                                        // 2, (0x30 0x32): PST EXT2 Audio Over.
+                                        // 3, (0x30 0x33): PGM EXT1 Audio Over.
+                                        // 4, (0x30 0x34): PGM EXT2 Audio Over.
+                                        // 5, (0x30 0x35): PST EXT1 and PGM EXT1 are Audio Over.(Reserved)
+                                        // 6, (0x30 0x36): PST EXT1 and PGM EXT2 are Audio Over.(Reserved)
+                                        // 7, (0x30 0x37): PST EXT2 and PGM EXT1 are Audio Over.(Reserved)
+                                        // 8, (0x30 0x38): PST EXT2 and PGM EXT2 are Audio Over.(Reserved)
+    PresetVideoChannel: Byte;           // Preset Video channel or DSK channel number.
+    PresetAudioChannel: Byte;           // Preset Audio channel or DSK channel number.
+    TransitionType: TVtsTransitionType;
+    TransitionRate: TVtsTransitionRate;
+    APCMode: Byte;                      // 0x30: APC Mode is Auto/Manual Mode.
+                                        // 0x31: APC Mode is Auto Mode.
+                                        // 0x32: APC Mode is Manual Mode.
+  end;
+
+  TVtsStatus = record
+    OnStartTransition: Boolean;         // Show Interrupt, AUTO TRANSITION starts. Show is occurred.
+    OnEndTransition: Boolean;           // End of Transition Interrupt, End of AUTO TRANSITION, completion of DIRECT PROGRAM CHANGE.
+    OnButtonInterrupt: Boolean;         // Button Interrupt, Switch button of PGM row is pressed.
+  end;
+
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+  TOnMachineStatusChanged = procedure(Sender: TComponent; AMachineStatus: TVtsMachineStatus) of object;
+  TOnStatusChanged = procedure(Sender: TComponent; AStatus: TVtsStatus) of object;
+  TOnCommunicationError = procedure(Sender: TComponent; AError: Byte) of object;
+
+  TStatusThread = class;
+
+  TVideoTronSwitcher = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+
+    FMachineStatus: TVtsMachineStatus;
+    FStatus: TVtsStatus;
+    FCommunicationError: Byte;
+
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+    FOnMachineStatusChanged: TOnMachineStatusChanged;
+    FOnStatusChanged: TOnStatusChanged;
+    FOnCommunicationError: TOnCommunicationError;
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    function SendCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    function CheckSum(AValue: AnsiString): Boolean;
+    function TransmitStatus(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+    function TransmitCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+    // Request command
+    // Request transition/take
+    function Take(ATakeType: TVtsTakeType): Integer;                            // 0X20.01
+    // Request direct program channel change
+    function DirectProgramChange(AVideoChannel, AAudioChannel: Byte): Integer;  // 0X20.02
+    // Request preset
+    function Preset(AVideoChannel, AAudioChannel: Byte; ATransitionType: TVtsTransitionType; ATransitionRate: TVtsTransitionRate): Integer;  // 0X20.03
+    // Request over direct in/out
+    function OverDirectInOut(AOverInOut: TVtsInOut; AChannel: Byte; AOverType: TVtsOverType): Integer;  // 0X20.04
+    // Request key direct in/out
+    function KeyDirectInOut(AKeyInOut: TVtsInOut; AKeyNumber: Byte; ATransitionRate: TVtsTransitionRate): Integer;  // 0X20.05
+    // Request audio output assign
+    function AudioOutputAssign(AChannel, AOutputChannel, AInputChannel: Byte): Integer;  // 0X20.06
+    // Request machine status
+    function GetMachineStatus(var AMachineStatus: TVtsMachineStatus): Integer;  // 0X20.10
+    // Request take synchronization
+    function TakeSynchronization(AOnOffFlag: Boolean): Integer;  // 0X20.11
+    // Request audio remapping
+    function AudioRemapping(AOnOffFlag: Boolean): Integer;  // 0X20.12
+
+    property MachineStatus: TVtsMachineStatus read FMachineStatus;
+    property Status: TVtsStatus read FStatus;
+    property CommunicationError: Byte read FCommunicationError;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+    property OnMachineStatusChanged: TOnMachineStatusChanged read FOnMachineStatusChanged write FOnMachineStatusChanged;
+    property OnStatusChanged: TOnStatusChanged read FOnStatusChanged write FOnStatusChanged;
+    property OnCommunicationError: TOnCommunicationError read FOnCommunicationError write FOnCommunicationError;
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FVideoTronSwitcher: TVideoTronSwitcher;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+    FSaveMachineStatus: TVtsMachineStatus;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AVideoTronSwitcher: TVideoTronSwitcher);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TVideoTronSwitcher }
+
+constructor TVideoTronSwitcher.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  ZeroMemory(@FMachineStatus, SizeOf(TVtsMachineStatus));
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TVideoTronSwitcher.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if FCriticalSection <> nil then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  inherited Destroy;
+end;
+
+procedure TVideoTronSwitcher.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TVideoTronSwitcher.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TVideoTronSwitcher.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Start;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+procedure TVideoTronSwitcher.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+function TVideoTronSwitcher.CheckSum(AValue: AnsiString): Boolean;
+var
+  I, Len: Integer;
+  CRC: Byte;
+begin
+  Result := False;
+
+  Len := Length(AValue);
+  CRC := 0;
+
+  if (Len >= 5) then
+  begin
+    for I := 4 to Len - 1 do
+      CRC := CRC + Ord(AValue[I]);
+    CRC := CRC and $7F;
+
+    Result := (CRC = Ord(AValue[Len]));
+  end;
+end;
+
+function TVideoTronSwitcher.SendCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+//  Buffer: PByte;
+  Buffer: AnsiString;
+  ByteCountStr: AnsiString;
+  CheckSum: Byte;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+  Buffer := AnsiChar($02) + WordToAnsiStringR(ADataSize + 3) + AnsiChar($51) + AnsiChar(ACMD1) + AnsiChar(ACMD2) + ADataBuf;
+
+  CheckSum := $51 + ACMD1 + ACMD2;
+  for I := 1 to ADataSize do
+    CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+  CheckSum := CheckSum and $7F;
+  Buffer := Buffer + AnsiChar(CheckSum);
+
+  ErrCnt := 0;
+  while ErrCnt < MAX_RETRY do
+  begin
+    if SendData(Pointer(Buffer), ADataSize + 7) = D_FALSE then
+    begin
+      Inc(ErrCnt);
+      Continue;
+    end
+    else
+    begin
+      Result := D_OK;
+      break;
+    end;
+  end;
+
+  exit;
+
+{  Buffer := GetMemory(ADataSize + 7);
+  try
+    Buffer[0] := $02;
+
+    ByteCountStr := Format('%0.2x', [ADataSize + 3]);
+    Buffer[1] := Ord(ByteCountStr[1]);
+    Buffer[2] := Ord(ByteCountStr[2]);
+
+    Buffer[3] := $51; // Machine id, video tron master switcher always 0X51
+    Buffer[4] := ACMD1;
+    Buffer[5] := ACMD2;
+
+    for I := 6 to ADataSize + 5 do
+      Buffer[I] := Ord(ADataBuf[I - 5]);
+
+    CheckSum := $51 + ACMD1 + ACMD2;
+    for I := 1 to ADataSize do
+      CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+    CheckSum := CheckSum and $7F;
+    Buffer[ADataSize + 6] := CheckSum;
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), ADataSize + 7) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end; }
+end;
+
+function TVideoTronSwitcher.TransmitStatus(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  FReceivedBuffer := '';
+  FReceivedData := '';
+
+  FCriticalSection.Enter;
+  try
+    ResetEvent(FSyncMsgEvent);
+    if SendCommand(ACMD1, ACMD2, ADataBuf, ADataSize) = D_OK then
+    begin
+      R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+      case R of
+        WAIT_OBJECT_0:
+        begin
+          Result := FLastResult;
+        end;
+       else
+         Result := E_TIMEOUT;
+       end;
+    end;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TVideoTronSwitcher.TransmitCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FCriticalSection.Enter;
+    try
+      ResetEvent(FSyncMsgEvent);
+      if SendCommand(ACMD1, ACMD2, ADataBuf, ADataSize) = D_OK then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+procedure TVideoTronSwitcher.DataEvent;
+var
+  ByteCount: Integer;
+  CMD1, CMD2: Byte;
+  TempBuffer: AnsiString;
+label
+  ReParse;
+begin
+  inherited;
+
+ReParse:
+  if (Length(FReceivedBuffer) < 1) then exit;
+  case FReceivedBuffer[1] of
+    #2:
+    begin
+      if (Length(FReceivedBuffer) < 3) then exit;
+      ByteCount := PAnsiCharToWordR(@FReceivedBuffer[2]);
+
+      if (Length(FReceivedBuffer) >= ByteCount + 4) then
+      begin
+        TempBuffer := FReceivedBuffer;
+        FReceivedBuffer := Copy(TempBuffer, 1, ByteCount + 4);
+
+        if (Length(FReceivedBuffer) >= 6) and (CheckSum(FReceivedBuffer)) then
+        begin
+          CMD1 := Ord(FReceivedBuffer[5]);
+          CMD2 := Ord(FReceivedBuffer[6]);
+          case CMD1 of
+            $20:
+            begin
+              FReceivedData := System.Copy(FReceivedBuffer, 4, ByteCount);
+
+              case CMD2 of
+                $81,
+                $82,
+                $83,
+                $84,
+                $85,
+                $86,
+                $91,
+                $92:
+                begin
+                  if (Length(FReceivedData) >= 4) and (Ord(FReceivedData[4]) = VTS_OK) then
+                    FLastResult := D_OK
+                  else
+                    FLastResult := D_FALSE;
+                end;
+                $90:
+                begin
+                  FLastResult := D_OK;
+                end;
+              else
+                FLastResult := D_FALSE;
+              end;
+
+              SetEvent(FSyncMsgEvent);
+            end;
+            $30: // Report only
+            begin
+              case CMD2 of
+                $01:
+                begin
+                  if (Length(FReceivedBuffer) >= 9) then
+                  begin
+                    ZeroMemory(@FStatus, SizeOf(TVtsStatus));
+                    FStatus.OnStartTransition := (Ord(FReceivedBuffer[7]) = VTS_ON);
+                    FStatus.OnEndTransition   := (Ord(FReceivedBuffer[8]) = VTS_ON);
+                    FStatus.OnButtonInterrupt := (Ord(FReceivedBuffer[9]) = VTS_ON);
+
+                    if Assigned(FOnStatusChanged) then
+                      FOnStatusChanged(Self, FStatus);
+                  end;
+
+//                  FLastResult := D_OK;
+                end;
+//                else
+//                  FLastResult := D_FALSE;
+              end;
+              exit;
+            end;
+            $40: // Report only
+            begin
+              case CMD2 of
+                $01:
+                begin
+                  if (Length(FReceivedBuffer) >= 7) then
+                  begin
+                    FCommunicationError := Ord(FReceivedBuffer[7]);
+                    FLastResult := FCommunicationError;
+
+                    if Assigned(FOnCommunicationError) then
+                      FOnCommunicationError(Self, FCommunicationError);
+                  end;
+
+//                  FLastResult := D_OK;
+                end;
+//                else
+//                  FLastResult := D_FALSE;
+              end;
+
+              SetEvent(FSyncMsgEvent);
+
+              exit;
+            end;
+          else
+            FLastResult := D_FALSE;
+          end;
+        end
+        else
+          FLastResult := VTS_ERROR_CHECKSUM;
+
+        if (Length(TempBuffer) > ByteCount + 4) then
+        begin
+          FReceivedBuffer := Copy(TempBuffer, ByteCount + 5, Length(TempBuffer));
+          goto ReParse;
+        end;
+
+//        SetEvent(FSyncMsgEvent);
+//        FReceivedBuffer := '';
+      end
+      else if (ByteCount <= 0) {or (Length(FReceivedBuffer) > ByteCount + 4)} then
+      begin
+        FLastResult := D_FALSE;
+        SetEvent(FSyncMsgEvent);
+        FReceivedBuffer := '';
+      end;
+    end;
+  else
+    FLastResult := D_FALSE;
+    SetEvent(FSyncMsgEvent);
+    FReceivedBuffer := '';
+  end;
+end;
+
+// Request commands
+// Request transition/take
+function TVideoTronSwitcher.Take(ATakeType: TVtsTakeType): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ATakeType);
+  Result := TransmitCommand($20, $01, Buffer, Length(Buffer));
+end;
+
+// Request direct program channel change
+function TVideoTronSwitcher.DirectProgramChange(AVideoChannel, AAudioChannel: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := Format('%0.2x%0.2x', [AVideoChannel, AAudioChannel]);
+  Result := TransmitCommand($20, $02, Buffer, Length(Buffer));
+end;
+
+// Request preset
+function TVideoTronSwitcher.Preset(AVideoChannel, AAudioChannel: Byte; ATransitionType: TVtsTransitionType; ATransitionRate: TVtsTransitionRate): Integer;  //0X 20.03
+var
+  Buffer: AnsiString;
+begin
+  Buffer := Format('%0.2x%0.2x', [AVideoChannel, AAudioChannel]) +
+            AnsiChar(ATransitionType) +
+            AnsiChar(ATransitionRate);
+  Result := TransmitCommand($20, $03, Buffer, Length(Buffer));
+end;
+
+// Request over direct in/out
+function TVideoTronSwitcher.OverDirectInOut(AOverInOut: TVtsInOut; AChannel: Byte; AOverType: TVtsOverType): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AOverInOut) +
+            Format('%0.2x', [AChannel]) +
+            AnsiChar('O') +
+            AnsiChar(AOverType);
+  Result := TransmitCommand($20, $04, Buffer, Length(Buffer));
+end;
+
+// Request key direct in/out
+function TVideoTronSwitcher.KeyDirectInOut(AKeyInOut: TVtsInOut; AKeyNumber: Byte; ATransitionRate: TVtsTransitionRate): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AKeyInOut) +
+            Format('%0.2x', [AKeyNumber]) +
+            AnsiChar('K') +
+            AnsiChar(ATransitionRate);
+  Result := TransmitCommand($20, $05, Buffer, Length(Buffer));
+end;
+
+// Request audio output assign
+function TVideoTronSwitcher.AudioOutputAssign(AChannel, AOutputChannel, AInputChannel: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := Format('%0.2x%0.2x%0.2x', [AChannel, AOutputChannel, AInputChannel]);
+  Result := TransmitCommand($20, $06, Buffer, Length(Buffer));
+end;
+
+// Request machine status
+function TVideoTronSwitcher.GetMachineStatus(var AMachineStatus: TVtsMachineStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  ZeroMemory(@AMachineStatus, SizeOf(TVtsMachineStatus));
+
+  Buffer := AnsiChar($30);
+  Result := TransmitCommand($20, $10, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) < 17) then exit;
+    AMachineStatus.OnAirVideoChannel  := StrToInt('$' + Copy(FReceivedData, 4, 2));
+    AMachineStatus.OnAirAudioChannel  := StrToInt('$' + Copy(FReceivedData, 6, 2));
+    AMachineStatus.KeyChannelNumber   := StrToInt('$' + Copy(FReceivedData, 8, 2));
+    AMachineStatus.AudioOverChannel   := StrToInt('$' + Copy(FReceivedData, 10, 2));
+    AMachineStatus.PresetVideoChannel := StrToInt('$' + Copy(FReceivedData, 12, 2));
+    AMachineStatus.PresetAudioChannel := StrToInt('$' + Copy(FReceivedData, 14, 2));
+    AMachineStatus.TransitionType     := TVtsTransitionType(Ord(FReceivedData[16]));
+    AMachineStatus.TransitionRate     := TVtsTransitionRate(Ord(FReceivedData[17]));
+
+    if (Length(FReceivedData) < 18) then exit;
+    AMachineStatus.APCMode := Ord(FReceivedData[18]);
+  end;
+end;
+
+// Request take synchronization
+function TVideoTronSwitcher.TakeSynchronization(AOnOffFlag: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  if (AOnOffFlag) then
+    Buffer := AnsiChar(VTS_ON)
+  else
+    Buffer := AnsiChar(VTS_OFF);
+
+  Result := TransmitCommand($20, $11, Buffer, Length(Buffer));
+end;
+
+// Request audio remapping
+function TVideoTronSwitcher.AudioRemapping(AOnOffFlag: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  if (AOnOffFlag) then
+    Buffer := AnsiChar(VTS_ON)
+  else
+    Buffer := AnsiChar(VTS_OFF);
+
+  Result := TransmitCommand($20, $12, Buffer, Length(Buffer));
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(AVideoTronSwitcher: TVideoTronSwitcher);
+begin
+  FVideoTronSwitcher := AVideoTronSwitcher;
+  FreeOnTerminate := False;
+  inherited Create(False);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+
+  function GetMachineStatus(var AMachineStatus: TVtsMachineStatus): Integer;
+  var
+    Buffer: AnsiString;
+  begin
+    Result := D_FALSE;
+    ZeroMemory(@AMachineStatus, SizeOf(TVtsMachineStatus));
+
+    with FVideoTronSwitcher do
+    begin
+      Buffer := AnsiChar($30);
+      Result := TransmitCommand($20, $10, Buffer, Length(Buffer));
+
+      if (Result = D_OK) then
+      begin
+        if (Length(FReceivedData) < 17) then exit;
+        AMachineStatus.OnAirVideoChannel  := StrToInt('$' + Copy(FReceivedData, 4, 2));
+        AMachineStatus.OnAirAudioChannel  := StrToInt('$' + Copy(FReceivedData, 6, 2));
+        AMachineStatus.KeyChannelNumber   := StrToInt('$' + Copy(FReceivedData, 8, 2));
+        AMachineStatus.AudioOverChannel   := StrToInt('$' + Copy(FReceivedData, 10, 2));
+        AMachineStatus.PresetVideoChannel := StrToInt('$' + Copy(FReceivedData, 12, 2));
+        AMachineStatus.PresetAudioChannel := StrToInt('$' + Copy(FReceivedData, 14, 2));
+        AMachineStatus.TransitionType     := TVtsTransitionType(Ord(FReceivedData[16]));
+        AMachineStatus.TransitionRate     := TVtsTransitionRate(Ord(FReceivedData[17]));
+
+        if (Length(FReceivedData) < 18) then exit;
+        AMachineStatus.APCMode := Ord(FReceivedData[18]);
+      end;
+    end;
+  end;
+
+begin
+  inherited;
+  if not FVideoTronSwitcher.Connected then exit;
+
+  with FVideoTronSwitcher do
+  begin
+    FSaveConnected     := FConnected;
+    FSaveMachineStatus := FMachineStatus;
+
+    if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+    begin
+      FConnected := False;
+      exit;
+    end;
+
+    R := GetMachineStatus(FMachineStatus);
+    if (R = D_OK) then FConnected := True
+    else FConnected := False;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+  with FVideoTronSwitcher do
+  begin
+    if Assigned(FOnConnectChanged) then
+      if FSaveConnected <> FConnected then
+        FOnConnectChanged(FVideoTronSwitcher, FConnected);
+
+    if Assigned(FOnMachineStatusChanged) then
+      if (FSaveMachineStatus.OnAirVideoChannel <> FMachineStatus.OnAirVideoChannel) or
+         (FSaveMachineStatus.OnAirAudioChannel <> FMachineStatus.OnAirAudioChannel) or
+         (FSaveMachineStatus.KeyChannelNumber <> FMachineStatus.KeyChannelNumber) or
+         (FSaveMachineStatus.AudioOverChannel <> FMachineStatus.AudioOverChannel) or
+         (FSaveMachineStatus.PresetVideoChannel <> FMachineStatus.PresetVideoChannel) or
+         (FSaveMachineStatus.PresetAudioChannel <> FMachineStatus.PresetAudioChannel) or
+         (FSaveMachineStatus.TransitionType <> FMachineStatus.TransitionType) or
+         (FSaveMachineStatus.TransitionRate <> FMachineStatus.TransitionRate) or
+         (FSaveMachineStatus.APCMode <> FMachineStatus.APCMode)  then
+        FOnMachineStatusChanged(FVideoTronSwitcher, FMachineStatus);
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0 then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FVideoTronSwitcher.AutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

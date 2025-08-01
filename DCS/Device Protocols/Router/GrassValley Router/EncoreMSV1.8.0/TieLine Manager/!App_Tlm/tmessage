@@ -1,0 +1,61 @@
+ERR1:No Config File Found
+ERR2:Illegal Route
+ERANGE:Route out of range
+OPLOCK: Destination Locked
+CP1:You already have an input of this name
+CP2:You already have an output of this name
+CP3:No memory for any more inputs
+CP4:No memory for any more outputs
+RP1:The source has not been selected
+RP2:The destination has not been selected
+RP3:Ilegal dst name
+RP4:Ilegal src name
+FPNOFILE:No file loaded to modify!
+WAIT1:Loading Patch please Wait
+WAIT2:Saving Patch please Wait
+WAIT3:Saving State
+WAIT4:Printing Report
+WAITLOAD:Loading database
+WARN1:Please Log off and back on again
+WARN2:This destination is locked
+LT1:Select Alternative SRC.
+LT2:Select Link
+LT3:Select Device
+LT4:Select Type
+SELSRC:Select Source
+SELDST:Select Destination
+SELB:Select Baud Rate
+SELPA:Select Parity
+SELSTOPS:Select Stop Bits
+SELDATA:Select Data Bits
+SELHAND:Select Handshake Mode
+SELM:Select Matrix
+SELA:Select Area
+SELP:Select Patch
+SELR:Select Repeat Period
+SELD:Select Day
+TP1:Name of this matrix
+TP2:Matrix address (in hex)
+TP3:Enter Reference code
+TP4:Description
+TP5:Trigger time (hh:mm:ss  24 hour)
+TP6:Enter Date (dd/mm/yy)
+TP7:Enter Area
+TP8:Enter device Name
+TP9:Enter Equipment Type
+NP1:Input No
+NP2:Output No
+FP1:Name of patch to load
+FPSAVE:Name of patch to Save
+SELTYPE:Select Router Type
+CONF1:Clears all database entrys
+LCONFD:This Matrix Has Levels that conflict with others existing on this dest.
+LCONFS:This Matrix Has Levels that conflict with others existing on this dest.
+TSSRCAREA:Select TL Source Area
+TSDSTAREA:Select TL Destination Area
+SELTL:Select a TL for Hop
+SELSRC1:Select Path Source
+SELDST1:Select Path Destination
+SELTL1:Select TL Configuration
+
+

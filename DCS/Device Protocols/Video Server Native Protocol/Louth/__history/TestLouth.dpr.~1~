@@ -1,0 +1,13 @@
+program TestLouth;
+
+uses
+  Forms,
+  LouthLocalTest in '..\..\..\..\..\..\Projects\성보데이타시스템\한국도로공사\WiseMedia\Louth Test\LouthLocalTest.pas' {Form1};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

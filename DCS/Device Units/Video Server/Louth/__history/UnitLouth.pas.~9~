@@ -1,0 +1,2094 @@
+unit UnitLouth;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs,
+  UnitBaseSerial;
+
+const
+  // Nak Received, Error Bit
+  LOUTH_NAK_UNDEFINED = $01;
+  LOUTH_NAK_SYNTAX    = $02;
+  LOUTH_NAK_CHECKSUM  = $04;
+  LOUTH_NAK_PARITY    = $10;
+  LOUTH_NAK_OVERRUN   = $20;
+  LOUTH_NAK_FRAMING   = $40;
+  LOUTH_NAK_TIMEOUT   = $80;
+
+type
+  TAudioSampleRate = (srUnKnown, sr32000, sr44100, sr48000);
+  TAudioSampleMode = (smUnKnown, smStereo, smDual, smJoint, smMono);
+
+  TVideoStandard = (vsNTSC, vsPAL);
+  TVideoFormat = (vfMpeg420, vfMpeg422);
+  TVideoSubFormat = (vfsGopIBP, vfsGopIB, vsfGopIOnly);
+
+  TAudioQueMode = (aqOFF, aqPausedFrameAfter30, aqPausedFrameBefore30, aqPausedFrameAfter100, aqPausedFrameBefore100);
+
+  TPortProtocol = (ppNotSelectedPort, ppLouth, ppOdetics);
+
+  TPortStateStatus = record
+    Idle: Boolean;
+    Cue: Boolean;
+    PlayRecord: Boolean;
+    Still: Boolean;
+    Jog: Boolean;
+    Shuttle: Boolean;
+    PortBusy: Boolean;
+    CueDone: Boolean;
+  end;
+
+  TPortSystemStatus = record
+    IDsAdded: Boolean;
+    IDsDeleted: Boolean;
+    IDsAddedToPeerArch: Boolean;
+    NoTimeCode: Boolean;
+  end;
+
+  TPortErrorStatus = record
+    SystemError: Boolean;
+    IllegalValue: Boolean;
+    InvalidPort: Boolean;
+    WrongPortType: Boolean;
+    PortLocked: Boolean;
+    NotEnoughDiskSpace: Boolean;
+    CmdWhileBusy: Boolean;
+    NotSupported: Boolean;
+    InvalidID: Boolean;
+    IDNotFound: Boolean;
+    IDAleadyExists: Boolean;
+    IDStillRecording: Boolean;
+    IDCuedOrPlaying: Boolean;
+    XFerFailed: Boolean;
+    XFerComplete: Boolean;
+    IDDeleteProtected: Boolean;
+    NotInCueState: Boolean;
+    CueNotDone: Boolean;
+    PortNotIdle: Boolean;
+    PortActive: Boolean;
+    PortIdle: Boolean;
+    OperationFailed: Boolean;
+    SystemReboot: Boolean;
+  end;
+
+  TPortSettings = record
+    Off: Boolean;
+    Composite: Boolean;
+    SVideo: Boolean;
+    YUV: Boolean;
+    D1: Boolean;
+    GPIEnabled: Boolean;
+  end;
+
+  TPortSupportedMediaFormats = record
+    JPEG: Boolean;
+    MPEG420: Boolean;
+    MPEG422: Boolean;
+  end;
+
+  TPositionType = (ptCurrent, ptRemain);
+
+  TDiskStatus = record
+    DiskNearFull: Boolean;
+  end;
+
+  TSubSystemStatus = record
+    PeerAvailable: Boolean;
+    LocalArchiveAvailable: Boolean;
+    SystemArchiveAvailable: Boolean;
+    LocalArchiveFull: Boolean;
+    SystemArchiveFull: Boolean;
+  end;
+
+  TListType = (ltAlphanumeric, ltFIFO);
+
+  TIDRequest = record
+    InDisk: Boolean;
+    InMarkedForXFer: Boolean;
+    InRemoteSystem: Boolean;
+    DeleteProtected: Boolean;
+    InArchive: Boolean;
+    ArchivePending: Boolean;
+    InXFer: Boolean;
+    OperationPending: Boolean;
+  end;
+
+  TDecoderConfiguration = record
+    LastFrame: Boolean;
+    EOF: Boolean;
+    IreSetup: Boolean;
+  end;
+
+  TVideoAttributes = record
+    MediaStandard: TVideoStandard;
+    MediaFormat: TVideoFormat;
+    MediaSubFormat: TVideoSubFormat;
+  end;
+
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+  TOnTimeCodeChanged = procedure(Sender: TComponent; ATC: String) of object;
+  TOnStateStatusChanged = procedure(Sender: TComponent; APortStateStatus: TPortStateStatus) of object;
+//  TOnSystemStatusChanged = procedure(Sender: TComponent; APortSystemStatus: TPortSystemStatus) of object;
+
+  TStatusThread = class;
+
+  TLouth = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+    FPortNumber: Integer;
+
+    FPortStateStatus: TPortStateStatus;
+//    FPortSystemStatus: TPortSystemStatus;
+    FCurrentTC: String;
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+    FOnTimeCodeChanged: TOnTimeCodeChanged;
+    FOnStateStatusChanged: TOnStateStatusChanged;
+//    FOnSystemStatusChanged: TOnSystemStatusChanged;  }
+
+//    procedure SetPortNumber(AValue: Integer);
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetPortNumber(AValue: Integer);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    function SendCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    function CheckSum(AValue: AnsiString): Boolean;
+    function TransmitAck: Integer;
+    function TransmitNack(ANakError: Byte): Integer;
+    function TransmitResponse(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+    function TransmitStatus(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+    function TransmitCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+    function CmdWhileBusy: Integer;
+
+    // Video Server Function & Procedure for Louth Command
+    // System Control (0X00, 0X80)
+    function LocalDisable: Integer;                 // 0X00.0C
+    function LocalEnable: Integer;                  // 0X00.0D
+    function ArchiveDelete(AID: String): Integer;    // 0X80.14
+    function DeleteProtect(AID: String): Integer;    // 0X80.15
+    function DeleteUnProtect(AID: String): Integer;  // 0X80.16
+
+    // Immdiate Commands (0X10)
+    function Stop: Integer;                     // 0X10.00
+    function Play: Integer;                     // 0X10.01
+    function Rec: Integer;                      // 0X10.02
+    function Freeze: Integer;                   // 0X10.03
+    function Pause: Integer;                    // 0X10.04
+    function Step: Integer;                     // 0X10.05
+    function Continue: Integer;                 // 0X10.06
+    function Jog(AValue: Integer): Integer;      // 0X10.07
+    function Shuttle(AValue: Integer): Integer;  // 0X10.08
+    function Unfreeze: Integer;                 // 0X10.09
+    function EEMode(AValue: Boolean): Integer;   // 0X10.0A
+
+    // Preset/Select Commands (0X20, 0XA0)
+    function IDRename(ASourceID, ATargetID: String): Integer;               // 0XA0.1D
+    function PresetStandardTime(ATCMode: Byte; ATC: String): Integer;       // 0X20.1E
+    function NewCopy(ASourceID, ATargetID, AMarkInTC, ADurationTC: String): Integer; // 0XA0.1F
+    function SortMode(AValue: Byte): Integer;                              // 0X20.20
+    function ClosePort(APortNumber: Integer): Integer;                     // 0X20.21
+    function SelectPort(APortNumber: Integer): Integer;                    // 0X20.22
+    function RecordCue(AID: String; ADurationTC: String): Integer;          // 0XA0.23
+    function PlayCue(AID: String): Integer;                                // 0XA0.24
+    function PlayCueWithData(AID, AStartTC, ADurationTC: String): Integer;   // 0XA0.25
+    function IDDelete(AID: String): Integer;                               // 0XA0.26
+    function MarkArchiveGet(AID: String): Integer;                         // 0XA0.27
+    function DiskClear: Integer;                                          // 0X20.29
+    function ArchivePut(AID: String): Integer;                             // 0XA0.2A
+    function SetMinimumFreeSpace(APercent: Integer): Integer;                 // 0X20.2B
+    function RecordCueWithData(AID, AStartTC, ADurationTC: String): Integer; // 0XA0.2C
+    function SelectLogicalDrive(AValue: Byte): Integer;                    // 0X20.2D
+    function SystemDeleteID(AID: String): Integer;                         // 0XA0.2E
+    function Preset: Integer;                                                 // 0X20.30
+    function SetVideoBitRate(ABitRate: Integer): Integer;                      // 0X20.31
+    function SetAudioSampleRate(ASampleRate: Byte): Integer;                   // 0X20.32
+    function SetAudioBitrate(ABitRate: Byte): Integer;                         // 0X20.33
+    function SetAudioInLevel(ALevel: Word): Integer;                           // 0X20.34
+    function SetAudioOutLevel(ALevel: Word): Integer;                          // 0X20.35
+    function SetVideoCompParameters(AParam: Integer): Integer;                 // 0X20.37
+    function SelectOutput(AOutput: Byte): Integer;                             // 0X20.38
+    function SelectInput(AInput: Byte): Integer;                               // 0X20.39
+    function RecordMode(AMode: Word): Integer;                                 // 0X20.3A
+    function SetSubcarrierAdjust(ABurstPhase, AHuePhase: SmallInt): Integer;    // 0X20.41
+    function SetHorizentalSyncTiming(AValue: Word): Integer;                   // 0X20.42
+    function SetDiskPreroll(AFrame, ASecond: Byte): Integer;                    // 0X20.43
+    function LouthCopy(ASourceID: String; ASourceNode, ATargetNode: Byte): Integer;  // 0XA0.50
+    function LouthDelete(AID: String; ANode: Byte): Integer;                    // 0XA0.51
+    function CopyTerminate(ATargetNode: Byte; AID: String): Integer;            // 0XA0.52
+
+    // Sense Queries (0X30, 0XB0)
+    function Open(APortNumber: Integer; ALockMode: Byte): Integer;                      // 0X30.01
+    function GetNext(var ARemainIDCount: Integer; var AIDList: TStringList): Integer;   // 0XB0.02
+    function GetLastResponse(var AResponse: Integer): Integer;                         // 0X30.03
+
+    function GetPortStateStatus(var APortStateStatus: TPortStateStatus): Integer; // 0X30.05 - Status1
+    function GetPortSystemStatus(var APortSystemStatus: TPortSystemStatus; AExtend: Boolean = True): Integer; // 0X30.05 - Status2, 7
+    function GetPortErrorStatus(var APortErrorStatus: TPortErrorStatus): Integer; // 0X30.05 - Status3
+    function GetPortSettings(var APortSettings: TPortSettings): Integer; // 0X30.05 - Status4
+    function GetPortSupportedMediaFormats(var APortSupportedMediaFormats: TPortSupportedMediaFormats): Integer; // 0X30.05 - Status5
+    function GetPositionRequest(APositionType: TPositionType; var ATC: String): Integer; // 0X30.06
+    function GetActiveID(var AActivate: Boolean; var AActiveID: String): Integer;      // 0XB0.07
+    function GetStorageTimeRemaining(var ATotalTC, AAvailableTC: String; AExtended: Boolean = False): Integer;    // 0X30.10 - Status1, 7
+    function GetNumberOfIDsStored(var AIDCount: Integer; AExtended: Boolean = False): Integer; // 0X30.10 - Status2, 7
+    function GetDiskStatus(var ADiskStatus: TDiskStatus): Integer;            // 0X30.10 - Status3
+    function GetSubSystemStatus(var ASubSystemStatus: TSubSystemStatus): Integer; // 0X30.10 - Status4
+    function GetStandardTime(var AStandardTime: String): Integer;             // 0X30.10 - Status5
+    function GetMinimumFreeSpacePercentage(var APercent: Integer): Integer;   // 0X30.10 - Status6
+    function GetList(AListType: TListType; var ARemainIDCount: Integer; var AIDList: TStringList): Integer; // 0XB0.11
+    function GetSize(AID: String; var ADurationTC: String): Integer;           // 0XB0.14
+    function GetIDsAddedToMainArchive(AListType: TListType; var ARemainIDCount: Integer; var AIDList: TStringList): Integer;         // 0XB0.15
+    function GetIDRequest(AID: String; var AIDRequest: TIDRequest): Integer;                              // 0XB0.16
+    function GetAudioSampleRateAndMode(var AAudioSampleRate: TAudioSampleRate; var AAudioSampleMode: TAudioSampleMode): Integer; // 0X30.17 - Setting 2
+    function GetCompressSystemBitRate(var ASystemBitRate: Integer): Integer;  // 0X30.17 - Setting 3
+    function GetCompressVideoBitRate(var AVideoBitRate: Integer): Integer;    // 0X30.17 - Setting 4
+    function GetCompressAudioBitRate(var AAudioBitRate: Integer): Integer;    // 0X30.17 - Setting 5
+    function GetVideoStandardAndResolution(var AVideoStandard: TVideoStandard; var AHorizontalResolution, AVerticalResolution: Integer): Integer; // 0X30.17 - Setting 6
+    function GetClosedCaption(var AClosedCaption: Boolean): Integer;          // 0X30.17 - Setting 7
+    function GetIDsAdded(var ARemainIDCount: Integer; var AIDList: TStringList): Integer; // 0XB0.18
+    function GetIDsDeleted(var ARemainIDCount: Integer; var AIDList: TStringList): Integer; // 0XB0.19
+//    function GetMultiplePortStatus;                                                          // 0X30.25
+
+    // Macro Commands
+    function AbortMacro(AValue: Word): Integer;                               // 0X50.60
+    function ActiveMacroList(var AMacroList: Word): Integer;                  // 0X50.61
+//    function MacroStatus;                                                    // 0X50.62
+    function CopyFileMacro(AMacroNum: Word; ASource, ADestination: Byte): Integer; // 0X50.63
+    function GetFromArchiveMacro(AMacroNum: Word): Integer;                   // 0X50.64
+    function SendArchiveMacro(AMacroNum: Word): Integer;                      // 0X50.65
+    function PrepareIDToPlay(AMacroNum: Word; APrepareFH: Byte; AID, AStartTC, AEndTC: String): Integer; // 0X50.66
+    function CloseIDFromPlay(AMacroNum: Word; AID: String): Integer;           // 0X50.67
+
+    property PortStateStatus: TPortStateStatus read FPortStateStatus;
+//    property PortSystemStatus: TPortSystemStatus read FPortSystemStatus;
+    property CurrentTC: String read FCurrentTC;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+    property PortNumber: Integer read FPortNumber write SetPortNumber;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+    property OnTimeCodeChanged: TOnTimeCodeChanged read FOnTimeCodeChanged write FOnTimeCodeChanged;
+    property OnStateStatusChanged: TOnStateStatusChanged read FOnStateStatusChanged write FOnStateStatusChanged;
+//    property OnSystemStatusChanged: TOnSystemStatusChanged read FOnSystemStatusChanged write FOnSystemStatusChanged; }
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FLouth: TLouth;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+    FSaveStateStatus: TPortStateStatus;
+    FSaveTC: String;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(ALouth: TLouth);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TLouth }
+
+constructor TLouth.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  ZeroMemory(@FPortStateStatus, SizeOf(TPortStateStatus));
+//  ZeroMemory(@FPortSystemStatus, SizeOf(TPortSystemStatus));
+  FCurrentTC := IDLE_TIMECODE;
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TLouth.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FStatusThread.WaitFor;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if FCriticalSection <> nil then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  inherited Destroy;
+end;
+
+{procedure TLouth.SetPortNumber(AValue: Integer);
+begin
+  if not (Abs(AValue) in [0..127]) then
+  begin
+    MessageDlg('Device ID must between 0 and 127 or between -127 and -1', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FPortNumber then FPortNumber := AValue;
+end; }
+
+procedure TLouth.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TLouth.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TLouth.SetPortNumber(AValue: Integer);
+begin
+//  if (csDesigning in ComponentState) or
+//     (csReading in ComponentState) then
+  begin
+    if AValue <> FPortNumber then FPortNumber := AValue;
+  end;
+end;
+
+procedure TLouth.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Resume;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FStatusThread.WaitFor;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+procedure TLouth.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+function TLouth.CheckSum(AValue: AnsiString): Boolean;
+var
+  I, Len: Integer;
+  CRC: Byte;
+begin
+  Result := False;
+
+  Len := Length(AValue);
+  CRC := 0;
+
+  if (Len >= 4) then
+  begin
+    for I := 3 to Len - 1 do
+      CRC := CRC + Ord(AValue[I]);
+    CRC := not (CRC) + 1;
+
+    Result := (CRC = Ord(AValue[Len]));
+  end;
+end;
+
+function TLouth.SendCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+//  Buffer: PByte;
+  Buffer: AnsiString;
+  CheckSum: Byte;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+
+  Buffer := Chr($02) + Chr($02 + ADataSize) + Chr(ACMD1) + Chr(ACMD2) + ADataBuf;
+
+  CheckSum := ACMD1 + ACMD2;
+  for I := 1 to ADataSize do
+    CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+  CheckSum := 0 - CheckSum;
+
+  Buffer := Buffer + Chr(CheckSum);
+
+  ErrCnt := 0;
+  while ErrCnt < MAX_RETRY do
+  begin
+    if SendData(Pointer(Buffer), ADataSize + 5) = D_FALSE then
+    begin
+      Inc(ErrCnt);
+      Continue;
+    end
+    else
+    begin
+      Result := D_OK;
+      break;
+    end;
+  end;
+
+
+{  Buffer := GetMemory(ADataSize + 5);
+  try
+    Buffer[0] := $02;
+    Buffer[1] := $02 + ADataSize;
+    Buffer[2] := ACMD1;
+    Buffer[3] := ACMD2;
+    for I := 4 to ADataSize + 3 do
+      Buffer[I] := Ord(ADataBuf[I - 3]);
+
+    CheckSum := ACMD1 + ACMD2;
+    for I := 1 to ADataSize do
+      CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+    CheckSum := 0 - CheckSum;
+    Buffer[ADataSize + 4] := CheckSum;
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), ADataSize + 5) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end; }
+end;
+
+function TLouth.TransmitAck: Integer;
+begin
+  Result := D_FALSE;
+
+  FCriticalSection.Enter;
+  try
+    Result := SendString(AnsiChar($04));
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TLouth.TransmitNack(ANakError: Byte): Integer;
+begin
+  Result := D_FALSE;
+
+  FCriticalSection.Enter;
+  try
+    Result := SendString(AnsiChar($05) + AnsiChar(ANakError));
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TLouth.TransmitResponse(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  FCriticalSection.Enter;
+  try
+    Result := SendCommand(ACMD1, ACMD2, ADataBuf, ADataSize);
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TLouth.TransmitStatus(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  ResetEvent(FSyncMsgEvent);
+  FReceivedBuffer := '';
+  FReceivedData := '';
+
+  FCriticalSection.Enter;
+  try
+    if SendCommand(ACMD1, ACMD2, ADataBuf, ADataSize) = D_OK then
+    begin
+      R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+      case R of
+        WAIT_OBJECT_0:
+        begin
+          Result := FLastResult;
+        end;
+      else
+        Result := E_TIMEOUT;
+      end;
+    end;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TLouth.TransmitCommand(ACMD1, ACMD2: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+    ResetEvent(FSyncMsgEvent);
+    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FCriticalSection.Enter;
+    try
+      if SendCommand(ACMD1, ACMD2, ADataBuf, ADataSize) = D_OK then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+function TLouth.CmdWhileBusy: Integer;
+var
+  PortStateStatus: TPortStateStatus;
+begin
+  repeat
+    Result := GetPortStateStatus(PortStateStatus);
+    if Result <> D_OK then break;
+//    Application.ProcessMessages;
+//    Sleep(30);
+  until not PortStateStatus.PortBusy;
+end;
+
+procedure TLouth.DataEvent;
+var
+  ByteCount: Integer;
+begin
+  inherited;
+  if Length(FReceivedBuffer) < 1 then exit;
+  case FReceivedBuffer[1] of
+    #5: // NAK
+    begin
+      if Length(FReceivedBuffer) < 2 then exit;
+      if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_UNDEFINED) > 0 then FLastResult := E_NAK_UNDEFINED
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_SYNTAX) > 0 then FLastResult := E_NAK_SYNTAX
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_CHECKSUM) > 0 then FLastResult := E_NAK_CHECKSUM
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_PARITY) > 0 then FLastResult := E_NAK_PARITY
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_OVERRUN) > 0 then FLastResult := E_NAK_OVERRUN
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_FRAMING) > 0 then FLastResult := E_NAK_FRAMING
+      else if (Ord(FReceivedBuffer[2]) and LOUTH_NAK_TIMEOUT) > 0 then FLastResult := E_NAK_TIMEOUT
+      else FLastResult := E_NAK_IGNORED;
+      SetEvent(FSyncMsgEvent);
+      FReceivedBuffer := '';
+    end;
+    #4: // ACK
+    begin
+      FLastResult := D_OK;
+      SetEvent(FSyncMsgEvent);
+      FReceivedBuffer := '';
+    end;
+    #2:
+    begin
+      if Length(FReceivedBuffer) < 2 then exit;
+      ByteCount := Ord(FReceivedBuffer[2]);
+      if Length(FReceivedBuffer) = ByteCount + 3 then
+      begin
+        if CheckSum(FReceivedBuffer) then
+        begin
+//          ByteCount := Ord(FReceivedBuffer[2]);
+
+//            SetLength(FReceivedData, ByteCount);
+//            CopyMemory(PChar(FReceivedData), @FReceivedBuffer[3], ByteCount);
+
+          FReceivedData := System.Copy(FReceivedBuffer, 3, ByteCount);
+          FLastResult := D_OK;
+        end
+        else FLastResult := E_NAK_CHECKSUM;
+        SetEvent(FSyncMsgEvent);
+        FReceivedBuffer := '';
+      end
+      else if (ByteCount <= 0) or (Length(FReceivedBuffer) > ByteCount + 3) then
+      begin
+        FLastResult := D_FALSE;
+        SetEvent(FSyncMsgEvent);
+        FReceivedBuffer := '';
+      end;
+    end;
+  else
+    FLastResult := D_FALSE;
+    SetEvent(FSyncMsgEvent);
+    FReceivedBuffer := '';
+  end;
+end;
+
+{ System Control 0X.XX }
+
+function TLouth.LocalDisable: Integer;
+begin
+  Result := TransmitCommand($00, $0C, '', 0);
+end;
+
+function TLouth.LocalEnable: Integer;
+begin
+  Result := TransmitCommand($00, $0D, '', 0);
+end;
+
+function TLouth.ArchiveDelete(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($80, $14, Buffer, Length(Buffer));
+end;
+
+function TLouth.DeleteProtect(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($80, $15, Buffer, Length(Buffer));
+end;
+
+function TLouth.DeleteUnProtect(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($80, $16, Buffer, Length(Buffer));
+end;
+
+{ Immediate Command 1X.XX }
+
+function TLouth.Stop: Integer;
+begin
+  Result := TransmitCommand($10, $00, '', 0);
+end;
+
+function TLouth.Play: Integer;
+begin
+  Result := TransmitCommand($10, $01, '', 0);
+end;
+
+function TLouth.Rec: Integer;
+begin
+  Result := TransmitCommand($10, $02, '', 0);
+end;
+
+function TLouth.Freeze: Integer;
+begin
+  Result := TransmitCommand($10, $03, '', 0);
+end;
+
+function TLouth.Pause: Integer;
+begin
+  Result := TransmitCommand($10, $04, '', 0);
+end;
+
+function TLouth.Step: Integer;
+begin
+  Result := TransmitCommand($10, $05, '', 0);
+end;
+
+function TLouth.Continue: Integer;
+begin
+  Result := TransmitCommand($10, $06, '', 0);
+end;
+
+function TLouth.Jog(AValue: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  case aValue of
+    -128..127: Buffer := AnsiChar(AValue);
+{    -32768..-129, 128..32767: Buffer := IntToAnsiStringR2(AValue);
+    -8388608..-32769, 32768..8388607: Buffer := IntToAnsiStringR3(AValue); }
+  else
+    Buffer := IntToAnsiStringR(AValue);
+  end;
+  Result := TransmitCommand($10, $07, Buffer, Length(Buffer));
+end;
+
+function TLouth.Shuttle(AValue: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := IntToAnsiStringR3(AValue);
+  Result := TransmitCommand($10, $08, Buffer, Length(Buffer));
+end;
+
+function TLouth.Unfreeze: Integer;
+begin
+  Result := TransmitCommand($10, $09, '', 0);
+end;
+
+function TLouth.EEMode(AValue: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  case AValue of
+    True: Buffer := AnsiChar($01);
+    False : Buffer := AnsiChar($00);
+  end;
+
+  Result := TransmitCommand($10, $0A, Buffer, Length(Buffer));
+end;
+
+{ Preset/Select Commands }
+
+function TLouth.IDRename(ASourceID, ATargetID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(ASourceID)) + ASourceID +
+            AnsiChar(Length(ATargetID)) + ATargetID;
+  Result := TransmitCommand($A0, $1D, Buffer, Length(Buffer));
+end;
+
+function TLouth.PresetStandardTime(ATCMode: Byte; ATC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := AnsiChar(ATCMode);
+
+  DecodeTimeCode(ATC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+  Result := TransmitCommand($20, $1E, Buffer, Length(Buffer));
+end;
+
+function TLouth.NewCopy(ASourceID, ATargetID, AMarkInTC, ADurationTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := AnsiChar(Length(ASourceID)) + ASourceID +
+            AnsiChar(Length(ATargetID)) + ATargetID;
+
+  DecodeTimeCode(AMarkInTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  DecodeTimeCode(ADurationTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+  Result := TransmitCommand($A0, $1F, Buffer, Length(Buffer));
+end;
+
+function TLouth.SortMode(AValue: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AValue);
+  Result := TransmitCommand($20, $20, Buffer, 1);
+end;
+
+function TLouth.ClosePort(APortNumber: Integer): Integer;
+var
+  Port: Integer;
+  Buffer: AnsiString;
+begin
+  if APortNumber < 0 then Port := 128 + Abs(APortNumber)
+  else Port := APortNumber;
+
+  Buffer := AnsiChar(Port);
+  Result := TransmitCommand($20, $21, Buffer, 1);
+end;
+
+function TLouth.SelectPort(APortNumber: Integer): Integer;
+var
+  Port: Integer;
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+
+  if APortNumber < 0 then Port := 128 + Abs(APortNumber)
+  else Port := APortNumber;
+
+  Buffer := AnsiChar(Port);
+  Result := TransmitCommand($20, $22, Buffer, 1);
+end;
+
+function TLouth.RecordCue(AID: String; ADurationTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+
+  DecodeTimeCode(ADurationTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  Result := TransmitCommand($A0, $23, Buffer, Length(Buffer));
+end;
+
+function TLouth.PlayCue(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $24, Buffer, Length(Buffer));
+end;
+
+function TLouth.PlayCueWithData(AID, AStartTC, ADurationTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+
+  DecodeTimeCode(AStartTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  DecodeTimeCode(ADurationTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  Result := TransmitCommand($A0, $25, Buffer, Length(Buffer));
+end;
+
+function TLouth.IDDelete(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $26, Buffer, Length(Buffer));
+end;
+
+function TLouth.MarkArchiveGet(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $27, Buffer, Length(Buffer));
+end;
+
+function TLouth.DiskClear: Integer;
+begin
+  Result := TransmitCommand($20, $29, '', 0);
+end;
+
+function TLouth.ArchivePut(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $2A, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetMinimumFreeSpace(APercent: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  // Free Space Percent 1 Byte
+  Buffer := AnsiChar(APercent);
+  Result := TransmitCommand($20, $2B, Buffer, Length(Buffer));
+end;
+
+function TLouth.RecordCueWithData(AID, AStartTC, ADurationTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+
+  DecodeTimeCode(AStartTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  DecodeTimeCode(ADurationTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  Result := TransmitCommand($A0, $2C, Buffer, Length(Buffer));
+end;
+
+function TLouth.SelectLogicalDrive(AValue: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AValue);
+  Result := TransmitCommand($20, $2D, Buffer, Length(Buffer));
+end;
+
+function TLouth.SystemDeleteID(AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $2E, Buffer, Length(Buffer));
+end;
+
+function TLouth.Preset: Integer;
+begin
+  Result := TransmitCommand($20, $30, '', 0);
+end;
+
+function TLouth.SetVideoBitRate(ABitRate: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := IntToAnsiString(ABitRate);
+  Result := TransmitCommand($20, $31, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetAudioSampleRate(ASampleRate: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ASampleRate);
+  Result := TransmitCommand($20, $32, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetAudioBitrate(ABitRate: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ABitRate);
+  Result := TransmitCommand($20, $33, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetAudioInLevel(ALevel: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(ALevel);
+  Result := TransmitCommand($20, $34, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetAudioOutLevel(ALevel: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(ALevel);
+  Result := TransmitCommand($20, $35, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetVideoCompParameters(AParam: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := IntToAnsiString(AParam);
+  Result := TransmitCommand($20, $37, Buffer, Length(Buffer));
+end;
+
+function TLouth.SelectOutput(AOutput: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AOutput);
+  Result := TransmitCommand($20, $38, Buffer, Length(Buffer));
+end;
+
+function TLouth.SelectInput(AInput: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AInput);
+  Result := TransmitCommand($20, $39, Buffer, Length(Buffer));
+end;
+
+function TLouth.RecordMode(AMode: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(AMode);
+  Result := TransmitCommand($20, $3A, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetSubcarrierAdjust(ABurstPhase, AHuePhase: SmallInt): Integer;
+var
+  Buffer: AnsiString;
+begin
+  // BURST PHASE = -1800~1800
+  // HUE PHASE = -1800~1800
+  Buffer := SmallIntToAnsiStringR(ABurstPhase * 10) + SmallIntToAnsiStringR(AHuePhase * 10);
+  Result := TransmitCommand($20, $41, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetHorizentalSyncTiming(AValue: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  // Horizental Sync Offset = 0~8191
+  Buffer := WordToAnsiString(AValue);
+  Result := TransmitCommand($20, $42, Buffer, Length(Buffer));
+end;
+
+function TLouth.SetDiskPreroll(AFrame, ASecond: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AFrame) + AnsiChar(ASecond);
+  Result := TransmitCommand($20, $43, Buffer, Length(Buffer));
+end;
+
+function TLouth.LouthCopy(ASourceID: String; ASourceNode, ATargetNode: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(ASourceID)) + ASourceID + AnsiChar(ASourceNode) + AnsiChar(ATargetNode);
+  Result := TransmitCommand($A0, $50, Buffer, Length(Buffer));
+end;
+
+function TLouth.LouthDelete(AID: String; ANode: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(Length(AID)) + AID + AnsiChar(ANode);
+  Result := TransmitCommand($A0, $51, Buffer, Length(Buffer));
+end;
+
+function TLouth.CopyTerminate(ATargetNode: Byte; AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(ATargetNode) + AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($A0, $52, Buffer, Length(Buffer));
+end;
+
+{ Sense Queries }
+
+function TLouth.Open(APortNumber: Integer; ALockMode: Byte): Integer;
+var
+  Port: Integer;
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+
+  if APortNumber < 0 then Port := 128 + Abs(APortNumber)
+  else Port := APortNumber;
+
+  Buffer := AnsiChar(Port) + AnsiChar(ALockMode);
+  if TransmitCommand($30, $01, Buffer, Length(Buffer)) = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    case Ord(FReceivedData[3]) of
+      0: Result := D_FALSE;
+      1: Result := D_OK;
+    else Result := D_FALSE;
+    end;
+
+    if Result = D_OK then FPortNumber := APortNumber
+    else FPortNumber := 0;
+  end;
+end;
+
+function TLouth.GetNext(var ARemainIDCount: Integer; var AIDList: TStringList): Integer;
+var
+  IDs: String;
+  IDLen: Integer;
+  ID: String;
+begin
+  Result := D_FALSE;
+  ARemainIDCount := 0;
+
+  if AIDList = nil then exit;
+  AIDList.Clear;
+
+  Result := TransmitCommand($B0, $02, '', 0);
+
+  if Result = D_OK then
+  begin
+    ARemainIDCount := PAnsiCharToSmallIntR(@FReceivedData[3]);
+
+    IDs := System.Copy(FReceivedData, 5, Length(FReceivedData));
+    while Length(IDs) > 0 do
+    begin
+      IDLen := Ord(IDs[1]);
+      ID := System.Copy(IDs, 2, IDLen);
+      AIDList.Add(ID);
+
+      IDs := System.Copy(IDs, IDLen + 2, Length(IDs));
+    end;
+  end;
+end;
+
+function TLouth.GetLastResponse(var AResponse: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AResponse := 0;
+
+  Result := TransmitCommand($30, $03, '', 0);
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    AResponse := Ord(FReceivedData[3]);
+  end;
+end;
+
+// PortStatus 1
+function TLouth.GetPortStateStatus(var APortStateStatus: TPortStateStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+  ZeroMemory(@PortStateStatus, SizeOf(TPortStateStatus));
+
+  Buffer := AnsiChar($01);
+  Result := TransmitCommand($30, $05, Buffer, Length(Buffer));
+
+  if Result = D_OK then
+  begin
+//    ShowMessage(PAnsiCharToHexCode(PChar(FReceivedData), Length(FReceivedData)));
+    if Length(FReceivedData) < 4 then exit;
+    APortStateStatus.Idle        := (Ord(FReceivedData[4]) and $01) > 0;
+    APortStateStatus.Cue         := (Ord(FReceivedData[4]) and $02) > 0;
+    APortStateStatus.PlayRecord  := (Ord(FReceivedData[4]) and $04) > 0;
+    APortStateStatus.Still       := (Ord(FReceivedData[4]) and $08) > 0;
+    APortStateStatus.Jog         := (Ord(FReceivedData[4]) and $10) > 0;
+    APortStateStatus.Shuttle     := (Ord(FReceivedData[4]) and $20) > 0;
+    APortStateStatus.PortBusy    := (Ord(FReceivedData[4]) and $40) > 0;
+    APortStateStatus.CueDone     := (Ord(FReceivedData[4]) and $80) > 0;
+  end;
+end;
+
+// PortStatus 2, 7
+function TLouth.GetPortSystemStatus(var APortSystemStatus: TPortSystemStatus; AExtend: Boolean = True): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+  ZeroMemory(@APortSystemStatus, SizeOf(TPortSystemStatus));
+
+  if AExtend then Buffer := AnsiChar($42)
+  else Buffer := AnsiChar($02);
+  Result := TransmitCommand($30, $05, Buffer, Length(Buffer));
+
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    APortSystemStatus.IDsAdded           := (Ord(FReceivedData[4]) and $02) > 0;
+    APortSystemStatus.IDsDeleted         := (Ord(FReceivedData[4]) and $04) > 0;
+    APortSystemStatus.IDsAddedToPeerArch := (Ord(FReceivedData[4]) and $08) > 0;
+
+    if Length(FReceivedData) < 5 then exit;
+    if AExtend then
+      APortSystemStatus.NoTimeCode := (Ord(FReceivedData[5]) and $01) > 0
+    else APortSystemStatus.NoTimeCode := False;
+  end;
+end;
+
+// PortStatus 3
+function TLouth.GetPortErrorStatus(var APortErrorStatus: TPortErrorStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+  ZeroMemory(@APortErrorStatus, SizeOf(TPortErrorStatus));
+
+  Buffer := AnsiChar($04);
+  Result := TransmitCommand($30, $05, Buffer, Length(Buffer));
+
+  if Result = D_OK then
+  begin
+//    ShowMessage(PAnsiCharToHexCode(PChar(FReceivedData), Length(FReceivedData)));
+    if Length(FReceivedData) < 4 then exit;
+    APortErrorStatus.SystemError         := (Ord(FReceivedData[4]) and $01) > 0;
+    APortErrorStatus.IllegalValue        := (Ord(FReceivedData[4]) and $02) > 0;
+    APortErrorStatus.InvalidPort         := (Ord(FReceivedData[4]) and $04) > 0;
+    APortErrorStatus.WrongPortType       := (Ord(FReceivedData[4]) and $08) > 0;
+    APortErrorStatus.PortLocked          := (Ord(FReceivedData[4]) and $10) > 0;
+    APortErrorStatus.NotEnoughDiskSpace  := (Ord(FReceivedData[4]) and $20) > 0;
+    APortErrorStatus.CmdWhileBusy        := (Ord(FReceivedData[4]) and $40) > 0;
+    APortErrorStatus.NotSupported        := (Ord(FReceivedData[4]) and $80) > 0;
+
+    if Length(FReceivedData) < 5 then exit;
+    APortErrorStatus.InvalidID           := (Ord(FReceivedData[5]) and $01) > 0;
+    APortErrorStatus.IDNotFound          := (Ord(FReceivedData[5]) and $02) > 0;
+    APortErrorStatus.IDAleadyExists      := (Ord(FReceivedData[5]) and $04) > 0;
+    APortErrorStatus.IDStillRecording    := (Ord(FReceivedData[5]) and $08) > 0;
+    APortErrorStatus.IDCuedOrPlaying     := (Ord(FReceivedData[5]) and $10) > 0;
+    APortErrorStatus.XFerFailed          := (Ord(FReceivedData[5]) and $20) > 0;
+    APortErrorStatus.XFerComplete        := (Ord(FReceivedData[5]) and $40) > 0;
+    APortErrorStatus.IDDeleteProtected   := (Ord(FReceivedData[5]) and $80) > 0;
+
+    if Length(FReceivedData) < 6 then exit;
+    APortErrorStatus.NotInCueState       := (Ord(FReceivedData[6]) and $01) > 0;
+    APortErrorStatus.CueNotDone          := (Ord(FReceivedData[6]) and $02) > 0;
+    APortErrorStatus.PortNotIdle         := (Ord(FReceivedData[6]) and $04) > 0;
+    APortErrorStatus.PortActive          := (Ord(FReceivedData[6]) and $08) > 0;
+    APortErrorStatus.PortIdle            := (Ord(FReceivedData[6]) and $10) > 0;
+    APortErrorStatus.OperationFailed     := (Ord(FReceivedData[6]) and $20) > 0;
+    APortErrorStatus.SystemReboot        := (Ord(FReceivedData[6]) and $80) > 0;
+  end;
+end;
+
+// PortStatus 4
+function TLouth.GetPortSettings(var APortSettings: TPortSettings): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+  ZeroMemory(@APortSettings, SizeOf(TPortSettings));
+
+  Buffer := AnsiChar($10);
+  Result := TransmitCommand($30, $05, Buffer, Length(Buffer));
+
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    APortSettings.Off        := (Ord(FReceivedData[4]) and $01) > 0;
+    APortSettings.Composite  := (Ord(FReceivedData[4]) and $02) > 0;
+    APortSettings.SVideo     := (Ord(FReceivedData[4]) and $04) > 0;
+    APortSettings.YUV        := (Ord(FReceivedData[4]) and $08) > 0;
+    APortSettings.D1         := (Ord(FReceivedData[4]) and $10) > 0;
+    APortSettings.GPIEnabled := (Ord(FReceivedData[4]) and $80) > 0;
+  end;
+end;
+
+// PortStatus 5
+function TLouth.GetPortSupportedMediaFormats(var APortSupportedMediaFormats: TPortSupportedMediaFormats): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+  ZeroMemory(@APortSupportedMediaFormats, SizeOf(TPortSupportedMediaFormats));
+
+  Buffer := AnsiChar($20);
+  Result := TransmitCommand($30, $05, Buffer, Length(Buffer));
+
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    APortSupportedMediaFormats.JPEG    := (Ord(FReceivedData[4]) and $01) > 0;
+
+    if Length(FReceivedData) < 5 then exit;
+    APortSupportedMediaFormats.MPEG420 := (Ord(FReceivedData[5]) and $01) > 0;
+
+    if Length(FReceivedData) < 6 then exit;
+    APortSupportedMediaFormats.MPEG422 := (Ord(FReceivedData[6]) and $01) > 0;
+  end;
+end;
+
+function TLouth.GetPositionRequest(APositionType: TPositionType; var ATC: String): Integer; // 0X30.06
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Word;
+begin
+  ATC := IDLE_TIMECODE;
+
+  case APositionType of
+    ptRemain: Buffer := AnsiChar($00);
+    ptCurrent: Buffer := AnsiChar($01);
+  else
+    Buffer := AnsiChar($00);
+  end;
+
+  Result := TransmitCommand($30, $06, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 7 then exit;
+    Frame    := BCDToInt(Ord(FReceivedData[4]));
+    Second   := BCDToInt(Ord(FReceivedData[5]));
+    Minute   := BCDToInt(Ord(FReceivedData[6]));
+    Hour     := BCDToInt(Ord(FReceivedData[7]));
+
+    ATC      := EncodeTimeCode(Hour, Minute, Second, Frame);
+  end;
+end;
+
+function TLouth.GetActiveID(var AActivate: Boolean; var AActiveID: String): Integer;
+var
+  ActiveIDLen: Integer;
+begin
+  AActivate := False;
+  AActiveID := '';
+
+  Result := TransmitCommand($B0, $07, '', 0);
+
+  if Result = D_OK then
+  begin
+    AActivate := Ord(FReceivedData[3]) = 1;
+    if AActivate then
+    begin
+      if Length(FReceivedData) < 4 then exit;
+      ActiveIDLen := Ord(FReceivedData[4]);
+      AActiveID   := System.Copy(FReceivedData, 5, ActiveIDLen);
+    end
+    else AActiveID := '';
+  end;
+end;
+
+// System Status 1, 7
+function TLouth.GetStorageTimeRemaining(var ATotalTC, AAvailableTC: String; AExtended: Boolean = False): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Word;
+begin
+  ATotalTC     := IDLE_TIMECODE;
+  AAvailableTC := IDLE_TIMECODE;
+
+  if AExtended then Buffer := AnsiChar($41)
+  else Buffer := AnsiChar($01);
+
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if AExtended then
+    begin
+      if Length(FReceivedData) < 15 then exit;
+      Frame   := BCDToInt(Ord(FReceivedData[4]));
+      Second  := BCDToInt(Ord(FReceivedData[5]));
+      Minute  := BCDToInt(Ord(FReceivedData[6]));
+      Hour    := BCDToInt(Ord(FReceivedData[7])) +
+                 BCDToInt(Ord(FReceivedData[8])) * 100 +
+                 BCDToInt(Ord(FReceivedData[9])) * 10000;
+      ATotalTC := EncodeTimeCode(Hour, Minute, Second, Frame, True);
+
+      Frame    := BCDToInt(Ord(FReceivedData[10]));
+      Second   := BCDToInt(Ord(FReceivedData[11]));
+      Minute   := BCDToInt(Ord(FReceivedData[12]));
+      Hour     := BCDToInt(Ord(FReceivedData[13])) +
+                  BCDToInt(Ord(FReceivedData[14])) * 100 +
+                  BCDToInt(Ord(FReceivedData[15])) * 10000;
+      AAvailableTC := EncodeTimeCode(Hour, Minute, Second, Frame, True);
+    end
+    else
+    begin
+      if Length(FReceivedData) < 11 then exit;
+      Frame   := BCDToInt(Ord(FReceivedData[4]));
+      Second  := BCDToInt(Ord(FReceivedData[5]));
+      Minute  := BCDToInt(Ord(FReceivedData[6]));
+      Hour    := BCDToInt(Ord(FReceivedData[7]));
+      ATotalTC := EncodeTimeCode(Hour, Minute, Second, Frame);
+
+      Frame    := BCDToInt(Ord(FReceivedData[8]));
+      Second   := BCDToInt(Ord(FReceivedData[9]));
+      Minute   := BCDToInt(Ord(FReceivedData[10]));
+      Hour     := BCDToInt(Ord(FReceivedData[11]));
+      AAvailableTC := EncodeTimeCode(Hour, Minute, Second, Frame);
+    end;
+  end;
+end;
+
+// System Status 2, 7
+function TLouth.GetNumberOfIDsStored(var AIDCount: Integer; AExtended: Boolean = False): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AIDCount := 0;
+
+  if AExtended then Buffer := AnsiChar($42)
+  else Buffer := AnsiChar($02);
+
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if AExtended then
+    begin
+      if Length(FReceivedData) < 7 then exit;
+      AIDCount := PAnsiCharToIntR(@FReceivedData[4]);
+    end
+    else
+    begin
+      if Length(FReceivedData) < 5 then exit;
+      AIDCount := PAnsiCharToSmallIntR(@FReceivedData[4]);
+    end;
+  end;
+end;
+
+// System Status 3
+function TLouth.GetDiskStatus(var ADiskStatus: TDiskStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  ZeroMemory(@ADiskStatus, SizeOf(TDiskStatus));
+
+  Buffer := AnsiChar($04);
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ADiskStatus.DiskNearFull := (Ord(FReceivedData[4]) and $01) > 0;
+  end;
+end;
+
+// System Status 4
+function TLouth.GetSubSystemStatus(var ASubSystemStatus: TSubSystemStatus): Integer;
+var
+  Buffer: AnsiString;
+begin
+  ZeroMemory(@ASubSystemStatus, SizeOf(TSubSystemStatus));
+
+  Buffer := AnsiChar($08);
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ASubSystemStatus.PeerAvailable := (Ord(FReceivedData[4]) and $01) > 0;
+
+    if Length(FReceivedData) < 5 then exit;
+    ASubSystemStatus.LocalArchiveAvailable   := (Ord(FReceivedData[5]) and $01) > 0;
+    ASubSystemStatus.SystemArchiveAvailable  := (Ord(FReceivedData[5]) and $02) > 0;
+    ASubSystemStatus.LocalArchiveFull        := (Ord(FReceivedData[5]) and $04) > 0;
+    ASubSystemStatus.SystemArchiveFull       := (Ord(FReceivedData[5]) and $08) > 0;
+  end;
+end;
+
+// System Status 5
+function TLouth.GetStandardTime(var AStandardTime: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Word;
+begin
+  AStandardTime := IDLE_TIMECODE;
+
+  Buffer := AnsiChar($10);
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 7 then exit;
+    Frame   := BCDToInt(Ord(FReceivedData[4]));
+    Second  := BCDToInt(Ord(FReceivedData[5]));
+    Minute  := BCDToInt(Ord(FReceivedData[6]));
+    Hour    := BCDToInt(Ord(FReceivedData[7]));
+    AStandardTime := EncodeTimeCode(Hour, Minute, Second, Frame);
+  end;
+end;
+
+// System Status 6
+function TLouth.GetMinimumFreeSpacePercentage(var APercent: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  APercent := 0;
+
+  Buffer := AnsiChar($20);
+  Result := TransmitCommand($30, $10, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    APercent := Ord(FReceivedData[4]);
+  end;
+end;
+
+function TLouth.GetList(AListType: TListType; var ARemainIDCount: Integer; var AIDList: TStringList): Integer;
+var
+  Buffer: AnsiString;
+
+  IDs, ID: String;
+  IDLen: Integer;
+begin
+  Result := D_FALSE;
+  ARemainIDCount := 0;
+
+  if AIDList = nil then exit;
+  AIDList.Clear;
+
+  case AListType of
+    ltAlphaNumeric: Buffer := AnsiChar($00);
+    ltFIFO: Buffer := Char($01);
+  else
+    Buffer := AnsiChar($00);
+  end;
+
+  Result := TransmitCommand($B0, $11, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ARemainIDCount := PAnsiCharToSmallIntR(@FReceivedData[3]);
+
+    IDs := TrimRight(System.Copy(FReceivedData, 5, Length(FReceivedData)));
+    while Length(IDs) > 0 do
+    begin
+      IDLen := Ord(IDs[1]);
+      ID := System.Copy(IDs, 2, IDLen);
+      AIDList.Add(ID);
+
+      IDs := System.Copy(IDs, IDLen + 2, Length(IDs));
+    end;
+  end;
+end;
+
+function TLouth.GetSize(AID: String; var ADurationTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Word;
+begin
+  ADurationTC := IDLE_TIMECODE;
+
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($B0, $14, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 6 then exit;
+    Frame   := BCDToInt(Ord(FReceivedData[3]));
+    Second  := BCDToInt(Ord(FReceivedData[4]));
+    Minute  := BCDToInt(Ord(FReceivedData[5]));
+    Hour    := BCDToInt(Ord(FReceivedData[6]));
+    ADurationTC := EncodeTimeCode(Hour, Minute, Second, Frame);
+  end;
+end;
+
+function TLouth.GetIDsAddedToMainArchive(AListType: TListType; var ARemainIDCount: Integer; var AIDList: TStringList): Integer;
+var
+  Buffer: AnsiString;
+
+  IDs, ID: String;
+  IDLen: Integer;
+begin
+  Result := D_FALSE;
+  ARemainIDCount := 0;
+
+  if AIDList = nil then exit;
+  AIDList.Clear;
+
+  case AListType of
+    ltAlphaNumeric: Buffer := AnsiChar($00);
+    ltFIFO: Buffer := Char($01);
+  else
+    Buffer := AnsiChar($00);
+  end;
+
+  Result := TransmitCommand($B0, $15, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ARemainIDCount := PAnsiCharToSmallIntR(@FReceivedData[3]);
+
+    IDs := System.Copy(FReceivedData, 5, Length(FReceivedData));
+    while Length(IDs) > 0 do
+    begin
+      IDLen := Ord(IDs[1]);
+      ID := System.Copy(IDs, 2, IDLen);
+      AIDList.Add(ID);
+
+      IDs := System.Copy(IDs, IDLen + 2, Length(IDs));
+    end;
+  end;
+end;
+
+function TLouth.GetIDRequest(AID: String; var AIDRequest: TIDRequest): Integer;
+var
+  Buffer: AnsiString;
+begin
+  ZeroMemory(@AIDRequest, SizeOf(TIDRequest));
+
+  Buffer := AnsiChar(Length(AID)) + AID;
+  Result := TransmitCommand($B0, $16, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    AIDRequest.InDisk            := (Ord(FReceivedData[3]) and $01) > 0;
+    AIDRequest.InMarkedForXFer   := (Ord(FReceivedData[3]) and $02) > 0;
+    AIDRequest.InRemoteSystem    := (Ord(FReceivedData[3]) and $04) > 0;
+    AIDRequest.DeleteProtected   := (Ord(FReceivedData[3]) and $08) > 0;
+    AIDRequest.InArchive         := (Ord(FReceivedData[3]) and $10) > 0;
+    AIDRequest.ArchivePending    := (Ord(FReceivedData[3]) and $20) > 0;
+    AIDRequest.InXFer            := (Ord(FReceivedData[3]) and $40) > 0;
+    AIDRequest.OperationPending  := (Ord(FReceivedData[3]) and $80) > 0;
+  end;
+end;
+
+function TLouth.GetAudioSampleRateAndMode(var AAudioSampleRate: TAudioSampleRate; var AAudioSampleMode: TAudioSampleMode): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AAudioSampleRate := srUnKnown;
+  AAudioSampleMode := smUnKnown;
+
+  Buffer := AnsiChar($02);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    case Ord(FReceivedData[3]) of
+      $01: AAudioSampleRate := sr32000;
+      $02: AAudioSampleRate := sr44100;
+      $04: AAudioSampleRate := sr48000;
+    else
+      AAudioSampleRate := srUnKnown;
+    end;
+
+    if Length(FReceivedData) < 4 then exit;
+    case Ord(FReceivedData[4]) of
+      $01: AAudioSampleMode := smStereo;
+      $02: AAudioSampleMode := smDual;
+      $04: AAudioSampleMode := smJoint;
+      $08: AAudioSampleMode := smMono;
+    else
+      AAudioSampleMode := smUnKnown;
+    end;
+  end;
+end;
+
+function TLouth.GetCompressSystemBitRate(var ASystemBitRate: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  ASystemBitRate := 0;
+
+  Buffer := AnsiChar($04);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    ASystemBitRate := PAnsiCharToIntR(@FReceivedData[3]);
+  end;
+end;
+
+function TLouth.GetCompressVideoBitRate(var AVideoBitRate: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AVideoBitRate := 0;
+
+  Buffer := AnsiChar($08);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    AVideoBitRate := PAnsiCharToSmallIntR(@FReceivedData[3]);
+  end;
+end;
+
+function TLouth.GetCompressAudioBitRate(var AAudioBitRate: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AAudioBitRate := 0;
+
+  Buffer := AnsiChar($10);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    AAudioBitRate := PAnsiCharToSmallIntR(@FReceivedData[3]);
+  end;
+end;
+
+function TLouth.GetVideoStandardAndResolution(var AVideoStandard: TVideoStandard; var AHorizontalResolution, AVerticalResolution: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AVideoStandard         := vsNTSC;
+  AHorizontalResolution  := 0;
+  AVerticalResolution    := 0;
+
+  Buffer := AnsiChar($20);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    case Ord(FReceivedData[3]) of
+      $00: AVideoStandard := vsNTSC;
+      $01: AVideoStandard := vsPAL;
+    else
+      AVideoStandard := vsNTSC;
+    end;
+
+    if Length(FReceivedData) < 5 then exit;
+    AHorizontalResolution := PAnsiCharToSmallIntR(@FReceivedData[4]);
+
+    if Length(FReceivedData) < 7 then exit;
+    AVerticalResolution   := PAnsiCharToSmallIntR(@FReceivedData[6]);
+  end;
+end;
+
+function TLouth.GetClosedCaption(var AClosedCaption: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AClosedCaption := False;
+
+  Buffer := AnsiChar($40);
+  Result := TransmitCommand($30, $17, Buffer, Length(Buffer));
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 3 then exit;
+    AClosedCaption := (Ord(FReceivedData[3]) = $01);
+  end;
+end;
+
+function TLouth.GetIDsAdded(var ARemainIDCount: Integer; var AIDList: TStringList): Integer;
+var
+  IDs, ID: String;
+  IDLen: Integer;
+begin
+  Result := D_FALSE;
+  ARemainIDCount := 0;
+
+  if AIDList = nil then exit;
+  AIDList.Clear;
+
+  Result := TransmitCommand($B0, $18, '', 0);
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ARemainIDCount := PAnsiCharToSmallIntR(@FReceivedData[3]);
+
+    IDs := System.Copy(FReceivedData, 5, Length(FReceivedData));
+    while Length(IDs) > 0 do
+    begin
+      IDLen := Ord(IDs[1]);
+      ID := System.Copy(IDs, 2, IDLen);
+      AIDList.Add(ID);
+
+      IDs := System.Copy(IDs, IDLen + 2, Length(IDs));
+    end;
+  end;
+end;
+
+function TLouth.GetIDsDeleted(var ARemainIDCount: Integer; var AIDList: TStringList): Integer;
+var
+  IDs, ID: String;
+  IDLen: Integer;
+begin
+  Result := D_FALSE;
+  ARemainIDCount := 0;
+
+  if AIDList = nil then exit;
+  AIDList.Clear;
+
+  Result := TransmitCommand($B0, $19, '', 0);
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    ARemainIDCount := PAnsiCharToSmallIntR(@FReceivedData[3]);
+
+    IDs := System.Copy(FReceivedData, 5, Length(FReceivedData));
+    while Length(IDs) > 0 do
+    begin
+      IDLen := Ord(IDs[1]);
+      ID := System.Copy(IDs, 2, IDLen);
+      AIDList.Add(ID);
+
+      IDs := System.Copy(IDs, IDLen + 2, Length(IDs));
+    end;
+  end;
+end;
+
+function TLouth.AbortMacro(AValue: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := AnsiChar(AValue);
+  Result := TransmitCommand($50, $60, Buffer, Length(Buffer));
+end;
+
+function TLouth.ActiveMacroList(var AMacroList: Word): Integer;
+begin
+  AMacroList := 0;
+
+  Result := TransmitCommand($50, $61, '', 0);
+  if Result = D_OK then
+  begin
+    if Length(FReceivedData) < 4 then exit;
+    AMacroList := PAnsiCharToWord(@FReceivedData[3]);
+  end;
+end;
+
+function TLouth.CopyFileMacro(AMacroNum: Word; ASource, ADestination: Byte): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(AMacroNum) + AnsiChar(ASource) + AnsiChar(ADestination);
+  Result := TransmitCommand($50, $63, Buffer, Length(Buffer));
+end;
+
+function TLouth.GetFromArchiveMacro(AMacroNum: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(AMacroNum);
+  Result := TransmitCommand($50, $64, Buffer, Length(Buffer));
+end;
+
+function TLouth.SendArchiveMacro(AMacroNum: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(AMacroNum);
+  Result := TransmitCommand($50, $65, Buffer, Length(Buffer));
+end;
+
+function TLouth.PrepareIDToPlay(AMacroNum: Word; APrepareFH: Byte; AID, AStartTC, AEndTC: String): Integer;
+var
+  Buffer: AnsiString;
+  Hour, Minute, Second, Frame: Integer;
+begin
+  Buffer := WordToAnsiString(AMacroNum) + AnsiChar(APrepareFH) +
+            AnsiChar(Length(AID)) + AID;
+
+  DecodeTimeCode(AStartTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  DecodeTimeCode(AEndTC, Hour, Minute, Second, Frame);
+  Buffer := Buffer +
+            AnsiChar(IntToBCD(Frame)) +
+            AnsiChar(IntToBCD(Second)) +
+            AnsiChar(IntToBCD(Minute)) +
+            AnsiChar(IntToBCD(Hour));
+
+  Result := TransmitCommand($50, $66, Buffer, Length(Buffer));
+end;
+
+function TLouth.CloseIDFromPlay(AMacroNum: Word; AID: String): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := WordToAnsiString(AMacroNum) +
+            AnsiChar(Length(AID)) + AID;
+
+  Result := TransmitCommand($50, $67, Buffer, Length(Buffer));
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(ALouth: TLouth);
+begin
+  FLouth := ALouth;
+  FreeOnTerminate := False;
+  inherited Create(True);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+
+  function GetStatus(var APortStateStatus: TPortStateStatus): Integer;
+  var
+    Buffer: AnsiString;
+  begin
+    Result := D_FALSE;
+    ZeroMemory(@APortStateStatus, SizeOf(TPortStateStatus));
+
+    with FLouth do
+    begin
+      Buffer := AnsiChar($01);
+      Result := TransmitStatus($30, $05, Buffer, Length(Buffer));
+
+      if Result = D_OK then
+      begin
+        if Length(FReceivedData) < 4 then exit;
+        APortStateStatus.Idle        := (Ord(FReceivedData[4]) and $01) > 0;
+        APortStateStatus.Cue         := (Ord(FReceivedData[4]) and $02) > 0;
+        APortStateStatus.PlayRecord  := (Ord(FReceivedData[4]) and $04) > 0;
+        APortStateStatus.Still       := (Ord(FReceivedData[4]) and $08) > 0;
+        APortStateStatus.Jog         := (Ord(FReceivedData[4]) and $10) > 0;
+        APortStateStatus.Shuttle     := (Ord(FReceivedData[4]) and $20) > 0;
+        APortStateStatus.PortBusy    := (Ord(FReceivedData[4]) and $40) > 0;
+        APortStateStatus.CueDone     := (Ord(FReceivedData[4]) and $80) > 0;
+      end;
+    end;
+  end;
+
+  function GetTC(var ATC: String): Integer;
+  var
+    Buffer: AnsiString;
+    Hour, Minute, Second, Frame: Word;
+  begin
+    Result := D_FALSE;
+    ATC := IDLE_TIMECODE;
+
+    with FLouth do
+    begin
+      Buffer := AnsiChar($01);
+      Result := TransmitStatus($30, $06, Buffer, Length(Buffer));
+      if Result = D_OK then
+      begin
+        if Length(FReceivedData) < 7 then exit;
+        Frame    := BCDToInt(Ord(FReceivedData[4]));
+        Second   := BCDToInt(Ord(FReceivedData[5]));
+        Minute   := BCDToInt(Ord(FReceivedData[6]));
+        Hour     := BCDToInt(Ord(FReceivedData[7]));
+
+        ATC      := EncodeTimeCode(Hour, Minute, Second, Frame);
+      end;
+    end;
+  end;
+
+begin
+  inherited;
+//  if not FLouth.Connected then exit;
+
+  with FLouth do
+  begin
+//    FCriticalSection.Enter;
+    try
+      FSaveConnected     := FConnected;
+      FSaveStateStatus   := FPortStateStatus;
+      FSaveTC            := FCurrentTC;
+
+      if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+      begin
+        FConnected := False;
+        exit;
+      end;
+
+      R := GetStatus(FPortStateStatus);
+      if R = D_OK then FConnected := True
+      else FConnected := False;
+
+      Sleep(FAutoStatusInterval);
+      if FConnected then
+      begin
+        R := GetTC(FCurrentTC);
+        Sleep(FAutoStatusInterval);
+      end
+      else FCurrentTC := IDLE_TIMECODE;
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+//  if not FLouth.Connected then exit;
+
+  with FLouth do
+  begin
+//    FCriticalSection.Enter;
+    try
+    if Assigned(FOnConnectChanged) then
+      if FSaveConnected <> FConnected then
+        FOnConnectChanged(FLouth, FConnected);
+
+    if Assigned(FOnStateStatusChanged) then
+      if ((FSaveConnected <> FConnected) and (FConnected)) or
+         (FSaveStateStatus.Idle <> FPortStateStatus.Idle) or
+         (FSaveStateStatus.Cue <> FPortStateStatus.Cue) or
+         (FSaveStateStatus.PlayRecord <> FPortStateStatus.PlayRecord) or
+         (FSaveStateStatus.Still <> FPortStateStatus.Still) or
+         (FSaveStateStatus.Jog <> FPortStateStatus.Jog) or
+         (FSaveStateStatus.Shuttle <> FPortStateStatus.Shuttle) or
+         (FSaveStateStatus.PortBusy <> FPortStateStatus.PortBusy) or
+         (FSaveStateStatus.CueDone <> FPortStateStatus.CueDone) then
+        FOnStateStatusChanged(FLouth, FPortStateStatus);
+
+    if Assigned(FOnTimeCodeChanged) then
+      if ((FSaveConnected <> FConnected) and (FConnected)) or
+         (FSaveTC <> FCurrentTC) then
+        FOnTimeCodeChanged(FLouth, FCurrentTC);
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0 then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FLouth.FAutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

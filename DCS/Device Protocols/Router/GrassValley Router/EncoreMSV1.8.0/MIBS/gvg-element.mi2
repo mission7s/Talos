@@ -1,0 +1,1275 @@
+--
+-- Common Object Definitions for a Grass Valley Managed Element
+--
+
+GVG-ELEMENT-MIB DEFINITIONS ::= BEGIN
+
+	--  Relationship to Other MIBs
+	--
+	--
+	--  The objects defined in this MIB are located under the
+	--  private.enterprises subtree as shown below:
+	--
+	--               iso(1).org(3).dod(6).internet(1)
+	--                            |
+	--                         private(4)
+	--                            |
+	--                       enterprises(1)
+	--                            |
+	--                        gvg(4947)
+	--                            |
+	--                   gvgRegistrations(2)
+	--                            |
+	--                     gvgElementMIB(1)
+	--                                 
+	--
+	--
+	--  Object Synopsis
+	--  
+	--
+	--  All objects within this MIB are prefixed with the OBJECT
+	--  IDENTIFIER "p", where "p" is:
+	--
+	--  iso(1).org(3).dod(6).internet(1).private(4).enterprises(1).
+	--          gvg(4947).gvgRegistrations(2).gvgElementMIB(1)
+	--	
+	--  or, 1.3.6.1.4.1.4947.2.1
+	--
+	--
+	--  Object Name                               Object Id         
+	--  ================================          ==============
+	--
+	--  gvgElMIBNotifications                      p.0
+	--    gvgElStateChange                         p.0.1
+	--    gvgIoSignalStateChange                   p.0.2
+	--  gvgElGeneral                               p.2
+	--    gvgElModel                               p.2.1.0
+	--    gvgElSerialCode                          p.2.2.0
+	--    gvgElType                                p.2.3.0
+	--    gvgElSoftwareRev                         p.2.4.0
+	--    gvgElState                               p.2.5.0
+	--    gvgElSeverityLevel                       p.2.6.0
+	--    gvgElAssetTag                            p.2.7.0
+	--  gvgElTrapTargets                           p.3
+	--    gvgTtMaxTargets                          p.3.1.0
+	--    gvgTtCfgTableNextIndex                   p.3.2.0
+	--    gvgTtCfgTable                            p.3.3
+	--      gvgTtCfgEntry                          p.3.3.1
+	--        gvgTtCfgIndex                        p.3.3.1.1.n
+	--        gvgTtCfgIpAddress                    p.3.3.1.2.n
+	--        gvgTtCfgCommunity                    p.3.3.1.3.n
+	--        gvgTtCfgEntryStatus                  p.3.3.1.4.n
+	--  gvgElIoInterfacing                         p.4
+	--    gvgIoSignalTable                         p.4.1
+	--      gvgIoSignalEntry                       p.4.1.1
+	--        gvgIoSignalIndex                     p.4.1.1.1.n
+	--        gvgIoSignalAlias                     p.4.1.1.2.n
+	--        gvgIoSignalType                      p.4.1.1.3.n
+	--        gvgIoSignalState                     p.4.1.1.4.n
+	--        gvgIoSignalLastChanged               p.4.1.1.5.n
+	--        gvgIoSignalSpecific                  p.4.1.1.6.n
+	--        gvgIoSignalNotify                    p.4.1.1.7.n
+	--  gvgElMgmt                                  p.5
+	--    gvgMgControl                             p.5.1.0
+	--  gvgElChassis                               p.6
+	--    gvgCsTmpStatus                           p.6.1.0
+	--    gvgCsPwrStatus                           p.6.2.0
+	--    gvgCsFanStatus                           p.6.3.0
+	--  gvgElIndicators                            p.7
+	--    gvgIdIdentify                            p.7.1.0
+	--    gvgIdFailure                             p.7.2.0
+	--    gvgIdWarning                             p.7.3.0
+	--
+	
+	IMPORTS
+		MODULE-IDENTITY, NOTIFICATION-TYPE, OBJECT-TYPE,
+		IpAddress, TimeTicks, Integer32
+			FROM SNMPv2-SMI
+		TEXTUAL-CONVENTION,
+		DisplayString, RowStatus
+			FROM SNMPv2-TC
+		gvgRegistrations
+			FROM GVG-REG;
+
+	gvgElementMIB MODULE-IDENTITY
+		LAST-UPDATED "200802060000Z"
+		ORGANIZATION "Thomson Broadcast and Media Solutions, Inc."
+		CONTACT-INFO
+			"	
+				C2MD
+				Thomson Broadcast and Media Solutions, Inc.
+				400 Providence Mine Road, P.O. Box 599000,
+				Nevada City, CA 95959, 
+				USA.
+
+				phone: +1 (530) 478-3000
+				e-mail: gvgtechsupport@thomson.net
+				http://www.thomsongrassvalley.com/support"	
+	DESCRIPTION
+		"This MIB module describes the generic 
+		characteristics of a manageable physical
+		element beneath the Grass Valley 
+		enterprise.
+
+		This MIB does not describe the element
+		specific attributes of the managed system, 
+		and augments MIB-2 in the identification 
+		of a Grass Valley managed element.
+
+		If this MIB module is used in a proxy model
+		where an SNMP agent manages a group of elements 
+		that do not provide an SNMP agent for management
+		purposes, there are two cases:
+		a) an opertional element in the group of managed
+		   elements hosts the SNMP agent, in which case,
+		   the objects in this MIB module will be 
+		   applicable to that managed element. For 
+		   instance, the management of a video switcher 
+		   setup that includes an assortment of switcher 
+		   control panels and the frame, where the group 
+		   is managed from one of the control panels;
+		b) the SNMP agent manages a group of managed 
+		   elements, where the computer on which the 
+		   agent runs is not an operational element of 
+		   that group, in which case the objects in this 
+		   MIB module will be applicable to the SNMP 
+		   agent software. For instance, a collection of 
+		   legacy equipment managed by an SNMP agent 
+		   running on a personal computer - the presence 
+		   of the computer is not a mandate for the 
+		   operation of the equipment.
+
+		This module will be extended, or modified 
+		as required.
+
+		Thomson reserves the right to make changes in 
+		specification and other information contained in 
+		this document without prior notice. The reader 
+		should consult Thomson to determine whether 
+		any such changes have been made.
+
+		In no event shall Thomson be liable for any, 
+		incidental, indirect, special, or consequential 
+		damages whatsoever (including but not limited to 
+		lost profits) arising out of or related to this 
+		document or the information contained in it, even 
+		if Thomson has been advised of, known, or should 
+		have known, the possibility of such damages.
+
+		Thomson grants vendors, end-users, and other 
+		interested parties a non-exclusive license to use 
+		this specification in connection with the management 
+		of its products.
+
+		Copyright February 2004 
+		Thomson Broadcast and Media Solutions, Inc."
+	REVISION      "9911120000Z"
+	DESCRIPTION
+		"First draft."
+	REVISION      "200004100000Z"
+	DESCRIPTION
+		"Added the gvgElTrapTargets group."
+	REVISION      "200008070000Z"
+	DESCRIPTION
+		"Added to gvgElType a type = gvgModuleFrame(3)."
+	REVISION      "200009100000Z"
+	DESCRIPTION
+		"Added element type gvgHdMpeg2VideoServer(4)."
+	REVISION      "200104180000Z"
+	DESCRIPTION
+		"Added notification severity variable
+		gvgElSeverityLevel and updated gvgElType
+		to include MAN element types."
+	REVISION      "200109120000Z"
+	DESCRIPTION
+		"Added element type gvgVideoSwitcher(7)."
+	REVISION      "200204240000Z"
+	DESCRIPTION
+		"Added element state gvgElementSwLicenseExpired(9)."
+	REVISION      "200207250000Z"
+	DESCRIPTION
+		"Added group gvgElIoInterfacing, table 
+		gvgIoSignalTable, and notification 
+		gvgIoSignalStateChange and removed MIB compliance 
+		statements as many customers have MIB compilers 
+		that do not interpret them correctly."
+	REVISION      "200208150000Z"
+	DESCRIPTION
+		"Added enumerations 'gvgIoSignalIncorrectFormat(6)',
+		'gvgIoSignalErrorCorrected(4)', 
+		'gvgIoSignalIoFailure(7)', for object 
+		'gvgIoSignalState' and enumeration gvgIoSdtiIn(6)
+		for object 'gvgIoSignalType'."
+	REVISION      "200305150000Z"
+	DESCRIPTION
+		"Added enumerations 
+		'gvgElementImntSwLicExpiry(10)', and 
+		'gvgElementSwLicRecovered(11)'for the element 
+		state."
+	REVISION      "200305150000Z"
+	DESCRIPTION
+		"Added the 'gvgLicenseServer(8)' element type to 
+		support	management of a license server."
+	REVISION      "200308140000Z"
+	DESCRIPTION
+		"Added enumeration 'gvgIoCompositeVideoIn(7)' to 
+		gvgIoSignalType. Added enumerations for 
+		gvgIoSignalHiLevel(8), gvgIoSignalLoLevel(9), and 
+		gvgIoSignalColorMissing(10) to gvgIoSignalState."
+	REVISION      "200402190000Z"
+	DESCRIPTION
+		"Added enumeration gvgCameraGroup(9) to gvgElType 
+		and added object gvgElAssetTag. Updated MIB description
+		to include Thomson acquisition of Grass Valley. 
+		Added textual conventions for GvgFloatingPoint and
+		GvgTimecode. Added optional group gvgElMgmt."
+	REVISION      "200404020000Z"
+	DESCRIPTION
+		"Added enumeration gvgAuxWinPc(10) to gvgElType."
+	REVISION      "200405210000Z"
+	DESCRIPTION
+		"Added enumeration gvgUim(11) to gvgElType."
+	REVISION      "200503230000Z"
+	DESCRIPTION
+		"Updates based on support for xtenDD and kayak.
+		- Added enumeration gvgVideoSwitcherFrame(12) 
+		  and gvgControlPanel(13) to gvgElType."
+	REVISION      "200506020000Z"
+	DESCRIPTION
+		"Added the optional gvgElChassis and 
+		gvgElIndicators groups."
+	REVISION      "200509130000Z"
+	DESCRIPTION
+		"Added the GvgUtf8String textual convention."
+	REVISION      "200802060000Z"
+	DESCRIPTION
+		"Added the output signal types to gvgIoSignalType.
+		Added object gvgIoSignalNotify to gvgIoSignalTable."
+	::= { gvgRegistrations 1 }
+
+	--
+	-- Element MIB Textual Conventions
+	--
+
+	GvgFloatingPoint ::= TEXTUAL-CONVENTION
+		DISPLAY-HINT
+			"63a"
+		STATUS current
+		DESCRIPTION
+			"FloatingPoint provides a way of representing 
+			non-integer	numbers in SNMP. Numbers are 
+			represented as a string of ASCII characters in
+			the natural way. So for example, '3', '3.142' 
+			and '0.3142E1' are all valid numbers. 
+			
+			The syntax for the string is as follows. [] 
+			enclose an optional element, | is the separator 
+			for a set of alternatives. () enclose syntax 
+			which is to be viewed as a unit.
+
+			FloatingPoint ::= [Sign]
+                              (Float1 | Float2 | DigitSequence)
+                              [ExponentPart]
+
+			Float1 ::= DigitSequence '.' [DigitSequence]
+			Float2 ::= '.' DigitSequence
+			DigitSequence ::= Digit [DigitSequence]
+
+			ExponentPart ::= ('e' | 'E') [Sign] DigitSequence
+
+			Digit ::= '0'..'9'
+			Sign ::= '+' | '-'"
+		SYNTAX OCTET STRING (SIZE (1..63))
+
+	GvgTimecode ::= TEXTUAL-CONVENTION
+		DISPLAY-HINT
+			"11a"
+		STATUS current
+		DESCRIPTION
+			"A display representation for timecode which
+			essentially provides a machine readable address 
+			for	video and audio. Timecodes are represented as 
+			a string of ASCII characters as hh:mm:ss:ff where
+			hh is hours, mm is minutes, ss is seconds and
+			ff is video frames."
+		SYNTAX OCTET STRING (SIZE (0..11))
+
+	GvgSwitchCtrl ::= TEXTUAL-CONVENTION
+		STATUS current
+		DESCRIPTION
+			"A enumerated representation for a generic 'switch'
+			control facility. The meaning of a 'switch' depends
+			on the actual managed item, and could imply for objects
+			such as electrical contacts/relays, LED based indicators,
+			software based switches, audible tone generators, and so on.
+			
+			gvgSwNa(1) - Indicates the control and/or status of
+			the switch is not available.
+			
+			gvgSwOn(2) - Indicates an 'ON' switch.
+			
+			gvgSwOff(3) - Indicates an 'OFF' switch."
+		SYNTAX INTEGER 
+				{ 
+					gvgSwNa(1), 
+					gvgSwOn(2), 
+					gvgSwOff(3) 
+				}
+				
+	GvgUtf8String ::= TEXTUAL-CONVENTION
+         DISPLAY-HINT "255t"
+         STATUS  current
+         DESCRIPTION
+                 "To facilitate internationalization, this TC
+                  represents information taken from the ISO/IEC IS
+                  10646-1 character set, encoded as an octet string
+                  using the UTF-8 character encoding scheme described
+                  in RFC 2044 [10].  For strings in 7-bit US-ASCII,
+                  there is no impact since the UTF-8 representation
+                  is identical to the US-ASCII encoding.
+                  
+                  Note: when a formal textual convention appears
+                  for a generic UTF-8 string in an IETF RFC, it is 
+                  recommended that MIB modules that need to import this 
+                  definition use the one from the RFC"
+         SYNTAX  OCTET STRING (SIZE (0..255))
+
+
+	--
+	--  The Element MIB top-level groups
+	--
+
+	-- NOTE: { gvgElementMIB 1 } is reserved for internal use
+	gvgElGeneral        OBJECT IDENTIFIER ::= { gvgElementMIB 2 }
+	gvgElTrapTargets    OBJECT IDENTIFIER ::= { gvgElementMIB 3 }
+	gvgElIoInterfacing  OBJECT IDENTIFIER ::= { gvgElementMIB 4 }
+	gvgElMgmt           OBJECT IDENTIFIER ::= { gvgElementMIB 5 }
+	gvgElIndicators     OBJECT IDENTIFIER ::= { gvgElementMIB 6 }
+
+
+	--
+	--  The Element MIB Object Definitions
+	--
+
+
+	--
+	-- The General Group
+	-- The gvgElGeneral group provides general
+	-- information for the a Grass Valley 
+	-- managed element.
+	--
+
+	gvgElModel OBJECT-TYPE
+		SYNTAX		DisplayString (SIZE(0..64))
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"The element model string. The preferred value is
+			the customer-visible part number, which may	be 
+			printed on the physical managed element itself.
+			
+			If the element being managed does not have 
+			a model descriptor, or the model descriptor is
+			unknown to the agent, the value of this variable 
+			will be a null string."
+	::= { gvgElGeneral 1 }
+
+	gvgElSerialCode OBJECT-TYPE
+		SYNTAX		DisplayString (SIZE(0..64))
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"The manufacturing serial code of the
+			element on which the management software
+			is running.  The preferred value is the serial 
+			number string actually printed on the CCU itself
+			(if present).
+			
+			If the element being managed does not have 
+			a serial code, the value of this variable 
+			will be a null string."
+	::= { gvgElGeneral 2 }
+
+	gvgElType OBJECT-TYPE
+		SYNTAX		INTEGER {
+						gvgUnknown(1),
+
+						-- Standard definition video server
+						gvgVideoServer(2),
+							
+						-- Modular equipment
+						gvgModuleFrame(3),
+						
+						-- High definition video server
+						gvgHdVideoServer(4),
+
+						-- Media Area Network client
+						-- video server
+						gvgManVideoServer(5),
+
+						-- Media Area Network file
+						-- system manager
+						gvgManFsm(6),
+
+						-- video switcher group proxy
+						gvgVideoSwitcher(7),
+
+						-- license server
+						gvgLicenseServer(8),
+
+						-- camera group proxy
+						gvgCameraGroup(9),
+
+						-- auxillary windows PC
+						gvgAuxWinPc(10),
+
+						-- Universal Media Transfer Interface Module
+						gvgUim(11),
+
+						-- video switcher frame
+						gvgVideoSwitcherFrame(12),
+
+						-- a control panel
+						gvgControlPanel(13)
+					}
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"Identifies the type of the element being managed."
+	::= { gvgElGeneral 3 }
+
+	gvgElSoftwareRev OBJECT-TYPE
+		SYNTAX		DisplayString (SIZE(0..64))
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"The revision stamp of the software running on 
+			the element that supports this MIB module."
+	::= { gvgElGeneral 4 }
+
+	gvgElState OBJECT-TYPE
+		SYNTAX		INTEGER {
+						gvgElementRunning(1),
+						gvgElementInMaintenance(2),
+						gvgElementFaulty(3),
+						gvgElementDisabled(4),
+						gvgElementIdling(5),
+						gvgElementInitializing(6),
+						gvgElementResetting(7),
+						gvgElementHalted(8),
+						gvgElementSwLicenseExpired(9),
+						gvgElementImntSwLicExpiry(10),
+						gvgElementSwLicRecovered(11)
+					}
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"The operational state of an element.
+
+			NOTE: It is not mandatory that a managed element
+			support all of the enumerated element states.
+			
+			gvgElementActive(1) - The element is running and 
+			processing load.
+			
+			gvgElementInMaintenance(2) - The element is online, 
+			but either the element as a whole, or one or more of 
+			its components are in maintenance mode. Maintenance 
+			mode could be described as a mode where diagnostics 
+			are being run on the element, or some tasks such as 
+			element configuration are being excuted on the 
+			element that has inhibited its normal operation.
+			
+			gvgElementFaulty(3) - The element has experienced a 
+			faulty condition in one or more of its components.
+			
+			gvgElementDisabled(4) - The element may not be in a 
+			faulty condition, but has been explicitly disabled 
+			from its normal mode of operation.
+			
+			gvgElementIdling(5) - The element is running in an 
+			idle cycle.
+			
+			gvgElementInitializing(6) - This is a post bootstrap 
+			state where the element has been restarted, and is 
+			initializing its hardware and software components.
+			
+			gvgElementResetting(7) - The element is in a post-
+			reset cycle. Any information collected, or dynamic 
+			configuration of the element prior to this state 
+			may be lost.
+			
+			gvgElementHalted(8) - The element has halted and not 
+			processing load.
+			
+			gvgElementSwLicenseExpired(9) - A software component
+			running on or on behalf of the managed element has
+			expressed license expiration. This state could include 
+			one or more software components experiencing this 
+			syndrome.
+
+			gvgElementImntSwLicExpiry(10) - A software
+			component on or on behalf of the managed element has
+			indicated an imminent license expiration. This state
+			could indicate one or more software components with
+			imminent license expiry.
+
+			gvgElementSwLicRecovered(11) - A software
+			component on or on behalf of the managed element has
+			recovered from license expiration. This state could 
+			reflect the license state for one or one or more software 
+			components."
+	::= { gvgElGeneral 5 }
+	
+	gvgElSeverityLevel OBJECT-TYPE
+		SYNTAX		INTEGER {
+						gvgUnknown(1),
+						gvgTrace(2),
+						gvgInformational(3),
+						gvgNormal(4),
+						gvgWarning(5),
+						gvgAlarm(6),
+						gvgResentWarning(7),
+						gvgResentAlarm(8)
+					}
+		MAX-ACCESS	accessible-for-notify
+		STATUS		current
+		DESCRIPTION
+			"Defines the typical severity levels that could be used
+			with notifications raised by Grass Valley managed elements.
+			Note that the value of this variable cannot be retreived
+			through an SnmpGetRequest or an SnmpGetNextRequest. 
+			
+			gvgUnknown(1) - implies an unknown or ambiguous level.
+			
+			gvgTrace(2) - indicates the severity level associated with
+			debug or system trace notifications.
+			
+			gvgInformational(3) - indicates the severity level associated
+			with notifications that indicate a significant event that 
+			occured	during the normal operation of the element. The
+			significance of the event however, does not imply a fault or
+			a pre-failure condition.
+			
+			gvgNormal(4) - indicates the severity level associated with
+			notifications that indicate a 'fix' event for a fault or an
+			imminent failure that was earlier reported.
+			
+			gvgWarning(5) - indicates the severity level associated with 
+			a notification that indicates a predictive functional failure
+			later during the operation of the element, or failures, like
+			loss in redundancy, which indicates that the element is still
+			operating but in some sort of a 'degraded' mode.
+			
+			gvgAlarm(6) - indicates the severity level associated with a
+			notification that indicates a functional failure on element.
+			Notifications with this severity level indicate that a 
+			subsystem of the element, or the element itself is incapable
+			of performing the operations it is intended to.
+			
+			gvgResentWarning(7) - indicates the severity level associated
+			with a notification which indicates a previously sent warning
+			level notification.
+			
+			gvgResentAlarm(8) - indicates the severity level associated
+			with a notification which indicates a perviously sent alarm
+			level notification."
+	::= { gvgElGeneral 6 }
+
+
+	gvgElAssetTag OBJECT-TYPE
+		SYNTAX		DisplayString (SIZE(0..64))
+		MAX-ACCESS	read-write
+		STATUS		current
+		DESCRIPTION
+			"This object is a user-assigned asset tracking identifier for 
+			the element as specified by a network manager, and provides 
+			non-volatile storage of this information.
+
+			On the first instantiation of the element, the value of 
+			gvgElAssetTag associated with that element is set to a 
+			zero-length string instead.
+
+			Not every element will have an asset tracking identifier, 
+			or even need one. In such cases	an agent does not have to 
+			provide write access for such elements, and may instead 
+			return a zero-length string.
+
+			If write access is implemented for an instance of gvgElAssetTag, 
+			and a value is written into the instance, the agent must retain 
+			the supplied value in the gvgElAssetTag instance associated with
+			the same physical element for as long as that element is managed.
+			This includes instantiations across all reboots of the network 
+			management system."
+	::= { gvgElGeneral 7 }
+
+
+	--
+	-- The Trap Targets Group
+	-- The gvgElTrapTargets group provides means to
+	-- configure the trap target specifics using which an 
+	-- element can dispatch traps.
+	--
+
+
+	gvgTtMaxTargets OBJECT-TYPE
+		SYNTAX		Integer32
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"The maximum number of trap targets that this
+			element can support. 
+			
+			If the value of this variable is -1, the element
+			element is capable of supporting a theoretically
+			infinite number of trap targets dynamically. In
+			othercases, the maximum number of trap targets 
+			that can be supported by this element is limited
+			to the value of this variable."
+	::= { gvgElTrapTargets 1 }
+
+	gvgTtCfgTableNextIndex OBJECT-TYPE
+		SYNTAX		Integer32
+		MAX-ACCESS	read-only
+		STATUS		current
+		DESCRIPTION
+			"Identifies a hint for the next value of  
+			gvgTtCfgIndex to be used in a row creation attempt
+			for the gvgTtCfgTable table. If no new rows can be
+			created, this object will have a value of 0."
+	::= { gvgElTrapTargets 2 }
+
+	gvgTtCfgTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF GvgTtCfgEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION
+			"A list of trap target configuration entries on
+			this element.
+
+			Trap Target Configuration Entry Creation:
+			=========================================
+
+			When creating a trap target configuration entry
+			the manager should use a GET operation to 
+			determine the value of gvgTtCfgTableNextIndex.0.
+			If this value is non-zero, the manager can then 
+			use this value as the index while creating a 
+			table row.
+			
+			The process of creating and activating a row of 
+			this table takes two forms: the one-set mode and 
+			the multiple-set mode.
+			
+			In the one-set mode, a manager must specify the
+			values of gvgTtCfgIpAddress and gvgTtCfgCommunity
+			required to activate a row in a single SET operation
+			along with an assignment of the gvgTtCfgEntryStatus
+			to 'createAndGo(4)'. If the values and instances
+			supplied are correct, an instance of the trap target
+			configuration is created and the value of 
+			gvgTtCfgEntryStatus transitions to 'active(1)'.
+
+			for example:
+			============
+
+			SnmpGet(<gvgTtCfgTableNextIndex.0, NULL>)
+				returns
+					<gvgTtCfgTableNextIndex.0, 2>
+
+			SnmpSet(<gvgTtCfgIpAddress.2, 192.158.104.93>,
+                    <gvgTtCfgCommunity.2, 'public'>,
+                    <gvgTtCfgEntryStatus.2, createAndGo(4)>)
+				returns 
+					<gvgTtCfgIpAddress.2, 192.158.104.93>,
+                    <gvgTtCfgCommunity.2, 'public'>,
+                    <gvgTtCfgEntryStatus.2, active(1)>
+				
+			In the multiple-set mode, creating a trap target
+			configuration table row, filling it with values,
+			and activating it are carried out in discrete steps.
+
+			To create the row, the manager specifies a value
+			of 'createAndWait(5)' for the gvgTtCfgEntryStatus
+			status variable. This SET request could contain
+			values of gvgTtCfgIpAddress and gvgTtCfgCommunity
+			but it is not required. More often, the values for 
+			these columnar objects are specified in additional
+			SET requests. After each SET operation, the 
+			gvgTtCfgEntryStatus variable takes on the value 
+			'notReady(3)' or 'notInService(2)'. To place the
+			entry into service, the manager requests that the
+			gvgTtCfgEntryStatus variable transition to the
+			'active(1)' state.
+
+			for example:
+			============
+
+			SnmpGet(<gvgTtCfgTableNextIndex.0>, NULL)
+				returns
+					<gvgTtCfgTableNextIndex.0, 2>
+
+			SnmpSet(<gvgTtCfgEntryStatus.2, createAndWait(5)>)
+				returns
+					<gvgTtCfgEntryStatus.2, notReady(3)>
+
+			SnmpSet(<gvgTtCfgIpAddress.2, 192.158.104.93>,
+                    <gvgTtCfgCommunity.2, 'public'>)
+				returns
+					<gvgTtCfgIpAddress.2, 192.158.104.93>,
+                    <gvgTtCfgCommunity.2, 'public'>
+
+			SnmpSet(<gvgTtCfgEntryStatus.2, active(1)>)
+				returns
+					<gvgTtCfgEntryStatus.2, active(1)>
+
+
+			Trap Target Configuration Entry Deletion:
+			=========================================
+
+			To delete an existing trap target configuration
+			entry, the manager performs a SET operation on the
+			gvgTtCfgEntryStatus variable with the value
+			'destroy(6)'."
+		::= { gvgElTrapTargets 3 }
+
+	gvgTtCfgEntry OBJECT-TYPE
+		SYNTAX	GvgTtCfgEntry
+		MAX-ACCESS	not-accessible
+		STATUS current	
+		DESCRIPTION
+			"A trap target configuration entry."
+		INDEX	{ gvgTtCfgIndex }
+		::= { gvgTtCfgTable 1 }
+
+	GvgTtCfgEntry ::=
+		SEQUENCE {
+			gvgTtCfgIndex
+				Integer32,
+			gvgTtCfgIpAddress
+				IpAddress,
+			gvgTtCfgCommunity
+				OCTET STRING,
+			gvgTtCfgEntryStatus
+				RowStatus
+		}
+
+	gvgTtCfgIndex OBJECT-TYPE
+		SYNTAX	Integer32 (1..2147483647)
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION
+			"The index of a trap target configuration row.
+			
+			Note that the value of this object will not
+			be visible to a manager and any GET/SET 
+			operations on this variable will fail."
+		::= { gvgTtCfgEntry 1 }
+
+	gvgTtCfgIpAddress OBJECT-TYPE
+		SYNTAX	IpAddress
+		MAX-ACCESS	read-create
+		STATUS	current
+		DESCRIPTION
+			"The IP address of the target/manager to which
+			this element is supposed to send notifications."
+		::= { gvgTtCfgEntry 2 }
+
+	gvgTtCfgCommunity OBJECT-TYPE
+		SYNTAX	OCTET STRING (SIZE(0..128))
+		MAX-ACCESS	read-create
+		STATUS	current
+		DESCRIPTION
+			"The community name to be used when this element
+			sends notifications to the target identified by 
+			this value of this entries gvgTtCfgIpAddress."
+		::= { gvgTtCfgEntry 3 }
+
+	gvgTtCfgEntryStatus OBJECT-TYPE
+		SYNTAX	RowStatus
+		MAX-ACCESS	read-create
+		STATUS	current
+		DESCRIPTION
+			"This object controls the creation, activation
+			and deletion of a row in trap target configuration
+			table."
+		::= { gvgTtCfgEntry 4 }
+
+
+	--
+	-- The I/O Interfacing Group
+	-- The group defines objects that are generic across Grass
+	-- Valley managed elements in terms of the input and output
+	-- capabilities described by the managed element. Note
+	-- support of this group is optional.
+	--
+
+	--
+	-- The Signal Table
+	-- This is an optional table to be implemented by the 
+	-- network management system on managed elements that 
+	-- typically monitor the basic health of a variety of 
+	-- electrical signals flowing in or out of the physical 
+	-- managed element. If additional attributes are required, 
+	-- the product line specific MIB modules would augment 
+	-- this table to define object definitions for the type of 
+	-- signals that require the additional attributes.
+	--
+
+	
+	gvgIoSignalTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF GvgIoSignalEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION
+			"A list of signals that could be detected on
+			the input or output connectors associated
+			with this element. 
+			
+			Note that the network management system may 
+			not have entries in this table for all 
+			signals connected to managed device. 
+			
+			The maximum number of entries in this table 
+			depends on the number of input and/or 
+			output signals that can be monitored by 
+			the managed	element."
+		::= { gvgElIoInterfacing 1 }
+
+	gvgIoSignalEntry OBJECT-TYPE
+		SYNTAX	GvgIoSignalEntry
+		MAX-ACCESS	not-accessible
+		STATUS current	
+		DESCRIPTION
+			"A monitored signal entry."
+		INDEX	{ gvgIoSignalIndex }
+		::= { gvgIoSignalTable 1 }
+
+	GvgIoSignalEntry ::=
+		SEQUENCE {
+			gvgIoSignalIndex
+				Integer32,
+			gvgIoSignalAlias
+				DisplayString,
+			gvgIoSignalType
+				INTEGER,
+			gvgIoSignalState
+				INTEGER,
+			gvgIoSignalLastChanged
+				TimeTicks,
+			gvgIoSignalSpecific
+				OBJECT IDENTIFIER,
+			gvgIoSignalNotify
+				GvgSwitchCtrl
+		}
+
+	gvgIoSignalIndex OBJECT-TYPE
+		SYNTAX	Integer32 (1..2147483647)
+		MAX-ACCESS	read-only
+		STATUS	current
+		DESCRIPTION
+			"The index used to uniquely identify a signal
+			entry within the 'gvgIoSignalTable'. 
+			
+			The value for each instance must remain 
+			constant between re-initializations of the 
+			managed entity's network management system."
+		::= { gvgIoSignalEntry 1 }
+
+	gvgIoSignalAlias OBJECT-TYPE
+		SYNTAX	DisplayString (SIZE(0..255))
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"The 'alias' name of the signal. 
+			
+			This could potentially be a string identifying 
+			a particular coded signal flowing across the 
+			equipment facility, it could be string identifying 
+			the phsical connector and its type designator on 
+			a particular module within the managed element's 
+			physical consitution, and so on.
+
+			For instance:
+			'CBS west coast input channel 102WS', or,
+			'SDI-InA-J12', etc.
+			
+			By default, the value of an instance of this object
+			is generated by the agent in an implementation
+			specific manner. 
+			
+			If write access is implemented for an instance of
+			gvgIoSignalAlias, and a value is written into the
+			instance, the agent must retain the supplied value
+			for as long as the signal remains instantiated. This
+			includes reboots of the network management system,
+			including those that result in a change of the 
+			signal's gvgIoSignalIndex value."
+		::= { gvgIoSignalEntry 2 }
+
+	gvgIoSignalType OBJECT-TYPE
+		SYNTAX	INTEGER {
+					gvgIoSignalUnknown(1),
+					gvgIoReferenceIn(2),
+					gvgIoLtcIn(3),
+					gvgIoSdiVideoIn(4),
+					gvgIoAesEbuAudioIn(5),
+					gvgIoSdtiIn(6),
+					gvgIoCompositeVideoIn(7),
+					gvgIoAnalogAudioIn(8),
+					gvgIoReferenceOut(9),
+					gvgIoLtcOut(10),
+					gvgIoSdiVideoOut(11),
+					gvgIoAesEbuAudioOut(12),
+					gvgIoCompositeVideoOut(13),
+					gvgIoAnalogAudioOut(14)
+
+				}
+		MAX-ACCESS	read-only
+		STATUS	current
+		DESCRIPTION
+			"The generic functional category of the signal 
+			including its direction of flow, in or out of the 
+			managed element.
+
+			gvgIoSignalUnknown(1) - An unknown signal.
+
+			gvgIoReferenceIn(2) - An external input system 
+			timing reference signal used typically to 
+			synchronize the element's operations with those 
+			of other equipment similarly connected to this 
+			reference signal.
+			
+			gvgIoLtcIn(3) - A Linear Time Code input signal.
+
+			gvgIoSdiVideoIn(4) - A Serial Digital Interface
+			compliant video input signal.
+
+			gvgIoAesEbuAudioIn(5) - An AES/EBU interface
+			compliant audio input signal.
+
+			gvgIoSdtiInOut(6) - A Serial Digital Transport
+			Interface input and/or output signal.
+			
+			gvgIoCompositeVideoIn(7) - An analog composite
+			video compliant video input signal.
+
+			gvgIoAnalogAudioIn(8) - An analog audio input
+			signal.
+
+			gvgIoReferenceOut(9) - The system's internal
+			timing reference signal used typically to optionally
+			synchronize the signal timing used by peer elements 
+			operations with that of this element.
+			
+			gvgIoLtcOut(10) - A Linear Time Code output signal.
+
+			gvgIoSdiVideoOut(11) - A Serial Digital Interface
+			compliant video output signal.
+
+			gvgIoAesEbuAudioOut(12) - An AES/EBU interface
+			compliant audio output signal.
+
+			gvgIoCompositeVideoOut(13) - An analog composite
+			video compliant video output signal.
+
+			gvgIoAnalogAudioOut(14) - An analog audio output
+			signal."
+		::= { gvgIoSignalEntry 3 }
+
+	gvgIoSignalState OBJECT-TYPE
+		SYNTAX	INTEGER {
+					gvgIoSignalStateUnknown(1),
+					gvgIoSignalNotDetected(2),
+					gvgIoSignalDetected(3),
+					gvgIoSignalErrorCorrected(4),
+					gvgIoSignalDegraded(5),
+					gvgIoSignalIncorrectFormat(6),
+					gvgIoSignalConnectorFailure(7),
+					gvgIoSignalHiLevel(8),
+					gvgIoSignalLoLevel(9),
+					gvgIoSignalColorMissing(10)
+				}
+		MAX-ACCESS	read-only
+		STATUS	current
+		DESCRIPTION
+			"The generic state of the signal as inferred by the 
+			signal reader (or generator) associated with the 
+			signal's connector or interface on the managed 
+			element. A change in this state will typically 
+			induce the managed entity to generate the 
+			'gvgIoSignalStateChange' notification.
+
+			gvgIoSignalStateUnknown(1) - The signal reader (or
+			generator) is unable to determine the state of the
+			signal, or the management software is in the 
+			initialization state and not yet determined the state
+			of the signal.
+
+			gvgIoSignalNotDetected(2) - The signal reader (or 
+			generator) has not detected the presence of the signal.
+
+			gvgIoSignalDetected(3) - The signal reader (or 
+			generator) has detected the presence of the signal.
+
+			gvgIoSignalErrorCorrected(4) - This value will never be
+			returned by the agent in a GetResponse PDU. It will,
+			however, be used to notify that an error state associated
+			with the signal has been cleared. A subsequent GetRequest
+			will return the value of 'gvgIoSignalDetected(3)' to 
+			indicate the presence of a good signal.
+
+			gvgIoSignalDegraded(5) - The signal reader (or 
+			generator) has detected a degraded quality of the signal.
+			This could imply too many transient errors, embedded 
+			noise signals, payload checksum errors and such other 
+			conditions unhealthy for the actual I/O activity 
+			pertaining to the signal.
+
+			gvgIoSignalIncorrectFormat(6) - The signal reader (or
+			generator) has detected the signal with a different 
+			playload presentation format than that expected. For
+			instance, an AC-3 compressed audio stream rather than
+			an anticipated PCM uncompressed audio stream.
+
+			gvgIoSignalIoFailure(7) - The subsystem associated
+			with this signal has failed and the signal with not be
+			read (or generated). This could indicate an electrical
+			failure with the connector itself, or a failure in the 
+			I/O subsystem dedicated to handling I/O with respect to 
+			this signal.
+			
+			gvgIoSignalHiLevel(8) - The signal reader has detected
+			a voltage level on the signal that is higher than the
+			recommended range. For instance, in the context of an 
+			external video reference signal, this could mean the 
+			signal is not terminated.
+			
+			gvgIoSignalLoLevel(9) - The signal reader has detected
+			a voltage level on the signal that is lower than the
+			recommended range. For instance, in the context of an 
+			external video reference signal, this could mean the 
+			signal is doubly terminated.
+			
+			gvgIoSignalColorMissing(10) - The signal reader has
+			detected a video signal with missing color burst. For
+			instance, in the context of an external video reference 
+			signal used in conjunction with composite video output 
+			signals, the output signals might not be locked to the 
+			reference."
+		::= { gvgIoSignalEntry 4 }
+
+	gvgIoSignalLastChanged OBJECT-TYPE
+		SYNTAX	TimeTicks
+		MAX-ACCESS	read-only
+		STATUS	current
+		DESCRIPTION
+			"The value of the MIB-2 variable 'sysUpTime' at the 
+			time the managed entity inferred the change in the 
+			signal state associated with object 'gvgIoSignalState'. 
+
+			This object contains a zero value if the value of 
+			'gvgIoSignalState' did not change since the last 
+			initialization of the network management subsystem."
+		::= { gvgIoSignalEntry 5 }
+
+	gvgIoSignalSpecific OBJECT-TYPE
+		SYNTAX	OBJECT IDENTIFIER
+		MAX-ACCESS	read-only
+		STATUS	current
+		DESCRIPTION
+			"If the managed entity has MIBs that define more objects
+			for, or related to this signal, then this object will 
+			include	the object identifier of the MIB module, group, 
+			table or object in that MIB module that contains the 
+			referenced information. 
+			
+			If this information is not present, or is unknown,
+			its value should be set to OBJECT IDENTIFIER { 0, 0 }."
+		::= { gvgIoSignalEntry 6 }
+
+	gvgIoSignalNotify OBJECT-TYPE
+		SYNTAX	GvgSwitchCtrl
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"Indicates the current status and allows a manager to
+			control whether the agent will generate the 
+			gvgIoSignalStateChange notification in conjunction
+			with this signal.
+
+			If an agent implements write access for this object
+			
+			If write access is implemented for an instance of 
+			gvgIoSignalNotify, and a value is written into the 
+			instance, the agent must retain the supplied value in 
+			the gvgIoSignalNotify instance associated with
+			the same signal as long as that signal remains 
+			instantiated. This includes instantiations across 
+			all reboots of the network management system, 
+			including those which result in a change of the 
+			signal's gvgIoSignalIndex value.
+
+			The default value for this object is agent implementation
+			specific. However, if the agent implementation does not
+			have a preference, the default value should be gvgSwOn(2)
+			to indicate that the agent will generate notifications
+			by default."
+		::= { gvgIoSignalEntry 7 }
+
+	--
+	--  The Management Group (optional implementation)
+	--  This group defines objects for auxillary management
+	--  of the network management system. Mandatory
+	--  implementation of objects in this group is not 
+	--  necessary.
+	--
+
+	gvgMgControl OBJECT-TYPE
+		SYNTAX	INTEGER {
+					gvgMgmtNotDefined(1),
+					gvgEnableMgmt(2),
+					gvgDisableMgmt(3),
+					gvgMgmtEnabled(4),
+					gvgMgmtDisabled(5)
+				}
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"This object allows for explicitly enabling or
+			disabling management for an element, and also 
+			provides this status.
+
+			Typically when a group of heterogenous elements
+			are setup together to work as a system, enabling
+			the network management system on behalf of the
+			system may not always make sense until the elements
+			have been correctly setup and providing service
+			collectively as a system. In such cases, enabling
+			network management on behalf of such a system may
+			not always be meaningful until the system is ready
+			for deployment. In other cases there may be product
+			specific criteria for explicitly enabling or
+			disabling network management of an element. The
+			implementation of this object allows the SNMP agent
+			to explicitly enable or disable a subset of the
+			network management services it provides.
+			
+			gvgMgmtNotDefined(1) - the element does not support
+			explicit control of its network management attributes.
+			
+			gvgEnableMgmt(2) - Used by an SNMP manager to enable 
+			the optional network management functionality. An 
+			SnmpSetRequest with	this value will succeed only if 
+			the previous value of this object was gvgMgmtEnabled(4), 
+			or gvgMgmtDisabled(5). This value will never be returned 
+			as the value of gvgMgControl in an SnmpGetResponse message.
+
+			gvgDisableMgmt(3) - Used by an SNMP manager to disable 
+			the optional network management functionality. An 
+			SnmpSetRequest with	this value will succeed only if 
+			the previous value of this object was gvgMgmtEnabled(4), 
+			or gvgMgmtDisabled(5). This value will never be returned 
+			as the value of gvgMgControl in an SnmpGetResponse message.
+			
+			gvgMgmtEnabled(4) - Indicates the optional network management
+			system has been enabled.
+			
+			gvgMgmtDisabled(5) - Indicates the optional network management
+			system has been disabled."
+		::= { gvgElMgmt 1 }
+
+	--
+	--  The Indicator Group (optional implementation)
+	--  This group defines generic objects for control of audible, visible
+	--  or other platform specific indicators available in conjunction
+	--  with the management of the element. Mandatory implementation of 
+	--  objects in this group is not necessary.
+	--
+
+	gvgIdIdentify OBJECT-TYPE
+		SYNTAX	GvgSwitchCtrl
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"Allows a manager to identify the physical managed entity."
+		::= { gvgElIndicators 1 }
+
+	gvgIdFailure OBJECT-TYPE
+		SYNTAX	GvgSwitchCtrl
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"Allows a manager to override or gather the status associated
+			with the physical managed entity's global 'failure' indicator."
+		::= { gvgElIndicators 2 }
+
+	gvgIdWarning OBJECT-TYPE
+		SYNTAX	GvgSwitchCtrl
+		MAX-ACCESS	read-write
+		STATUS	current
+		DESCRIPTION
+			"Allows a manager to override or gather the status associated
+			with the physical managed entity's global 'warning' indicator."
+		::= { gvgElIndicators 3 }
+
+	--
+	--  The Element MIB Notifications
+	--
+
+	--
+	--  The notifications group is being assigned the OID "0" so as
+	--  to comply with the trap handling in the different SNMP versions
+	--
+	gvgElMIBNotifications OBJECT IDENTIFIER ::= { gvgElementMIB 0 }
+
+	gvgElStateChange NOTIFICATION-TYPE
+		OBJECTS	{
+			gvgElState
+		}
+		STATUS	current
+		DESCRIPTION
+			"Notifies when a state change occurs on an element.
+
+			The gvgElState variable will hold the new state that
+			the element is operating in."
+		::= { gvgElMIBNotifications 1 }
+
+	gvgIoSignalStateChange NOTIFICATION-TYPE
+		OBJECTS	{
+			gvgIoSignalIndex,
+			gvgIoSignalAlias,
+			gvgIoSignalType,
+			gvgIoSignalState
+		}
+		STATUS	current
+		DESCRIPTION
+			"This notification is generated when the network
+			management system changes the current value of the
+			'gvgIoSignalState' object. The value of the 
+			'gvgIoSignalState' object passed with the notification 
+			will be set to the new value.
+			
+			An agent should not generate more than one 
+			gvgIoSignalStateChange notification in a 
+			given time interval (five seconds is the suggested
+			default).
+			
+			If additional state changes occur within the 
+			throttling period, then notifications for these
+			changes should be suppressed by the agent until the
+			current throttling period expires. At the end of the
+			throttling period, one notification should be generated
+			if any state change occured since the start of the 
+			throttling period. In such a case, another throttling
+			period is started right away.
+			
+			An NMS should periodically check the value of 
+			gvgIoSignalLastChanged to detect any missed 
+			gvgIoSignalStateChange notifications, e.g. due to
+			throttling or transmission loss."
+		::= { gvgElMIBNotifications 2 }
+	
+END
+
+

@@ -1,0 +1,17 @@
+;RouteMode
+{
+:StartMode[12]=Sync Router 
+:StartFlags=2
+:FnMode[13]=Master Router
+:FnParam[7]=0.0.0.0
+:log_to_file=0
+:log_to_screen=1
+:verbose_log=0
+:low_level_log=0
+:online=1
+:PassiveTimeout=1000
+:NoTimeoutError=0
+:SyncPartnerStatus=0
+:tcode_format[3]=PAL
+:FastTally=0
+}

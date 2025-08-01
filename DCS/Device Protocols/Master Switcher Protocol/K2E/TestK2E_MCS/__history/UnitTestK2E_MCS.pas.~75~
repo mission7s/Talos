@@ -1,0 +1,551 @@
+unit UnitTestK2E_MCS;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, System.Win.Registry,
+  UnitBaseSerial, UnitK2ESwitcher;
+
+const
+  TransitionSpeedNames: array[K2E_TS_SLOW..K2E_TS_FAST] of String =
+    (
+      'Slow',
+      'Normal',
+      'Fast'
+    );
+
+  TransitionModeNames: array[K2E_TM_CUT..K2E_TM_CUT_TO_UP] of String =
+    (
+      'Cut',
+      'Mix',
+      'V-Cut',
+      'Down to cut',
+      'Cut to up'
+    );
+
+type
+  TForm1 = class(TForm)
+    Label2: TLabel;
+    cbComportNum: TComboBox;
+    edPGMInput: TEdit;
+    Label3: TLabel;
+    edPSTInput: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
+    cbTransitionSpeed: TComboBox;
+    Label6: TLabel;
+    cbTransitionMode: TComboBox;
+    btnConnect: TButton;
+    btnDisconnect: TButton;
+    btnTake: TButton;
+    btnGetMatrix: TButton;
+    mmLog: TMemo;
+    btnTakeKey: TButton;
+    btnTakeLogo: TButton;
+    btnAssignPGM: TButton;
+    btnAssignPST: TButton;
+    Label8: TLabel;
+    edRouterInput: TEdit;
+    Button1: TButton;
+    chkbKey1: TCheckBox;
+    chkbKey2: TCheckBox;
+    chkbPip: TCheckBox;
+    btnSetKeyPGM: TButton;
+    btnSetKeyPST: TButton;
+    btnSetTransitionSpeed: TButton;
+    btnSetTransitionMode: TButton;
+    btnSetKeyTransitionMode: TButton;
+    btnSetLogoTransitionMode: TButton;
+    chkbLogo1: TCheckBox;
+    chkbLogo2: TCheckBox;
+    chkbLogo3: TCheckBox;
+    chkbLogo4: TCheckBox;
+    btnSetLogoPGM: TButton;
+    btnSetLogoPST: TButton;
+    btnSetPipPGM: TButton;
+    btnSetPipPST: TButton;
+    btnGetTransitionConfig: TButton;
+    btnGetInputStatus: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnTakeClick(Sender: TObject);
+    procedure btnGetMatrixClick(Sender: TObject);
+    procedure btnAssignPGMClick(Sender: TObject);
+    procedure btnAssignPSTClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure btnSetTransitionSpeedClick(Sender: TObject);
+    procedure btnSetTransitionModeClick(Sender: TObject);
+    procedure btnSetKeyTransitionModeClick(Sender: TObject);
+    procedure btnSetLogoTransitionModeClick(Sender: TObject);
+    procedure btnSetKeyPGMClick(Sender: TObject);
+    procedure btnSetKeyPSTClick(Sender: TObject);
+    procedure btnTakeKeyClick(Sender: TObject);
+    procedure btnSetLogoPGMClick(Sender: TObject);
+    procedure btnSetLogoPSTClick(Sender: TObject);
+    procedure btnTakeLogoClick(Sender: TObject);
+    procedure btnSetPipPGMClick(Sender: TObject);
+    procedure btnSetPipPSTClick(Sender: TObject);
+    procedure btnGetTransitionConfigClick(Sender: TObject);
+  private
+    { Private declarations }
+    FK2ESwitcher: TK2ESwitcher;
+
+    function PopulateComportNum: Integer;
+    function PopulateTransitionSpeed: Integer;
+    function PopulateTransitionMode: Integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.btnAssignPGMClick(Sender: TObject);
+var
+  R: Integer;
+  Source: Byte;
+begin
+  Source := StrToInt(edPGMInput.Text);
+
+  R := FK2ESwitcher.AssignInputPGM(Source);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('AssignInputPGM success. Source = %d', [Source]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] AssignInputPGM Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnAssignPSTClick(Sender: TObject);
+var
+  R: Integer;
+  Source: Byte;
+begin
+  Source := StrToInt(edPSTInput.Text);
+
+  R := FK2ESwitcher.AssignInputPST(Source);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('AssignInputPST success. Source = %d', [Source]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] AssignInputPST Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnConnectClick(Sender: TObject);
+begin
+  FK2ESwitcher.ControlType := ctSerial;
+  FK2ESwitcher.ComPort := Integer(cbComportNum.Items.Objects[cbComportNum.ItemIndex]);
+
+  if (FK2ESwitcher.Connect) then
+    mmLog.Lines.Add('Connect success.')
+  else
+    mmLog.Lines.Add('[Error] Connect Fail.');
+end;
+
+procedure TForm1.btnDisconnectClick(Sender: TObject);
+begin
+  if (FK2ESwitcher.Disconnect) then
+    mmLog.Lines.Add('Disconnect success.')
+  else
+    mmLog.Lines.Add('[Error] Disconnect Fail.');
+end;
+
+procedure TForm1.btnGetMatrixClick(Sender: TObject);
+var
+  R: Integer;
+
+  Matrix: TK2E_Matrix;
+begin
+  FillChar(Matrix, SizeOf(TK2E_Matrix), #0);
+
+  R := FK2ESwitcher.GetMatrix(Matrix);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('GetMatrix success.');
+    with Matrix do
+    begin
+      mmLog.Lines.Add(Format('PGM = %d', [Matrix.PGM]));
+      mmLog.Lines.Add(Format('PST = %d', [Matrix.PST]));
+      mmLog.Lines.Add(Format('Route = %d', [Matrix.Route]));
+      mmLog.Lines.Add(Format('OutFlag = %d', [Integer(Matrix.OutFlag)]));
+
+      mmLog.Lines.Add(Format('MixPGM.Key1 = %s', [BoolToStr(Matrix.MixPGM.Key1, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Key2 = %s', [BoolToStr(Matrix.MixPGM.Key2, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Pip = %s', [BoolToStr(Matrix.MixPGM.Pip, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Logo1 = %s', [BoolToStr(Matrix.MixPGM.Logo1, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Logo2 = %s', [BoolToStr(Matrix.MixPGM.Logo2, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Logo3 = %s', [BoolToStr(Matrix.MixPGM.Logo3, True)]));
+      mmLog.Lines.Add(Format('MixPGM.Logo4 = %s', [BoolToStr(Matrix.MixPGM.Logo4, True)]));
+
+      mmLog.Lines.Add(Format('MixPST.Key1 = %s', [BoolToStr(Matrix.MixPST.Key1, True)]));
+      mmLog.Lines.Add(Format('MixPST.Key2 = %s', [BoolToStr(Matrix.MixPST.Key2, True)]));
+      mmLog.Lines.Add(Format('MixPST.Pip = %s', [BoolToStr(Matrix.MixPST.Pip, True)]));
+      mmLog.Lines.Add(Format('MixPST.Logo1 = %s', [BoolToStr(Matrix.MixPST.Logo1, True)]));
+      mmLog.Lines.Add(Format('MixPST.Logo2 = %s', [BoolToStr(Matrix.MixPST.Logo2, True)]));
+      mmLog.Lines.Add(Format('MixPST.Logo3 = %s', [BoolToStr(Matrix.MixPST.Logo3, True)]));
+      mmLog.Lines.Add(Format('MixPST.Logo4 = %s', [BoolToStr(Matrix.MixPST.Logo4, True)]));
+    end;
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] GetMatrix fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnGetTransitionConfigClick(Sender: TObject);
+var
+  R: Integer;
+
+  TransitionConfig: TK2E_TransitionConfig;
+begin
+  FillChar(TransitionConfig, SizeOf(TK2E_TransitionConfig), #0);
+
+  R := FK2ESwitcher.GetTransitionConfig(TransitionConfig);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('GetTransitionConfig success.');
+    with TransitionConfig do
+    begin
+      mmLog.Lines.Add(Format('TrMode = %d', [TransitionConfig.TrMode]));
+      mmLog.Lines.Add(Format('TrSpeed = %d', [TransitionConfig.TrSpeed]));
+      mmLog.Lines.Add(Format('KeyTrMode = %d', [TransitionConfig.KeyTrMode]));
+      mmLog.Lines.Add(Format('LogoTrMode = %d', [TransitionConfig.LogoTrMode]));
+      mmLog.Lines.Add(Format('PipTrMode = %d', [TransitionConfig.PipTrMode]));
+    end;
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] GetTransitionConfig fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetKeyPGMClick(Sender: TObject);
+var
+  R: Integer;
+  KeyMask1, KeyMask2, Key1, Key2: Boolean;
+begin
+  KeyMask1 := chkbKey1.Checked;
+  KeyMask2 := chkbKey2.Checked;
+
+  Key1 := KeyMask1;
+  Key2 := KeyMask2;
+
+  R := FK2ESwitcher.SetKeyToPGM(KeyMask1, KeyMask2, Key1, Key2);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetKeyToPGM success. KeyMask1 = %s, KeyMask2 = %s, Key1 = %s, Key2 = %s', [BoolToStr(KeyMask1, True), BoolToStr(KeyMask2, True), BoolToStr(Key1, True), BoolToStr(Key2, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetKeyToPGM Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetKeyPSTClick(Sender: TObject);
+var
+  R: Integer;
+  KeyMask1, KeyMask2, Key1, Key2: Boolean;
+begin
+  KeyMask1 := chkbKey1.Checked;
+  KeyMask2 := chkbKey2.Checked;
+
+  Key1 := KeyMask1;
+  Key2 := KeyMask2;
+
+  R := FK2ESwitcher.SetKeyToPST(KeyMask1, KeyMask2, Key1, Key2);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetKeyToPST success. KeyMask1 = %s, KeyMask2 = %s, Key1 = %s, Key2 = %s', [BoolToStr(KeyMask1, True), BoolToStr(KeyMask2, True), BoolToStr(Key1, True), BoolToStr(Key2, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetKeyToPST Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetKeyTransitionModeClick(Sender: TObject);
+var
+  R: Integer;
+  Mode: TK2E_TransitionMode;
+begin
+  Mode := TK2E_TransitionMode(cbTransitionMode.Items.Objects[cbTransitionMode.ItemIndex]);
+
+  R := FK2ESwitcher.SetKeyTransitionMode(Mode);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetKeyTransitionMode success. Mode = %d', [Integer(Mode)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetKeyTransitionMode Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetLogoPGMClick(Sender: TObject);
+var
+  R: Integer;
+  LogoMask1, LogoMask2, LogoMask3, LogoMask4: Boolean;
+  Logo1, Logo2, Logo3, Logo4: Boolean;
+begin
+  LogoMask1 := chkbLogo1.Checked;
+  LogoMask2 := chkbLogo2.Checked;
+  LogoMask3 := chkbLogo3.Checked;
+  LogoMask4 := chkbLogo4.Checked;
+
+  Logo1 := chkbLogo1.Checked;
+  Logo2 := chkbLogo2.Checked;
+  Logo3 := chkbLogo3.Checked;
+  Logo4 := chkbLogo4.Checked;
+
+  R := FK2ESwitcher.SetLogoToPGM(LogoMask1, LogoMask2, LogoMask3, LogoMask4, Logo1, Logo2, Logo3, Logo4);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetLogoToPGM success. Logo1 = %s, Logo2 = %s, Logo3 = %s, Logo4 = %s', [BoolToStr(Logo1, True), BoolToStr(Logo2, True), BoolToStr(Logo3, True), BoolToStr(Logo4, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetLogoToPGM Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetLogoPSTClick(Sender: TObject);
+var
+  R: Integer;
+  LogoMask1, LogoMask2, LogoMask3, LogoMask4: Boolean;
+  Logo1, Logo2, Logo3, Logo4: Boolean;
+begin
+  LogoMask1 := chkbLogo1.Checked;
+  LogoMask2 := chkbLogo2.Checked;
+  LogoMask3 := chkbLogo3.Checked;
+  LogoMask4 := chkbLogo4.Checked;
+
+  Logo1 := chkbLogo1.Checked;
+  Logo2 := chkbLogo2.Checked;
+  Logo3 := chkbLogo3.Checked;
+  Logo4 := chkbLogo4.Checked;
+
+  R := FK2ESwitcher.SetLogoToPST(LogoMask1, LogoMask2, LogoMask3, LogoMask4, Logo1, Logo2, Logo3, Logo4);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetLogoToPST success. Logo1 = %s, Logo2 = %s, Logo3 = %s, Logo4 = %s', [BoolToStr(Logo1, True), BoolToStr(Logo2, True), BoolToStr(Logo3, True), BoolToStr(Logo4, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetLogoToPST Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetLogoTransitionModeClick(Sender: TObject);
+var
+  R: Integer;
+  Mode: TK2E_TransitionMode;
+begin
+  Mode := TK2E_TransitionMode(cbTransitionMode.Items.Objects[cbTransitionMode.ItemIndex]);
+
+  R := FK2ESwitcher.SetLogoTransitionMode(Mode);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetLogoTransitionMode success. Mode = %d', [Integer(Mode)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetLogoTransitionMode Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetPipPGMClick(Sender: TObject);
+var
+  R: Integer;
+  Pip: Boolean;
+begin
+  Pip := chkbPip.Checked;
+
+  R := FK2ESwitcher.SetPipToPGM(Pip);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetPipToPGM success. Pip = %s', [BoolToStr(Pip, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetPipToPGM Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetPipPSTClick(Sender: TObject);
+var
+  R: Integer;
+  Pip: Boolean;
+begin
+  Pip := chkbPip.Checked;
+
+  R := FK2ESwitcher.SetPipToPST(Pip);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetPipToPST success. Pip = %s', [BoolToStr(Pip, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetPipToPST Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetTransitionModeClick(Sender: TObject);
+var
+  R: Integer;
+  Mode: TK2E_TransitionMode;
+begin
+  Mode := TK2E_TransitionMode(cbTransitionMode.Items.Objects[cbTransitionMode.ItemIndex]);
+
+  R := FK2ESwitcher.SetTransitionMode(Mode);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetTransitionMode success. Mode = %d', [Integer(Mode)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetTransitionMode Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSetTransitionSpeedClick(Sender: TObject);
+var
+  R: Integer;
+  Speed: TK2E_TransitionSpeed;
+begin
+  Speed := TK2E_TransitionSpeed(cbTransitionSpeed.Items.Objects[cbTransitionSpeed.ItemIndex]);
+
+  R := FK2ESwitcher.SetTransitionSpeed(Speed);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('SetTransitionSpeed success. Speed = %d', [Integer(Speed)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SetTransitionSpeed Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnTakeClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FK2ESwitcher.Take;
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('Take success.');
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] Take Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnTakeKeyClick(Sender: TObject);
+var
+  R: Integer;
+  Key1, Key2, Pip: Boolean;
+begin
+  Key1 := chkbKey1.Checked;
+  Key2 := chkbKey2.Checked;
+  Pip  := chkbPip.Checked;
+
+  R := FK2ESwitcher.TakeKey(Key1, Key2, Pip);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('TakeKey success. Key1 = %s, Key2 = %s, pip = %s', [BoolToStr(Key1, True), BoolToStr(Key2, True), BoolToStr(Pip, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] TakeKey Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnTakeLogoClick(Sender: TObject);
+var
+  R: Integer;
+  Logo1, Logo2, Logo3, Logo4: Boolean;
+begin
+  Logo1 := chkbLogo1.Checked;
+  Logo2 := chkbLogo2.Checked;
+  Logo3 := chkbLogo3.Checked;
+  Logo4 := chkbLogo4.Checked;
+
+  R := FK2ESwitcher.TakeLogo(Logo1, Logo2, Logo3, Logo4);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('TakeLogo success. Logo1 = %s, Logo2 = %s, Logo3 = %s, Logo4 = %s', [BoolToStr(Logo1, True), BoolToStr(Logo2, True), BoolToStr(Logo3, True), BoolToStr(Logo4, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] TakeLogo Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  R: Integer;
+  Source: Byte;
+begin
+  Source := StrToInt(edRouterInput.Text);
+
+  R := FK2ESwitcher.AssignInputRouter(Source);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add(Format('AssignInputRouter success. Source = %d', [Source]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] AssignInputRouter Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  PopulateComportNum;
+  PopulateTransitionSpeed;
+  PopulateTransitionMode;
+
+  cbComportNum.ItemIndex := cbComportNum.Items.IndexOfObject(TObject(3));
+  cbTransitionSpeed.ItemIndex := cbTransitionSpeed.Items.IndexOfObject(TObject(K2E_TS_NORMAL));
+  cbTransitionMode.ItemIndex := cbTransitionMode.Items.IndexOfObject(TObject(K2E_TM_CUT));
+
+  FK2ESwitcher := TK2ESwitcher.Create(nil);
+  FK2ESwitcher.ComPortBaudRate := br57600;
+  FK2ESwitcher.ComPortDataBits := db8BITS;
+  FK2ESwitcher.ComPortStopBits := sb1Bits;
+  FK2ESwitcher.ComPortParity := ptNone;
+  FK2ESwitcher.LogPath := ExtractFilePath(Application.ExeName) + 'Log\';
+  FK2ESwitcher.LogExt  := 'K2ESwitcher.log';
+  FK2ESwitcher.LogEnabled := True;
+end;
+
+function TForm1.PopulateComportNum: Integer;
+var
+  RegFile: TRegistry;
+  DeviceList: TStrings;
+  I: Integer;
+  CurrentPort: string;
+begin
+  Result := D_OK;
+  if cbComportNum.Items.Count > 0 then exit;
+
+  RegFile := TRegistry.Create;
+  try
+    RegFile.RootKey := HKEY_LOCAL_MACHINE;
+    RegFile.OpenKeyReadOnly('hardware\devicemap\serialcomm');
+    DeviceList := TStringList.Create;
+    try
+      RegFile.GetValueNames(DeviceList);
+      cbComportNum.Items.Clear;
+      for I := 0 to DeviceList.Count - 1 do
+      begin
+        CurrentPort := RegFile.ReadString(DeviceList.Strings[I]);
+        cbComportNum.Items.AddObject(CurrentPort, TObject(StrToInt(Copy(CurrentPort, 4, Length(CurrentPort)))));
+      end;
+    finally
+      FreeAndNil(DeviceList);
+    end;
+    RegFile.CloseKey;
+  finally
+    FreeAndNil(RegFile);
+  end;
+end;
+
+function TForm1.PopulateTransitionSpeed: Integer;
+var
+  I: TK2E_TransitionSpeed;
+begin
+  Result := D_OK;
+  if cbTransitionSpeed.Items.Count > 0 then exit;
+
+  for I := K2E_TS_SLOW to K2E_TS_FAST do
+    cbTransitionSpeed.Items.AddObject(TransitionSpeedNames[I], TObject(I));
+end;
+
+function TForm1.PopulateTransitionMode: Integer;
+var
+  I: TK2E_TransitionMode;
+begin
+  Result := D_OK;
+  if cbTransitionMode.Items.Count > 0 then exit;
+
+  for I := K2E_TM_CUT to K2E_TM_CUT_TO_UP do
+    cbTransitionMode.Items.AddObject(TransitionModeNames[I], TObject(I));
+end;
+
+end.

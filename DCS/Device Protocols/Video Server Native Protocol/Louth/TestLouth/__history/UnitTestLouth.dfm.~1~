@@ -1,0 +1,392 @@
+object Form1: TForm1
+  Left = 424
+  Top = 142
+  Caption = 'Test Arches Device Control VDCP DLL'
+  ClientHeight = 620
+  ClientWidth = 863
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = #47569#51008' '#44256#46357
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 15
+  object Label1: TLabel
+    Left = 32
+    Top = 24
+    Width = 69
+    Height = 15
+    Caption = 'Control Type'
+  end
+  object Label2: TLabel
+    Left = 38
+    Top = 49
+    Width = 63
+    Height = 15
+    Caption = 'Port Numer'
+  end
+  object Label3: TLabel
+    Left = 62
+    Top = 75
+    Width = 39
+    Height = 15
+    Caption = 'Host IP'
+  end
+  object Label4: TLabel
+    Left = 50
+    Top = 100
+    Width = 51
+    Height = 15
+    Caption = 'Host Port'
+  end
+  object Label5: TLabel
+    Left = 30
+    Top = 127
+    Width = 72
+    Height = 15
+    Caption = 'Device Name'
+  end
+  object Label6: TLabel
+    Left = 14
+    Top = 211
+    Width = 88
+    Height = 15
+    Caption = 'Select Device ID'
+  end
+  object Label7: TLabel
+    Left = 45
+    Top = 260
+    Width = 57
+    Height = 15
+    Caption = 'Louth Port'
+  end
+  object Label8: TLabel
+    Left = 65
+    Top = 339
+    Width = 37
+    Height = 15
+    Caption = 'Clip ID'
+  end
+  object Label9: TLabel
+    Left = 55
+    Top = 366
+    Width = 47
+    Height = 15
+    Caption = 'Duration'
+  end
+  object Label10: TLabel
+    Left = 47
+    Top = 394
+    Width = 54
+    Height = 15
+    Caption = 'CurrentTC'
+  end
+  object Label11: TLabel
+    Left = 43
+    Top = 434
+    Width = 58
+    Height = 15
+    Caption = 'Connected'
+  end
+  object cbComportNum: TComboBox
+    Left = 107
+    Top = 45
+    Width = 145
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 1
+  end
+  object cbControlType: TComboBox
+    Left = 107
+    Top = 20
+    Width = 145
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 0
+  end
+  object btnAddDevice: TButton
+    Left = 272
+    Top = 123
+    Width = 89
+    Height = 25
+    Caption = 'Add Device'
+    TabOrder = 5
+    OnClick = btnAddDeviceClick
+  end
+  object btnDeleteDevice: TButton
+    Left = 368
+    Top = 123
+    Width = 89
+    Height = 25
+    Caption = 'Delete Device'
+    TabOrder = 6
+    OnClick = btnDeleteDeviceClick
+  end
+  object cmeHostIP: TEdit
+    Left = 107
+    Top = 71
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 2
+  end
+  object cmeHostPort: TEdit
+    Left = 107
+    Top = 97
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 3
+  end
+  object btnConnect: TButton
+    Left = 272
+    Top = 205
+    Width = 89
+    Height = 25
+    Caption = 'Connect'
+    TabOrder = 10
+    OnClick = btnConnectClick
+  end
+  object btnDisconnect: TButton
+    Left = 368
+    Top = 205
+    Width = 89
+    Height = 25
+    Caption = 'Disconnect'
+    TabOrder = 11
+    OnClick = btnDisconnectClick
+  end
+  object btnOpenPort: TButton
+    Left = 272
+    Top = 256
+    Width = 89
+    Height = 25
+    Caption = 'OpenPort'
+    TabOrder = 13
+    OnClick = btnOpenPortClick
+  end
+  object btnSelectPort: TButton
+    Left = 272
+    Top = 288
+    Width = 89
+    Height = 25
+    Caption = 'SelectPort'
+    TabOrder = 14
+    OnClick = btnSelectPortClick
+  end
+  object btnClosePort: TButton
+    Left = 368
+    Top = 288
+    Width = 89
+    Height = 25
+    Caption = 'ClosePort'
+    TabOrder = 15
+    OnClick = btnClosePortClick
+  end
+  object cmeDeviceName: TEdit
+    Left = 107
+    Top = 123
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 4
+  end
+  object cbSelectDeviceID: TComboBox
+    Left = 107
+    Top = 205
+    Width = 145
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 9
+    OnClick = cbSelectDeviceIDClick
+  end
+  object mmLog: TMemo
+    Left = 480
+    Top = 8
+    Width = 377
+    Height = 537
+    ImeName = 'Microsoft IME 2003'
+    ScrollBars = ssVertical
+    TabOrder = 26
+  end
+  object cbVDCPPort: TComboBox
+    Left = 107
+    Top = 256
+    Width = 145
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 12
+    Items.Strings = (
+      '0'
+      '1'
+      '2'
+      '3'
+      '4'
+      '5'
+      '6'
+      '7'
+      '8'
+      '9'
+      '10')
+  end
+  object btnPlayCueWithData: TButton
+    Left = 273
+    Top = 398
+    Width = 121
+    Height = 25
+    Caption = 'PlayCueWithData'
+    TabOrder = 20
+    OnClick = btnPlayCueWithDataClick
+  end
+  object btnPlay: TButton
+    Left = 273
+    Top = 462
+    Width = 121
+    Height = 25
+    Caption = 'Play'
+    TabOrder = 22
+    OnClick = btnPlayClick
+  end
+  object cmeClipID: TEdit
+    Left = 107
+    Top = 335
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 16
+  end
+  object cmeDuration: TEdit
+    Left = 107
+    Top = 362
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    MaxLength = 11
+    TabOrder = 17
+    Text = '01:00:00:00'
+  end
+  object btnStop: TButton
+    Left = 273
+    Top = 495
+    Width = 121
+    Height = 25
+    Caption = 'Stop'
+    TabOrder = 23
+    OnClick = btnStopClick
+  end
+  object btnPortStateStatus: TButton
+    Left = 273
+    Top = 527
+    Width = 121
+    Height = 25
+    Caption = 'PortStateStatus'
+    TabOrder = 24
+    OnClick = btnPortStateStatusClick
+  end
+  object btnCurrentTC: TButton
+    Left = 273
+    Top = 559
+    Width = 121
+    Height = 25
+    Caption = 'CurrentTC'
+    TabOrder = 25
+    OnClick = btnCurrentTCClick
+  end
+  object btnPlayCue: TButton
+    Left = 273
+    Top = 430
+    Width = 121
+    Height = 25
+    Caption = 'PlayCue'
+    TabOrder = 21
+    OnClick = btnPlayCueClick
+  end
+  object btnGetDeviceID: TButton
+    Left = 273
+    Top = 154
+    Width = 89
+    Height = 25
+    Caption = 'Get Device ID'
+    TabOrder = 7
+    OnClick = btnGetDeviceIDClick
+  end
+  object btnDeviceCount: TButton
+    Left = 368
+    Top = 154
+    Width = 89
+    Height = 25
+    Caption = 'Device Count'
+    TabOrder = 8
+    OnClick = btnDeviceCountClick
+  end
+  object btnIDRequest: TButton
+    Left = 272
+    Top = 335
+    Width = 121
+    Height = 25
+    Caption = 'ID Request'
+    TabOrder = 18
+    OnClick = btnIDRequestClick
+  end
+  object btnIDSize: TButton
+    Left = 272
+    Top = 366
+    Width = 121
+    Height = 25
+    Caption = 'ID Size'
+    TabOrder = 19
+    OnClick = btnIDSizeClick
+  end
+  object cmeCurrentTC: TEdit
+    Left = 107
+    Top = 391
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    MaxLength = 11
+    TabOrder = 27
+  end
+  object cmeConnected: TEdit
+    Left = 107
+    Top = 431
+    Width = 145
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    MaxLength = 11
+    TabOrder = 28
+  end
+  object btnAutoStatus: TButton
+    Left = 273
+    Top = 591
+    Width = 121
+    Height = 25
+    Caption = 'AutoStatus'
+    TabOrder = 29
+    OnClick = btnAutoStatusClick
+  end
+  object btnAddDeviceSerial: TButton
+    Left = 272
+    Top = 91
+    Width = 113
+    Height = 25
+    Caption = 'Add Device Serial'
+    TabOrder = 30
+    OnClick = btnAddDeviceSerialClick
+  end
+  object btnLogEnabled: TButton
+    Left = 273
+    Top = 19
+    Width = 112
+    Height = 25
+    Caption = 'Log Enabled'
+    TabOrder = 31
+    OnClick = btnLogEnabledClick
+  end
+end

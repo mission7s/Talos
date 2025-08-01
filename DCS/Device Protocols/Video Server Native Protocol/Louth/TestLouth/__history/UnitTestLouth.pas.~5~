@@ -1,0 +1,380 @@
+unit UnitTestLouth;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Registry, Mask,
+  UnitBaseSerial, UnitLouth;
+
+const
+  WM_CONNECT_CHANGED  = WM_USER + 2001;
+  WM_TIMECODE_CHANGED = WM_USER + 2002;
+  WM_STATUS_CHANGED   = WM_USER + 2003;
+
+type
+  TForm1 = class(TForm)
+    cbComportNum: TComboBox;
+    Label2: TLabel;
+    btnConnect: TButton;
+    btnDisconnect: TButton;
+    btnOpenPort: TButton;
+    btnSelectPort: TButton;
+    btnClosePort: TButton;
+    mmLog: TMemo;
+    Label7: TLabel;
+    cbVDCPPort: TComboBox;
+    btnPlayCueWithData: TButton;
+    btnPlay: TButton;
+    Label8: TLabel;
+    cmeClipID: TEdit;
+    Label9: TLabel;
+    cmeDuration: TEdit;
+    btnStop: TButton;
+    btnPortStateStatus: TButton;
+    btnCurrentTC: TButton;
+    btnPlayCue: TButton;
+    btnIDRequest: TButton;
+    btnIDSize: TButton;
+    Label10: TLabel;
+    cmeCurrentTC: TEdit;
+    Label11: TLabel;
+    cmeConnected: TEdit;
+    btnAutoStatus: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnOpenPortClick(Sender: TObject);
+    procedure btnSelectPortClick(Sender: TObject);
+    procedure btnClosePortClick(Sender: TObject);
+    procedure btnPlayCueWithDataClick(Sender: TObject);
+    procedure btnPlayClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
+    procedure btnPortStateStatusClick(Sender: TObject);
+    procedure btnCurrentTCClick(Sender: TObject);
+    procedure btnPlayCueClick(Sender: TObject);
+    procedure btnIDRequestClick(Sender: TObject);
+    procedure btnIDSizeClick(Sender: TObject);
+    procedure btnAutoStatusClick(Sender: TObject);
+    procedure btnAddDeviceSerialClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+  private
+    { Private declarations }
+    FLouth: TLouth;
+
+    FSelectDeviceID: Integer;
+    FSelectVDCPPort: Integer;
+    FConnected: Boolean;
+    FCurrentDeviceID: Integer;
+    FCurrentTC: String;
+    FCurrentPortStatus: TPortStateStatus;
+    FAutoStatus: Boolean;
+
+    function PopulateComportNum: HRESULT;
+    procedure WndProc(var Message: TMessage); override;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.WndProc(var Message: TMessage);
+begin
+  try
+    case Message.Msg of
+      WM_CONNECT_CHANGED: cmeConnected.Text := BoolToStr(FConnected, True);
+      WM_TIMECODE_CHANGED:
+      begin
+//        cmeCurrentTC.Text := FCurrentTC;
+//        mmLog.Lines.Add(Format('DeviceID:%d, Current TC:%s', [FCurrentDeviceID, FCurrentTC]));
+      end;
+      WM_STATUS_CHANGED:
+      begin
+        mmLog.Lines.Add(Format('DeviceID:%d, Get Status', [FCurrentDeviceID]));
+      end;
+    end;
+  finally
+    inherited WndProc(Message);
+  end;
+end;
+
+procedure ConnectChanged(ADeviceID: Integer; AConnected: Boolean); stdcall;
+begin
+  Form1.FConnected := AConnected;
+  PostMessage(Form1.Handle, WM_CONNECT_CHANGED, 0, 0);
+end;
+
+procedure TimeCodeChanged(ADeviceID: Integer; ATC: PChar); stdcall;
+begin
+  Form1.FCurrentDeviceID := ADeviceID;
+  Form1.FCurrentTC := String(ATC);
+  PostMessage(Form1.Handle, WM_TIMECODE_CHANGED, 0, 0);
+end;
+
+procedure StateStatusChanged(ADeviceID: Integer; APortStateStatus: TPortStateStatus); stdcall;
+begin
+  Form1.FCurrentDeviceID := ADeviceID;
+  Form1.FCurrentPortStatus := APortStateStatus;
+  PostMessage(Form1.Handle, WM_STATUS_CHANGED, 0, 0);
+end;
+
+// 현재 인스톨된 COM포트 목록을 구한다.
+function TForm1.PopulateComportNum: HRESULT;
+var
+  RegFile: TRegistry;
+  DeviceList: TStrings;
+  I: Integer;
+  CurrentPort: string;
+begin
+  Result := S_OK;
+  if cbComportNum.Items.Count > 0 then exit;
+
+  RegFile := TRegistry.Create;
+  try
+    RegFile.RootKey := HKEY_LOCAL_MACHINE;
+    RegFile.OpenKeyReadOnly('hardware\devicemap\serialcomm');
+    DeviceList := TStringList.Create;
+    try
+      RegFile.GetValueNames(DeviceList);
+      cbComportNum.Items.Clear;
+      for I := 0 to DeviceList.Count - 1 do
+      begin
+        CurrentPort := RegFile.ReadString(DeviceList.Strings[I]);
+        cbComportNum.Items.AddObject(CurrentPort, TObject(StrToInt(Copy(CurrentPort, 4, Length(CurrentPort)))));
+      end;
+    finally
+      FreeAndNil(DeviceList);
+    end;
+    RegFile.CloseKey;
+  finally
+    FreeAndNil(RegFile);
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  PopulateComportNum;
+
+  cbComportNum.ItemIndex := cbComportNum.Items.IndexOfObject(TObject(3));
+
+  FLouth := TLouth.Create(nil);
+  FLouth.ComPortBaudRate := br38400;
+  FLouth.ComPortDataBits := db8BITS;
+  FLouth.ComPortStopBits := sb1Bits;
+  FLouth.ComPortParity := ptOdd;
+  FLouth.LogPath := ExtractFilePath(Application.ExeName) + 'Log\';
+  FLouth.LogExt  := 'Louth.log';
+  FLouth.LogEnabled := True;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FLouth.Disconnect;
+  FreeAndNil(FLouth);
+end;
+
+procedure TForm1.btnConnectClick(Sender: TObject);
+begin
+  FLouth.ControlType := ctSerial;
+  FLouth.ComPort := Integer(cbComportNum.Items.Objects[cbComportNum.ItemIndex]);
+
+  if (FLouth.Connect) then
+    mmLog.Lines.Add('Connect success.')
+  else
+    mmLog.Lines.Add('[Error] Connect Fail.');
+end;
+
+procedure TForm1.btnDisconnectClick(Sender: TObject);
+begin
+  if (FLouth.Disconnect) then
+    mmLog.Lines.Add('Disconnect success.')
+  else
+    mmLog.Lines.Add('[Error] Disconnect Fail.');
+end;
+
+procedure TForm1.btnIDRequestClick(Sender: TObject);
+var
+  R: Integer;
+  IDRequest: TIDRequest;
+begin
+  FillChar(IDRequest, SizeOf(TIDRequest), #0);
+
+  R := FLouth.GetIDRequest(cmeClipID.Text, IDRequest);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('GetIDRequest success.');
+    mmLog.Lines.Add(Format('InDisk %s.', [BoolToStr(IDRequest.InDisk, True)]));
+    mmLog.Lines.Add(Format('InMarkedForXFer %s.', [BoolToStr(IDRequest.InMarkedForXFer, True)]));
+    mmLog.Lines.Add(Format('InRemoteSystem %s.', [BoolToStr(IDRequest.InRemoteSystem, True)]));
+    mmLog.Lines.Add(Format('DeleteProtected %s.', [BoolToStr(IDRequest.DeleteProtected, True)]));
+    mmLog.Lines.Add(Format('InArchive %s.', [BoolToStr(IDRequest.InArchive, True)]));
+    mmLog.Lines.Add(Format('ArchivePending %s.', [BoolToStr(IDRequest.ArchivePending, True)]));
+    mmLog.Lines.Add(Format('InXFer %s.', [BoolToStr(IDRequest.InXFer, True)]));
+    mmLog.Lines.Add(Format('OperationPending %s.', [BoolToStr(IDRequest.OperationPending, True)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] GetIDRequest fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnIDSizeClick(Sender: TObject);
+var
+  R: Integer;
+  DurationTC: String;
+begin
+  R := FLouth.GetSize(cmeClipID.Text, DurationTC);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('GetSize success.');
+    mmLog.Lines.Add(Format('Duration TC %s.', [DurationTC]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] GetSize fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnOpenPortClick(Sender: TObject);
+var
+  R: Integer;
+  PortNumber: Integer;
+begin
+  PortNumber := StrToIntDef(cbVDCPPort.Text, 0);
+
+  R := FLouth.Open(PortNumber, $01);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('Open Success');
+    mmLog.Lines.Add(Format('PortNumber = %d', [PortNumber]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] Open fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnSelectPortClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FLouth.SelectPort(FLouth.PortNumber);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('SelectPort Success');
+    mmLog.Lines.Add(Format('PortNumber = %d', [FLouth.PortNumber]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] SelectPort fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnAddDeviceSerialClick(Sender: TObject);
+var
+  S: TSerialControl;
+  DeviceID: Integer;
+begin
+  if Trim(cmeDeviceName.Text) = '' then exit;
+
+  ZeroMemory(@S, SizeOf(TSerialControl));
+
+  with S do
+  begin
+    PortNum      := Integer(cbComportNum.Items.Objects[cbComportNum.ItemIndex]);
+    PortType     := ptRS422;
+    PortBaudRate := br38400;
+    PortParity   := ptOdd;
+    PortDataBits := db8BITS;
+    PortStopBits := sb1Bits;
+  end;
+
+  if VDCPAddDeviceSerial(PChar(cmeDeviceName.Text), S, DeviceID) = D_OK then
+  begin
+    cbSelectDeviceID.Items.AddObject(cmeDeviceName.Text, TObject(DeviceID));
+    VDCPCallbackConnectChanged(DeviceID, @ConnectChanged);
+    VDCPCallbackTimeCodeChanged(DeviceID, @TimeCodeChanged);
+    VDCPCallbackStateStatusChanged(DeviceID, @StateStatusChanged);
+//    VDCPSetAutoStatus(DeviceID, True);
+  end;
+end;
+
+procedure TForm1.btnAutoStatusClick(Sender: TObject);
+begin
+  if VDCPSetAutoStatus(FSelectDeviceID, not FAutoStatus) = D_OK then
+  begin
+    FAutoStatus := not FAutoStatus;
+    mmLog.Lines.Add(Format('Device %d SetAutoStatus success.', [FSelectDeviceID]));
+  end
+  else mmLog.Lines.Add(Format('[Error] Device %d SetAutoStatus Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnClosePortClick(Sender: TObject);
+begin
+  if VDCPClosePort(FSelectDeviceID, FSelectVDCPPort) = D_OK then
+    mmLog.Lines.Add(Format('Device %d ClosePort success.', [FSelectDeviceID]))
+  else mmLog.Lines.Add(Format('[Error] Device %d ClosePort Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnPlayCueWithDataClick(Sender: TObject);
+begin
+  if VDCPPlayCueWithData(FSelectDeviceID, PChar(cmeClipID.Text), '00:00:00:00', PChar(cmeDuration.Text)) = D_OK then
+    mmLog.Lines.Add(Format('Device %d PlayCueWithData success.', [FSelectDeviceID]))
+  else mmLog.Lines.Add(Format('[Error] Device %d PlayCueWithData Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnPlayClick(Sender: TObject);
+begin
+  if VDCPPlay(FSelectDeviceID) = D_OK then
+    mmLog.Lines.Add(Format('Device %d Play success.', [FSelectDeviceID]))
+  else mmLog.Lines.Add(Format('[Error] Device %d Play Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnStopClick(Sender: TObject);
+begin
+  if VDCPStop(FSelectDeviceID) = D_OK then
+    mmLog.Lines.Add(Format('Device %d Stop success.', [FSelectDeviceID]))
+  else mmLog.Lines.Add(Format('[Error] Device %d Stop Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnPortStateStatusClick(Sender: TObject);
+var
+  PortStateStatus: TPortStateStatus;
+begin
+  if VDCPGetPortStateStatus(FSelectDeviceID, PortStateStatus) = D_OK then
+  begin
+    mmLog.Lines.Add(Format('Device %d GetPortStateStatus success.', [FSelectDeviceID]));
+    mmLog.Lines.Add(Format('Idle %s.', [BoolToStr(PortStateStatus.Idle, True)]));
+    mmLog.Lines.Add(Format('Cue %s.', [BoolToStr(PortStateStatus.Cue, True)]));
+    mmLog.Lines.Add(Format('PlayRecord %s.', [BoolToStr(PortStateStatus.PlayRecord, True)]));
+    mmLog.Lines.Add(Format('Still %s.', [BoolToStr(PortStateStatus.Still, True)]));
+    mmLog.Lines.Add(Format('Jog %s.', [BoolToStr(PortStateStatus.Jog, True)]));
+    mmLog.Lines.Add(Format('Shuttle %s.', [BoolToStr(PortStateStatus.Shuttle, True)]));
+    mmLog.Lines.Add(Format('PortBusy %s.', [BoolToStr(PortStateStatus.PortBusy, True)]));
+    mmLog.Lines.Add(Format('CueDone %s.', [BoolToStr(PortStateStatus.CueDone, True)]));
+  end
+  else mmLog.Lines.Add(Format('[Error] Device %d GetPortStateStatus Fail.', [FSelectDeviceID]));
+end;
+
+procedure TForm1.btnCurrentTCClick(Sender: TObject);
+var
+  TC: PChar;
+begin
+  TC := StrAlloc(12);
+  try
+    if VDCPGetPositionRequest(FSelectDeviceID, ptCurrent, TC) = D_OK then
+    begin
+      mmLog.Lines.Add(Format('Device %d GetPositionRequest success.', [FSelectDeviceID]));
+      mmLog.Lines.Add(Format('Current TC : %s', [TC]));
+    end
+    else mmLog.Lines.Add(Format('[Error] Device %d GetPositionRequest Fail.', [FSelectDeviceID]));
+  finally
+    StrDispose(TC);
+  end;
+end;
+
+procedure TForm1.btnPlayCueClick(Sender: TObject);
+begin
+  if VDCPPlayCue(FSelectDeviceID, PChar(cmeClipID.Text)) = D_OK then
+    mmLog.Lines.Add(Format('Device %d PlayCue success.', [FSelectDeviceID]))
+  else mmLog.Lines.Add(Format('[Error] Device %d PlayCue Fail.', [FSelectDeviceID]));
+end;
+
+end.

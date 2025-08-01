@@ -1,0 +1,17 @@
+program TestK4AI48;
+
+uses
+  Vcl.Forms,
+  UnitTestK4AI48 in 'UnitTestK4AI48.pas' {Form1},
+  UnitSerialK4AI48 in '..\..\..\Device Units\Serial Protocol\K4AI48(K2E Change Over)\UnitSerialK4AI48.pas',
+  UnitCommons in '..\..\..\..\Common\UnitCommons.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

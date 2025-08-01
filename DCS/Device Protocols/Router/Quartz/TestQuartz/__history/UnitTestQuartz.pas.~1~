@@ -1,0 +1,152 @@
+unit UnitTestQuartz;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  UnitBaseSerial, UnitQuartz;
+
+type
+  TForm12 = class(TForm)
+    Label1: TLabel;
+    edtServerIP: TEdit;
+    Label2: TLabel;
+    edtServerPort: TEdit;
+    mmDesc: TMemo;
+    edtSrcIndex: TEdit;
+    Label3: TLabel;
+    Label4: TLabel;
+    edtDstIndex: TEdit;
+    Label5: TLabel;
+    edtLvlIndex: TEdit;
+    btnSetXptMessage: TButton;
+    btnConnect: TButton;
+    btnDisconnect: TButton;
+    btnInterrogateRoute: TButton;
+    btnGetProtocolName: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnSetXptMessageClick(Sender: TObject);
+    procedure btnGetProtocolNameClick(Sender: TObject);
+    procedure btnInterrogateRouteClick(Sender: TObject);
+  private
+    { Private declarations }
+    FQuartz: TQuartz;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form12: TForm12;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm12.btnSetXptMessageClick(Sender: TObject);
+var
+  R: Integer;
+  SrcIndex, DstIndex, LvlIndex: Integer;
+begin
+  SrcIndex := StrToIntDef(edtSrcIndex.Text, 0);
+  DstIndex := StrToIntDef(edtDstIndex.Text, 0);
+  LvlIndex := StrToIntDef(edtLvlIndex.Text, 0);
+  R := FQuartz.SetXptMessage(SrcIndex, DstIndex, LvlIndex);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('SetXpt Message Success, Src = %d, Dst = %d, Lvl = %d', [SrcIndex, DstIndex, LvlIndex]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('SetXpt Message Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.btnConnectClick(Sender: TObject);
+begin
+  FQuartz.ControlIP := edtServerIP.Text;
+  FQuartz.ControlPort := StrToIntDef(edtServerPort.Text, 0);
+  FQuartz.Connect;
+
+  if (FQuartz.Connected) then
+  begin
+    mmDesc.Lines.Add(Format('Connect Success, IP = %s, Port = %d', [FQuartz.ControlIP, FQuartz.ControlPort]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add('Connect Error.');
+  end;
+end;
+
+procedure TForm12.btnDisconnectClick(Sender: TObject);
+begin
+  FQuartz.Disconnect;
+
+  if (not FQuartz.Connected) then
+  begin
+    mmDesc.Lines.Add('Disconnect Success.');
+  end
+  else
+  begin
+    mmDesc.Lines.Add('Disconnect Error.');
+  end;
+end;
+
+procedure TForm12.btnGetProtocolNameClick(Sender: TObject);
+var
+  R: Integer;
+  Conn: Boolean;
+begin
+  R := FQuartz.TestConnected(Conn);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('Test Connected Success, Connected = %s', [BoolToStr(Conn, True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Test Connected Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.btnInterrogateRouteClick(Sender: TObject);
+var
+  R: Integer;
+  SrcIndex, DstIndex, LvlIndex: Integer;
+begin
+  DstIndex := StrToIntDef(edtDstIndex.Text, 0);
+  LvlIndex := StrToIntDef(edtLvlIndex.Text, 0);
+  R := FQuartz.InterrogateRoute(DstIndex, LvlIndex, SrcIndex);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('Interrogate Route Success, Dst = %d, Lvl = %d, Src = %d', [DstIndex, LvlIndex, SrcIndex]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Interrogate Route Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.FormCreate(Sender: TObject);
+begin
+  FQuartz := TQuartz.Create(Self);
+  FQuartz.ControlType := ctTCP;
+
+  FQuartz.LogPath := ExtractFilePath(Application.ExeName) + 'PortLog\';
+  FQuartz.LogExt  := '.log';
+  FQuartz.LogIsHexcode := False;
+  FQuartz.LogEnabled := True;
+end;
+
+procedure TForm12.FormDestroy(Sender: TObject);
+begin
+  if (FQuartz.Connected) then FQuartz.Disconnect;
+  FreeAndNil(FQuartz);
+end;
+
+end.

@@ -1,0 +1,17 @@
+Watchdog History File
+=====================
+
+Version 3.60.01 Created Tuesday, May 24th 2005
+================================================
+For releasing with Encore 1.7.0. This version of 
+Watchdog checks for presence of sharer in the 
+Network before starting sharer. Hence, this version
+should be used to launch and watch sharer ONLY.
+
+
+Version 3.60 Tuesday October 26th 1999
+======================================
+
+Released with Sharer V 3.60
+(Minor 2000 compliance issue addressed -
+front end display only, nothing serious.)

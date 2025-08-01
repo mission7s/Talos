@@ -1,0 +1,14 @@
+;RouteMode
+{
+:StartMode[12]=Sync Router 
+:StartFlags=2
+:FnMode[15]=Mirrored Master
+:FnParam[13]=192.168.0.101
+:log_to_file=0
+:log_to_screen=0
+:verbose_log=0
+:low_level_log=0
+:online=1
+:tcode_format[7]=NTSC DF
+:FastTally=0
+}

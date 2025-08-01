@@ -1,0 +1,12 @@
+- Live Input
+
+- Program Monitor
+
+- 스케줄 Watch Folder 자동 Import & Append
+
+- 자동 복구 Restart, 스메줄 자동 Reload 안됨
+
+
+- 스케줄 편집 불편
+
+

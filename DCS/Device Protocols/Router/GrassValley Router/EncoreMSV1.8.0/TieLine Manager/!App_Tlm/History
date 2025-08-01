@@ -1,0 +1,886 @@
+-------------------------------
+TLM RELEASE NOTES AND HISTORY
+-------------------------------
+
+V0.01 - 28th February 1996
+First Release
+
+-------------------------------
+V0.02 -29th February 1996
+Changed Router dbases to come in one at a time to stop tx buf memprobs
+Allow at least 1 min for all areas to be scanned
+Added in service indication to list tielines in cfg menu
+Added clear all users button in system menu
+Implemented Fixed src ? reserved dst selection in cfg menu
+Added Level checking at tl endpoints
+Added status popup in route menu (click on tieline segs)
+Changed tl logic to allwas use shared first then exclusive
+Added users list by clicking on Dest. User
+
+-------------------------------
+V0.03 - 1st March 1996
+Made reserved tielines work properly
+
+Added Config to system screen
+ a/'Share Reserved' - Allow tielines to be shared if they have correct src available for others
+ b/'Polite Mode'    - Top User cannot break a tieline in use (Shared by others)
+
+Added To Route Screen
+ a/'Exclusive'      - Form an exclusive path only (Do not share)
+ b/'Find Source'    - Walks the databases to find the current final source for the current dest.
+ 
+ 6th March 1996
+ Changed area index find to multitask better 
+
+ 8th April 1996 - V 0.04
+ *************Requires Router V1.44 to work**************** 
+ * This version will not work AT ALL with Routers <V 1.44 *
+ **********************************************************
+  
+ Changed config to be load/saveable
+ Added Tieline Locking - This only locks Router Dests. that are Tielines (Not the final dest. eg vtr/mon etc)
+ Note Reset in system menu releases all locks on all tielines and Lock may be overriden in router controller. 
+
+10th April 1996 - v0.05
+ Recompiled With Libs16 -No Mem to Recieve Bug !!
+ The Only Crash Bug Fixed - Number of hops was 1 too many
+17th June 1996  - v0.06
+ Included LCLTIE on list of tieline checks
+ Dest Route was doing all levels (minor bug - only affected by Local tielines on Router V1.48)
+ Put Auto Dbase Load Back Into Initialisation
+18th June 1996
+ New Libs with Map Check (Not needed as TLM needs newer router than causes problem)
+
+**********************************************************
+12th December 1996 -  v0.07
+  Libs 029 + new router bits
+  
+**********************************************************
+13th December 1996 -v0.08
+  Libs 030
+  Added tieline Free from network
+  Minor display bugs sorted  
+  Added list of dests using tieline segment Utility.
+  Used new Improved Database fetch algorithm.
+  Added Save for sysconfig
+  
+**********************************************************
+23/01/97 - V0.09
+  Fixed Minor Bug in Local Tielines to do with 
+  Source level checking.   
+  
+**********************************************************
+29/01/97 - V0.10 to V0.14
+  Development intermediate version - disable button added
+  Status screen added.
+
+**********************************************************
+17/02/97 - V0.50
+  Added Statistical Information (% TL in use, TL Usage)
+  Added TL request stats (No. requests, successes, failures)
+  Added Daily Run Log to disk
+  Added Area Alias mnemonics added to source/destination lists
+  Added the ability to disable network request failure messages
+  Added last 100 failures list
+  Added time TL acquired by a user
+  Added TL release all users
+  Added TL naming
+
+  ********************************************************
+  * Warning Source masking implemented Be Careful to set *
+  * it up in the router properly (this means You Andy B).*
+  ********************************************************
+
+**********************************************************
+05/03/97 - V0.51 - S.R.P
+  Added levels to route menu
+  Added ability for dests to use separate tielines on each level.
+  Bigish rejig of logic.
+    TLM will fail if asked to do levels at the dest end that it 
+    cant match completely with a tieline endpoint.
+
+25/04/97 - V0.52 - PJS
+  Made Application OUI 3 Compatable
+
+**********************************************************
+18/06/97 - V0.53 - SRP
+  Added Reply Fail Message if no path.
+  Recompile with Mirror Librarys (Libs 046)
+  Attempt to stop mirrored request being processed.    
+
+**********************************************************
+05/07/97 - V0.54 - PJS
+    Fixed bugs on Status display scrolling
+  Swapped status area buttons - to make more logical/intuitive
+    (was TO area FROM area, now FROM area TO area)
+  Prevented log file being overwritten on restart
+  Fixed Route Path Display
+
+06/07/97 - V0.55 - PJS
+    Improved logic by checking all possible paths from dest
+  Improved speed and made sensible by using first exlusive 
+    tl found that will make the route. 
+
+08/07/97 - V0.56 - PJS
+  Change get_sysarealist cos of ianfs changes but made it 
+    quicker anyway.
+
+20/07/97 - V0.58 - PJS
+  Depth Bug when Max Hops is set to limit routing
+  Diagnostics Code.
+
+07/10/97 - V0.60 - PJS (Compiled with Libs 051)
+    Re-establishes TL ownership on startup, preventing TL routes
+      being overwritten, by the TLM itself.
+    Added scroll indicators to status display.
+    Added the ability to remove TLs for the TL pool, (i.e. ones that
+      no longer exist in the routing system).      
+
+27/10/97 - V0.61 - PJS
+    Changed EDL in appdata to work with OUI 3.10
+    
+11/11/97 - V1.00 Build 1 - PJS
+    Reverted EDL change in version 0.61 as OUI 3.10 modified instead.
+    
+    Added Source Restriction Feature - Allows sources to be prevented from
+      being routed to specified destinations, or sources being able to only route
+      to specified destinations, through the tie line system.
+          
+    NB: Source restriction only applies to Network route requests and not TL Routes made
+      in the TLM directly.  Source Restrictions come into effect on the next route request,
+      existing Destinations that are already routed to a now restrict source will not be 
+      routed away.
+
+20/11/97 - V1.00 Build 2 - PJS
+    Expanded Lists 
+    Logic Mod - If dest is already using a TL, on next request check to see if shared tl
+      available. 
+    Speeded up app response when viewing status screen.
+
+24/11/97 - V1.00 Build 3 - PJS
+    Modifed Appdata so that System is the last menu entry.
+    Added Router Database size info to System Info.
+    Modifed List Areas to display the Router Database size for each Area (Router).
+    Compiled with Libs 0.57
+
+16/12/97 - V1.00 Build 4 - PJS
+    Logic Mod - Only attempt route on dest levels provided by src (i.e. auto-deselection of dest levels)
+    Compiled with Libs 0.57
+
+22/01/98 - V1.00 Build 5 - PJS
+    Logic Fix - Check that hop source is allowed to hop dest at all points in the route.
+    Compiled with Libs 0.57
+    
+09/03/98 - V1.00 Build 6 - PJS
+    Allow any log to be exported not just current day (broken in Version 0.54!)
+    Compiled with Libs 0.61
+    
+10/03/98 - V1.00 Build 7 - PJS
+    Added Technical Log to TLM.  This log records TL requests and which TLs the TLM
+    is going to use to satisfy the request including mode (Exclusive, Shared etc.)
+    TLM now uses OmniBus NetTime so logs are synchronised.
+    Compiled with libs 0.61
+    
+04/06/98 - V1.00 Build 8 - PJS
+  Added support for Router 2 textual messaging and interlevel route requests requiring
+  ties.     
+
+03/07/98 - V1.00 Build 9 - PJS
+    Modified logic to check that ulimate source is allowed to use tie.
+  Compiled with Libs 0.67B2
+
+07/07/98 - V1.00 Build 10 - PJS
+  Compiled with Libs 0.68B3
+
+03/08/98 - V1.00 Build 11 - PJS
+    Compiled with Libs 0.68B3 + route parking mods.
+  Modified status screen to update only once every second (after a route is received)
+  Added ability to park tie lines on release (will also park destination if forcibly released in TLM)
+  Added auto ownership feature which will manage manually routed ties.
+
+16/12/98 - V1.00 Build 12 - PJS
+  Compiled with Libs 0.72
+  Supports large router databases provided by Router 2.
+  
+06/01/99 - V1.00 Build 13 - PJS
+  Compiled with Libs 0.72
+  Router 2 textual TL requests bug fix.
+  
+  
+14/01/99 - V1.00 Build 14 - PJS
+  Compiled with Libs 0.72 (with mapchange fix)
+  Router 2 router handle number passed back in route reply message so that
+    message goes to the correct requester.
+  Logic Mod: When removing a user from a tie, remove the user from connecting ties
+    (downsteam to the source.)
+  Tidied up Appdata, consistent Help Bar messages.
+ 
+8/8/99 v1.00 Build 15 TT
+ rebuilt with old libs 75 to add router 3 compliancy
+
+17/11/99 v1.00 build 16
+ rebuilt with old libs v76 for router 3 compliancy 
+ 
+06/03/00 v1.00 build 17
+ rebuilt with old libs v77 for multi-domain routing capability
+
+ 
+17/04/00 v1.00 build 18
+
+  
+  Rules EDL will now not scroll below the last rule
+ -OSD# omn0031sp
+
+ 
+17/01/00 v1.00 build 19 beta
+Tm_dbase.c - Removed level checking for floating tie lines in tl_useage() as this is not neccesary and causes problems with format conversion
+
+19/02/01 v1.00 build 19 beta, too.
+
+ Fixed delete rules bug 
+  -OSD# omn0033-sp & nob0023sp
+
+6/6/01 v1.00 build 19 NRT
+Not released.
+
+
+12/6/01 V1.00 build 20 NRT
+	Compiled with old libs 079
+
+	Has fix for OSD OMN-0031-SP, NOB-0023-SP, and NTX-0164-SP - If you Create and commit a rule and eject the
+	screen, then delete that rule TLM crashes.
+
+	Has fix for OSD OMN-0033-SP - Allowed scrolling down to blank page if only 2 lines in Source Restriction Box.
+
+	Extended "File Path" box on System menu so full path can be seen without truncation.
+
+	Removed "Disable Messages" button on System menu - SP agreed it is not a good idea to disable messages.
+
+	Does not have the level checking for floating tie lines removed, which was tried in 19 beta.
+
+
+-------------------------------
+TLM2 - New Libraries Version.
+-------------------------------
+9/8/01 V2.01 build 1 NRT
+  Compiled with new libs 17 build 8.
+  Compiled with routelib 2.8 bug fix build 3.
+
+15/8/01 V2.01 build 2 TT
+	Fixed complier warnings - ported to VX Works.
+
+15/8/01 V2.01 build 3 TT
+	Added missing Handler to Pop Up The TieLine Status Screen
+	Tie Line Route screen now only attempts to display 16 levels - scroll buttons must be added to view the other levels
+
+21/8/01 V2.01 build 4 NRT
+  Compiled with routelib 3.0 build 5, which supports 32 levels.
+  Route screen has scroll buttons to display all 32 levels.
+  Build number added to config screen.
+
+23/8/01 V2.01 build 5 NRT
+  Added low-priority housekeeping thread with task of looking after updating the Status Screen.
+
+4/9/01 V2.01 Build 6 NRT - Still in development.
+  Fixed "Type Param" button to give the required popup lists.
+  Fixed popping up error messages to the LRP.
+  "Polite Sharing" made permanently on - Button removed from Config screen.
+
+23/1/02 V2.01 Build 7 NRT
+  Allows choice of Mirroring Modes.
+
+23/1/02 V2.02 Build 1 TT
+	Tieline Mirroring support - released to GVG
+
+1/2/02 V2.02 Build 2 Beta 1 NRT
+   Has modifications for Dp972 - Passes on the received Lock/Unlock requests to the Router Controller
+   for routing the last tie-line to the destination. Requires Router Controller version 3.50 Build 7.
+	
+11/2/02 V2.02 Build 3 Beta 1 NRT
+  Has function and global variables names made different to the Router so it can be compiled with VXWORKS.
+
+11/2/02 V2.02 Build 3 TT
+  Revised VX Works debugging mechanism so that logging output to screen is always on - 
+  - so as not to intefer with other apps running in the same namespace in VX Works	
+  Changed debugging levels so as not to intefer with Router Controller running in the same namespace in VX Works
+  TLM Log directory created on 'C: drive instead of 'c:' as 'c:' is unrecognized by VX Works
+  Tie Line Manager no longer uses chdir command in VX works as this affects applications running in the same namespace
+  Fixed Minor Compiler errors
+
+18/02/02 V2.02 Build 4 TT
+	Added 3 second pause at startup for the VX Works version. This allows for the compact flash to finish initialising
+
+21/02/02 V2.02 Build 5 TT
+	GVG CR#21398 Tie LIne Manager run with the Panel server on VX Works causes system to freeze, route_startup modified
+	to use the RT_MULTIPLE_CLIENTS flag for VX works only.
+
+26/02/02 V2.02 Build 6 TT
+	change global variables 'my_sockad' and 'broadcast_sockad' to 'tlm_my_sockad' and 'tlm_broadcast_sockad'
+	to stop intefering with other applications in the same namespace
+
+26/02/02 V2.02 Build 7 TT
+	Added neccesary pauses in the houskeeping thread and action thread - as these threads were 
+	in very tight loops, blocking other threads on VX works.
+
+05/04/2002 V2.02 Build 8 TT
+		GVG CR#22305 - Tieline manager would not announce service location on start-up
+
+8/8/02 V2.02 Build 9 NRT
+  Fixed GVG#25270 (OS002582) - When in local file mode and the Sharer is available it fails to switch to Sharer filing
+  mode when comitting changes - Was actually being done but the display was never updated to show this.
+  Added OMHDLR_SHARER_FOUND to allow automatic switch over to that Sharer filing mode.
+  Changes made to the functions for exporting log files to use gf_ file functions, for use with newlibs
+  MULTIPLE_OPLIST_HANDLERS_1_01.
+
+19/12/02 V2.02 Build 10 NRT
+  Fixed GVG CR30536 (OS004718) - Removed standard & technical logging and log-export buttons under VxWorks.
+  Fixed GVG CR30540 (OS004719) - Error in help for "Find Path" button.
+  Fixed GVG CR30715 (OS004763) - Error in help for "Release Users" button.
+  Fixed GVG CR30759 - Tie Config screen not auto-updated when changes at LRP, and also "Release Tie Line" on "Status" screen.
+
+21/1/03 V2.02 Build 11 NRT
+  Fixed another aspect of GVG CR30759 - Tie Config screen not updated when changes at LRP are made when this screen is not
+  being displayed.
+
+29/1/03 V2.02 Build 12 NRT
+  Fixed Mirrored-Master - Mirror comms problem introduced in Build 2 Beta 1.
+  Improved messages.
+  Default timeout for Mirror receiving "Received" acknowledgement from Mirrored-Master increased from 70 to 100 mSecs.
+
+10/02/03 V2.02 Build 13 JCH
+  Corrected setting for logging in VxWorks build.
+  Ensured an Error Code is returned for all paths in hLoadTlmDbase()
+
+25/02/03 V2.02 Build 14 NRT
+1. Fixed problem when "Park Ties on Release" is selected, TLs connect different levels in the same area, and Dest is
+   then routed locally.
+2. Fixed mis-spelling of Destination in hover help on Tie Config screen.
+3. Fixed "Export Log" button appearing on the Status screen under VXWorks.
+4. A critical section has been added to protect adding users when a Router Database change happens.
+5. Replaced printfs with debugfs downgraded most TLM_DBG_PRIORITYs to TLM_DBG_REPORTs to prevent unwanted diagnostics (VxWorks).
+6. Modified acknowledgement messages between redundant TLMs to include the IP address of the Router Controller which
+   sent the routing command.
+
+28/04/03 V2.02 Build 15 NRT
+1. Removed unnecessary messages to screen during boot up.
+
+
+31/03/04 V2.02 Build 16 JCH
+1. Using RouteLibs ROUTELIB3_0_BUILD6_14, updated dynamic attribute flag in RouteHappnd callback
+
+
+01/06/04 V2.02 Build 17 JCH
+1. Using RouteLibs ROUTELIB3_0_BUILD6_18, fixed display of dests to use number of dests in area instead of
+    number of sources (h_destination() in App_TLM.c)
+
+
+*************************************************************************************
+V2.03 Adding new functionality to support Rooms
+
+
+08/07/05 V2.03 Build 1 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_24
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+1.  Adding support for Rooms as Developed by NT.
+2.  OS010823/CR50089
+      Added multi-select for Rooms list
+      Changed Rooms menue names & help text
+      Corrected tie-line release to select correct tie-line
+3.  Fixed initialisation issue to ensure internal list are available before user logon.
+4.  Added critical section when changing Rooms link list and when traversing during tl search.
+
+
+
+
+20/10/05 V2.03 Build 2 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_28
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_1
+
+Fixes
+=====
+
+OS014925 / CR60022  Unexpected error message from Mirror TLM "... cannot find the command to route.."
+    Issue found to be duplicate call to open OmniSvc introduced during merge for TLM2)3 build 1.
+    (App_tlm.c)
+
+OS008873 / CR46097 Routes become Parked when releasing one T/L & using a different T/L.
+    (App_tlm.c)
+
+OS014926 / CR60020 TLM assigned an unused t/l when it could share a t/l
+    (Tm_dbase.c)
+
+OS014818 / CR59854 TLM crashes when > 212 tie-lines, during status list scroll.  Effect is
+     dependant on whether DEBUG_PARAMETERS is on in AppLib96. (212 = 14 * 8 + 100)
+     (Tm_cfg.c)
+
+OS014817 / CR59843 Tie Status screen, Usage window increased to display upto 999 tie lines.
+     (tguidata, tguitoke)
+
+OS013647 / CR57084 TLM Main Menu Screen - "2" Removed
+     (tguidata, tguitoke)
+
+added call back handler for Room config (Tie Config screen) to direct user to Room menu.
+    (Tm_cfg.c)
+
+Removed CI read for VxWorks as multiple apps use same CI - need a different method in VxWorks.
+    (app_tlm.c)
+
+
+
+24/03/06 V2.03 Build 3 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_33
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_2
+
+Fixes
+=====
+
+OS016737 / CR63848 Improvements to TL config - Enable all, Remove with multi pick & Remove all.
+    (Tm_cfg.c, App_tlm.c, Tm_dBase.h, Tguidata, Tguitoke)
+
+OS014924 / CR60070 Removed all calls to ms() - they were not being used (no matching ref in
+    tmessage), and the effect of calling ms_init() could interfere with RCE messages.
+    (App_tlm.c, Tm_cfg.c, Tm_rooms.c)
+
+OS016135 / CR63094 Unexpected error message when tie line takes are executed with the TLM 
+    configured with "Park Ties on Release" disabled.
+    (Tm_route.c)
+
+OS011013 / CR50575 Corrected Source Block config.
+    (Tm_block.c, Tm_block.h)
+
+OS016496 / CR63563 Set default max hops to 1.
+    (Tm_cfg.c)
+
+Fixed 2 param call to debug_level_control. Ref debug.c Ver 20
+    (App_tlm.c, Tm_log.c)
+
+Fixed issue with conflict over sArea with RCE, resulting in RCE flagging a db Save.
+    (App_tlm.c)
+
+Modified build files for Tornado 2.2
+    (tlm.wpj)
+
+
+
+
+28/04/06 V2.03 Build 4 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_33
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_3
+
+Fixes
+=====
+
+OS016737 / CR63848 Improvements to TL config. Ensure Mirror TLM picks up TL deletes and TL
+   enables.  This involved:
+   1) Major changes to TLM to give thread protection when using tielines linked list.  This uses
+      a critical section.  All critical sections amalgamated to prevent deadly embrace.
+      Most TLM modules were updated.
+   2) Only permit deletion of TLs that no longer exist as TLs (otherwise Mirror will find these
+      during its Refresh after reloading Master config files)
+      (Tm_cfg.c, Tm_dbase.c, Tm_dbase.h)
+   3) On TLM reload, the database is flushed which could leave cur_t_line as invalid. Now set to
+      first TL (if any).
+      (Tm_route.c)
+   4) When Mirror loads Master config files any errors results in the Mirror reloading its own files.
+      The lack of Source Block config file caused this Mirror reload and hence changes in Master were
+      lost.  Resolved by no longer insisting that Source Block config must be present.
+      (App_tlm.c)
+
+OS017638 / CR65760  Caching local source for each tie-line within the tie-line sctructure.  This enables sharing of 
+    tie-lines when requests are received for the same source in quick succesion. There was also a possiblity of 
+    selecting an incorrect tie-line path whenever a route update was imminent. The Tie Line Status window displays
+    the local source (Source Id) and Ult. Src. in Red if there are discrepancies between the broadcast source
+    and the cached source for the tie-line.
+    (App_tlm.c, Tm_dbase.c, Tm_route.c, Tm_dbase.h)
+
+
+
+Fixed Mirror TLM to continue displaying Master Sharer path on System Save.
+    (App_tlm.c, Tm_cfg.c)
+
+When using OUI to make a TL route, error request if dest is locked.
+    (App_tlm.c)
+
+Blanks off all slats in the Tie Line Path list in the Route screen prior to new requests.
+    (App_tlm.c)
+
+No longer supporting option to use only exclusive tie-lines via OUI Route screen.
+    (App_tlm.c)
+
+Fixed start up or database reload crash when tie-lines have not be consistantly defined.
+    (Tm_dbase.c)
+
+Corrected source when acquiring a tie-line (by using the cached source) in the log.  Removed source
+    when releasing a tie-line in the log.
+    (Tm_log.c)
+
+Removed duplicate iRouterAddr CBNP field in sendAck()
+    (Tm_route.c)
+
+
+
+
+25/05/06 V2.03 Build 5 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_36
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+=====
+
+OS016737 / CR63848 Removed duplicate iRouterAddr CBNP field in tlmConvertTextualAck()
+    (Tm_netwk.c)
+
+
+
+21/06/06 V2.03 Build 6 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+=====
+
+OS018365 / CR68223 Fixed TL usage issue found when executing a salvo for same src to several dsts where all
+    routes reqd a TL which could be shared and the first dst was using a TL (that can be re-used) and this
+    TL was not the TL that would be selected (ie is not first available TL) and Park on Released enabled.
+    Problem was due to race between TLM cacheing of routes and intermediate update for Parking a TL which
+    was being released prior to re-use. Solution - don't Park if TL about to be re-used and don't use RCE
+    broadcasts to update TLM status if route was from TLM (as its already done and may now be stale).
+    (App_tlm.c, Tm_dbase.c, Tm_route.c, Tm_dbase.h)
+
+
+
+
+12/07/06 V2.03 Build 7 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_39
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_4
+
+Fixes
+=====
+
+OS018365 / CR68223 Fixed issue reported as not be able to share TLs already used on TLM restart.  Updated TL 
+    cached source when rebuilding the list of tie-lines on TLM startup, TLM Refresh or RCE Commit Changes.
+    (Tm_dbase.c)
+
+
+
+
+06/09/06 V2.03 Build 8 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_7
+
+
+Fixes
+=====
+
+CR70607 Mirror TLM could timeout and allocate inappropriate TLs as its status lags behind the Master. 
+   Updates carried out to:
+
+   a) Reduce risk of timeouts by repriming remaining Mirror timers when processing a Master Ack
+   (Tm_route.c)
+
+   b) Fixed issue in Action thread for Mirror Master & Mirror potentialy actioning wrong pending item.
+   (Tm_route.c)
+
+   c) When Mirror times out, the oldest action is processed (used to process most recent timed out item).
+   (Tm_route.c)
+
+   d) Enhancing Processed Ack message to include list of allocated tielines so Mirror status is maintained.
+   (App_tlm.c, Tm_block.c, Tm_cfg.c, Tm_netwk.c, Tm_route.c, Tm_dbase.h, Tm_route.h)
+
+   e) Adding new message when Master releases TLs (via OUI) to ensure Mirror status reflects Master.
+   (App_tlm.c, Tm_main.h)
+
+   f) Ensure Mirror updates cached source status even when not issuing Parks.
+   (Tm_dbase.c)
+
+   g) Reducing time Action thread is in critical sections (which block Ack processing in Mirror)
+   (Tm_route.c)
+
+   h) Adding a small sleep in Action thread for a Mirror when checking timeouts (used to be in tight loop with gt_pass)
+   (App_tlm.c)
+
+   i) reduce load in housekeeping thread by reducing thread priority and time in critical sections.
+   (App_tlm.c)
+
+CR70706 is a repeat of CR70607.
+CR70713 was fixed as part of CR70607 items d) & e).
+CR70715 is designed behavour when TLM Mirror times out, risk of time out reduced as per fix for CR70607.
+
+
+
+20/09/06 V2.03 Build 9 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_8
+
+
+Fixes
+=====
+
+OS019513 / CR71217 Clicking "No" for Enable All button no longer enables all the TL's.  Similar problem also fixed
+   for Remove ALL TLs.
+   (Tm_cfg.c)
+
+
+
+
+
+02/10/06 V2.03 Build 10 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD7_8
+
+
+Fixes
+=====
+
+OS019665 / CR72097 TLM in non-redundancy mode has continuous stream of mutex free errors.  Error fixed in processMaster(),
+   this was caused by updates for V2.03 Build 8 .
+   (Tm_route.c)
+
+
+
+
+
+10/10/06 V2.04 Build 1 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_40
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_1
+
+
+New Features:
+=============
+
+Added Assignments - developed by Celstream (Neeraj).  Rooms support reworked.
+   (most modules updated, including appdata.  New: Tm_assign.c, Tm_assign.h)
+
+
+Fixes
+=====
+
+OS017440 / CR65445 TLM config converted to CBNP by Celstream (Neeraj).
+
+
+
+
+
+17/04/07 V2.04 Build 2 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_41
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_3
+
+
+Fixes
+=====
+
+OS017828 / CR66397  TLM to RCEs heartbeat added to enable RCE to detect failed/offline TLM, updates by NT.
+  (App_tlm.c)
+
+Celstream updates for Duplicate Rooms (received 31/10/06)
+  (tm_assign.c, tm_rooms.c, tguidata, tguitoke)
+
+CR73645 Celstream updates received 21/11/06
+  (tm_cfg.c, tm_dbase.c)
+
+CR73754 Celstream updates received 30/11/06
+  (tm_rooms.c)
+
+CR77094 Celstream updates received 20/03/07
+  (tm_assign.c)
+
+CR77465 Celstream updates received 27/03/07
+  (tguidata, tguitoke)
+
+CR77728 Celstream updates received 12/04/07
+  (tm_fails.c)
+
+
+
+31/10/07 V2.04 Build 3 JCH.
+Built with:
+  Omnibus Libraries using CC_Label  RELEASE_17_8_MULTI_43
+  RouteLibs using CC_Label  ROUTELIB3_0_BUILD8_4
+
+
+Fixes
+=====
+
+CR79837 Reinstating 1.7.2 rooms as an alternative to assignments.  Moved filing from
+ OpHandle thread to Housekeeping Thread.
+  (App_tlm.c, Tm_assign.c, Tm_config.c, Tm_dbase.c, Tm_netwk.c, Tm_rooms.c
+   Tm_cfg.h, Tm_dbase.h, Tm_netwk.h, Tm_rooms.h)
+
+CR78912  When selecting a multi-hop TL, select best overall & not best for each hop.
+  (Tm_dbase.c)
+
+CR76711 Store the Mode and Redundancy IP address in Encore SEEPROM 
+  (App_tlm.c, Tm_config.c)
+
+CR83361 Memory leak in Mirror TLM while loading Source Blocks (TLM block list).
+  (Tm_block.c)
+
+CR83550 Mirror TLM shows incorrect Tie Line configuration when Enable Assignment flag
+         toggle between disable and enable
+  (App_tlm.c)
+
+CR79871 Adding button for explicit room delete
+  (Tm_rooms.c, tguidata, tguitoke)
+
+????? Kirana update 16 0ct 07 - Added logon check to ask user to logoff if TLM not yet
+    ready (as per RCE)
+  (App_tlm.c, Tm_config.c, Tm_rooms.c)
+
+21/11/08 V2.04 Build 4 Mahendran.
+
+Fixes
+=====
+86805 - RCE and CPS will loose redundancy IP address if upgraded without Sharer and if SEEPROM was cleared earlier
+(APP_TLM.c, TM_CFG.c)
+
+86375 - Save CBNP files under new name to avoid backward compatibility issues.
+(APP_TLM.c, TM_CFG.h, TM_DBASE.h)
+
+86375 - Maintain both binary and cbnp format TLM configurations.
+(APP_TLM.c, TM_CFG.h, TM_DBASE.h)
+
+86375 - Use CBNP version field in the TLM DB to avoid compatibility issues in future.
+(routetlm.c, TM_CFG.c, TM_DBASE.c)
+
+86804 - TLM looses redundancy configuration and comes up in disabled mode after upgrading from 1.7.2.x to 1.7.3.
+(TM_CFG.h)
+
+87137 - Possible crash of TLM due to un-initialized memory deletion.
+(TM_NETWK.c)
+
+90043 - Changes done to the flag "Enable Assignments" in the Master TLM will not reflect in the Mirror TLM after save
+(TM_CFG.c)
+
+94839 - Maestro can't switch a local Tieline source when the dst is protected under Encore control.
+(APP_TLM.c, TM_NETWK.c, TM_ROUTE.c, TM_DBASE.h, TM_ROUTE.c)
+
+97033 - The RCE lock text size 'RT_LOCK_LEN' is set to 10 instead of 11, which is incorrect
+(TM_NETWK.c, TM_ROUTE.c, TM_DBASE.h)
+
+98565 - Add clear button to TLM status screen to clear Tie line statistics.
+(tguidata,tguitoke,TM_CFG.c,TM_FAILS.c,TM_FAILS.h)
+
+61064 - Added support for 1.8 REQ-026(Load and Save TLM Configuration by Name)
+(tguidata,tguitoke,APP_TLM.c,Tm_assign.c,TM_BLOCK.c,TM_CFG.c,TM_DBASE.c,Tm_rooms.c,TM_ROUTE.c,Tm_assign.h,TM_CFG.h,Tm_main.h)
+
+70757 - TLM redundancy text options are different than RCE and CPServer and should be made to appear identical to the other system applications.
+(APP_TLM.c,TM_BLOCK.c,TM_CFG.c,TM_DBASE.c,Tm_rooms.c,TM_ROUTE.c,TM_LOG.c,TM_TLOG.c,TM_ROUTE.h,Tm_main.h)
+
+94073 - Prevent CPS/RCE/TLM Master Mirror IP addresses from being identical
+(TM_CFG.c)
+
+70061 - Added support for 1.8 REQ-104(Make TLM Save as RCE's Save)
+(tguidata,tguitoke,APP_TLM.c,TM_BLOCK.c,TM_CFG.c,TM_LOG.c,Tm_rooms.c)
+
+64411 - {REQ-054} "Disconnect Unavailable Levels" function on Encore
+(APP_TLM.c, TM_NETWK.c, TM_ROUTE.c,TM_DBASE.c, TM_DBASE.h, TM_ROUTE.h, TM_NETWK.h)
+
+42433 - Provide granularity for TLM errors.
+(APP_TLM.c, TM_DBASE.c, TM_ROUTE.c, TM_NETWK.c, TM_DBASE.h, TM_NETWK.h)
+
+99895 - CPS Filing mode toggles between 'Local' and 'Sharer'
+(APP_TLM.c)
+
+83100 - {REQ-100 (Change saving and loading of 1.7.2 Rooms configuration similar to 1.7.3 Rooms.)}
+(APP_TLM.c,TM_BLOCK.c,TM_CFG.c,Tm_rooms.c,TM_LOG.c,tguidata,tguitoke,TM_CFG.h,Tm_rooms.h)
+
+106586 - (Tie Line configurations and Assignable Rooms (1.7.3) information are not displayed by VSD, when CPS's are rebooted in the absence of Sharer.)
+APP_TLM.c
+
+99249 - Manual release of Tie lines from a  Master TLM, do not get updated on the Mirror Tie status screen at times
+TM_CFG.c
+
+94548 - Acknowledging the routing client request based client chosen option type as part of client configuration in RCL Server OUI.
+(TM_ROUTE.h,TM_ROUTE.c)
+
+42957 - Tie Line Manager application running prevents RCE logging.(Omnibus OS010112) 
+(TM_LOG.c)
+
+84434 - The Tie line allocation logic has to be enhanced to use the best path (of all possible paths) when assignable tie lines are involved.
+84438 - The Tie line allocation logic has to be enhanced to use the best path (of all possible paths) when tie lines of type "rooms" (Vs Sharing) are used along with other types of tie line.
+(APP_TLM.c, TM_DBASE.c, TM_ROUTE.c, TM_DBASE.h)
+
+108893 - In TLM Assignment screen, sources incorrectly disappear from the list upon Assignment.
+(Tm_assign.c)
+
+77048 - When routing using Tielines, add "Don't care" for Destination level(s) that don't have source defintion(s).
+94420 - {REQ-054} TL take fails when there is a missing level in the source take (unavailable levels TLM does best effort).
+(TM_ROUTE.h, TM_DBASE.h, TM_CFG.h, TM_ROUTE.c, TM_DBASE.c, TM_CFG.c, APP_TLM.c, tguitoke, tguidata)
+
+Fix for issue seen during development testing.( Tie line configurations and Rooms information not getting cleared on subsequent load operations).
+(APP_TLM.c)
+
+Fix issue of Enable assignment flag information not getting saved on Save As.
+(TM_CFG.c)
+
+107068 - (REQ-028:TLM Simple Logging)
+(APP_TLM.c,TM_CFG.c,TM_DBASE.c,TM_NETWK.c,TM_ROUTE.c)
+
+111386 - Sometimes RCE application exits at the startup.
+(APP_TLM.c)
+
+112210 - Error/Warning messages are popped on top of the existing ones in few scenarios on TLM OUI.
+(Tm_rooms.c,TM_CFG.c)
+
+112207 - An error message is shown on the OUI while performing TLM takes if one of the TLM is offline.
+(TM_ROUTE.c)
+
+112240 - TLM crashes at the startup.
+(APP_TLM.c)
+
+112211 - TLM Redundancy information is lost when the Software is upgraded with the presence of Sharer
+(TM_CFG.c)
+
+112336 - Mirror TLM fails to load the Master TLM configurations when a load is performed on the Mirror TLM OUI.
+(APP_TLM.c,TM_CFG.c,TM_CFG.h)
+
+109298 - TLM to be enhanced to support tie-line configuration export
+(APP_TLM.c,TM_CFG.c,TM_CFG.h)
+
+111351 - If blank or \\ is given as Username, need to disconnect and connect the application to perform export from the OUI
+(APP_TLM.c)
+
+CR111948 - Blank file name is not validated while exporting an TLM config.
+(APP_TLM.c)
+
+112393 - TLM Rooms config and RCE/TLM options lost when saving from flash to new OMN
+(APP_TLM.c,TM_CFG.c)
+
+112709 - The Mirror TLM toggles between Supervisor and Subordinate states if Master TLM action task suspends.
+(APP_TLM.c, TM_ROUTE.c)
+
+112965 - Mirror TLM always comes up in Offline mode when rebooted
+(TM_CFG.c)
+
+112671 - TLM share TL status mismatch on the partner if it is in offline state.
+(TM_CFG.c, TM_DBASE.c, TM_DBASE.h)
+
+112672 - TLM does not pick up the statuses automatically when the TLM is turned online, a manual Refresh is mandatory to pick up the status.
+(TM_CFG.c, TM_DBASE.c, TM_DBASE.h)
+
+113189 - When sharer is not present and the Redundancy mode of TLM is changed, the TLM does not update the Redundancy mode, still indicates the previous mode.
+(TM_CFG.c,TM_LOG.c)
+
+113233 - Not the current Room is highlighted upon selecting the Room field. It always highlights the first room
+(TM_rooms.c)
+
+20/07/10 V2.04 Build 5 Mahendran.
+*********************************
+
+CURRENT BUILD
+
+Fixes
+=====

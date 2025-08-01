@@ -1,0 +1,104 @@
+- Video Decoder & Encoder
+	- Open
+	- Close
+	
+	- Stop
+	- Play or Record
+	- Pause
+	- SetRate
+	- SetTimecode
+
+	- PlayCue
+	- PlayCueWithData
+	- RecordCue
+	- RecordCueWithData
+
+	- GetStatus
+	- GetTimecode
+
+
+- CG (Cut & Page)
+	- Open
+	- Close
+
+	- Stop
+	- Play
+	- SetPage - CG Page
+	
+	- PlayCue - CG Template Name
+	- SetData - CG Template Data
+
+	- GetStatus
+
+- Sequence CG
+	- Open
+	- Close
+
+	- Stop
+	- Play
+	- Pause 
+	- SetRate
+	- SetTimecode 
+
+	- PlayCue - Sequence File Name
+	- PlayCueWithData - Sequence File Name
+
+	- GetStatus
+	- GetTimecode
+
+- Scroll CG
+	- Open
+	- Close
+
+	- Stop
+	- Play
+
+	- PlayCue - Scroll Template Name 
+	- SetData - Scroll Data
+	
+	- GetStatus
+
+- Logo
+	- Open
+	- Close
+
+	- Stop
+	- Play
+
+	- PlayCue - Logo File Name
+
+	- GetStatus
+
+- Closed Caption & Sub Title
+	- Open
+	- Close
+
+	- Stop
+	- Play
+	- Pause
+	- ScreenOn
+	- ScreenOff
+
+	- PlayCue - Preset or smi File
+	- PlayCueWithData - Preset or smi File
+	
+	- GetStatus
+	- GetTimecode
+
+- Master Switch
+	- Open
+	- Close
+
+	- NextTransition - Background, Keyers
+	- StartTransition
+
+	- SetTransitionType - Take, Fade-Fade, Take-Fade, Mix, Fade-Take, Wipe
+	- SetTransitionRate - Slow, Medium, Fast, Rate Value
+	- SetCrosspointTake - 0~3 Program, Preset, AUX1, AUX2
+			  0~15 Crosspoint Number
+
+	- GetTransitionType
+	- GetTransitionRate - 0~3
+	- GetCrosspointTake - 0~3
+	- GetStatus - Quiescent, Transitional, Fading To Black, Fading From Black, In Black
+

@@ -1,0 +1,1349 @@
+{$MINENUMSIZE 4}
+
+unit UnitTAPI;
+
+interface
+
+uses Winapi.Windows, Winapi.ActiveX, Winapi.MMSystem, System.Classes,
+  System.SysUtils;
+
+const
+  T3D_TRUE  = 0;
+  T3D_FALSE = 1;
+
+  T3D_E_TIMEOUT = $F0;
+
+type
+  TTAPCommand = (
+    TAP_COMMAND_Play	= 0,
+    TAP_COMMAND_Pause	= TAP_COMMAND_Play + 1,
+    TAP_COMMAND_Out	= TAP_COMMAND_Pause + 1,
+    TAP_COMMAND_Stop	= TAP_COMMAND_Out + 1,
+    TAP_COMMAND_Prepare	= TAP_COMMAND_Stop + 1,
+    TAP_COMMAND_StopPreview	= TAP_COMMAND_Prepare + 1,
+    TAP_COMMAND_Section_Prepare	= TAP_COMMAND_StopPreview + 1,
+    TAP_COMMAND_Section_In	= TAP_COMMAND_Section_Prepare + 1,
+    TAP_COMMAND_Section_Out	= TAP_COMMAND_Section_In + 1,
+    TAP_COMMAND_SECTION_Pause	= TAP_COMMAND_Section_Out + 1,
+    TAP_COMMAND_Stop_All_Sections	= TAP_COMMAND_SECTION_Pause + 1,
+    TAP_COMMAND_TopLayer_In	= TAP_COMMAND_Stop_All_Sections + 1,
+    TAP_COMMAND_TopLayer_Out	= TAP_COMMAND_TopLayer_In + 1,
+    TAP_COMMAND_Default_Out	= TAP_COMMAND_TopLayer_Out + 1,
+    TAP_COMMAND_Load_Project	= TAP_COMMAND_Default_Out + 1,
+    TAP_COMMAND_Save_Project	= TAP_COMMAND_Load_Project + 1,
+    TAP_COMMAND_UnloadAll	= TAP_COMMAND_Save_Project + 1,
+    TAP_COMMAND_DeleteAll	= TAP_COMMAND_UnloadAll + 1,
+    TAP_COMMAND_Load	= TAP_COMMAND_DeleteAll + 1,
+    TAP_COMMAND_LoadEx	= TAP_COMMAND_Load + 1,
+    TAP_COMMAND_LoadEx_2	= TAP_COMMAND_LoadEx + 1,
+    TAP_COMMAND_Insert	= TAP_COMMAND_LoadEx_2 + 1,
+    TAP_COMMAND_Unload	= TAP_COMMAND_Insert + 1,
+    TAP_COMMAND_Save_Page	= TAP_COMMAND_Unload + 1,
+    TAP_COMMAND_CreateFile	= TAP_COMMAND_Save_Page + 1,
+    TAP_COMMAND_CreateImage	= TAP_COMMAND_CreateFile + 1,
+    TAP_COMMAND_PageDefault	= TAP_COMMAND_CreateImage + 1,
+    TAP_COMMAND_BackGrnd	= TAP_COMMAND_PageDefault + 1,
+    TAP_COMMAND_ObjValue	= TAP_COMMAND_BackGrnd + 1,
+    TAP_COMMAND_ObjValue2	= TAP_COMMAND_ObjValue + 1,
+    TAP_COMMAND_SetStyleText	= TAP_COMMAND_ObjValue2 + 1,
+    TAP_COMMAND_AddStyleText	= TAP_COMMAND_SetStyleText + 1,
+    TAP_COMMAND_SetStyleText2	= TAP_COMMAND_AddStyleText + 1,
+    TAP_COMMAND_AddStyleText2	= TAP_COMMAND_SetStyleText2 + 1,
+    TAP_COMMAND_SetImageObject	= TAP_COMMAND_AddStyleText2 + 1,
+    TAP_COMMAND_AddImageObject	= TAP_COMMAND_SetImageObject + 1,
+    TAP_COMMAND_AddScrollObject	= TAP_COMMAND_AddImageObject + 1,
+    TAP_COMMAND_ObjAttr	= TAP_COMMAND_AddScrollObject + 1,
+    TAP_COMMAND_PageEffect	= TAP_COMMAND_ObjAttr + 1,
+    TAP_COMMAND_PageEffectEx	= TAP_COMMAND_PageEffect + 1,
+    TAP_COMMAND_PageTime	= TAP_COMMAND_PageEffectEx + 1,
+    TAP_COMMAND_Query	= TAP_COMMAND_PageTime + 1,
+    TAP_COMMAND_Hello	= TAP_COMMAND_Query + 1,
+    TAP_COMMAND_HeartBeat	= TAP_COMMAND_Hello + 1,
+    TAP_COMMAND_Bye	= TAP_COMMAND_HeartBeat + 1,
+    TAP_COMMAND_Hello_Connected	= TAP_COMMAND_Bye + 1,
+    TAP_COMMAND_Hello_Check_Ok	= TAP_COMMAND_Hello_Connected + 1,
+    TAP_COMMAND_AudioEnable	= TAP_COMMAND_Hello_Check_Ok + 1,
+    TAP_COMMAND_AudioFile	= TAP_COMMAND_AudioEnable + 1,
+    TAP_COMMAND_ScrollSpeed	= TAP_COMMAND_AudioFile + 1,
+    TAP_COMMAND_AirScrollSpeed	= TAP_COMMAND_ScrollSpeed + 1,
+    TAP_COMMAND_AirSectionScrollSpeed	= TAP_COMMAND_AirScrollSpeed + 1,
+    TAP_COMMAND_Pause_Add	= TAP_COMMAND_AirSectionScrollSpeed + 1,
+    TAP_COMMAND_Pause_Delete	= TAP_COMMAND_Pause_Add + 1,
+    TAP_COMMAND_ObjPath	= TAP_COMMAND_Pause_Delete + 1,
+    TAP_COMMAND_ObjLine	= TAP_COMMAND_ObjPath + 1,
+    TAP_COMMAND_Page	= TAP_COMMAND_ObjLine + 1,
+    TAP_COMMAND_PageAlias	= TAP_COMMAND_Page + 1,
+    TAP_COMMAND_ObjValueEx	= TAP_COMMAND_PageAlias + 1,
+    TAP_COMMAND_PageMode	= TAP_COMMAND_ObjValueEx + 1,
+    TAP_COMMAND_ScrollMargin	= TAP_COMMAND_PageMode + 1,
+    TAP_COMMAND_Section_Play	= TAP_COMMAND_ScrollMargin + 1,
+    TAP_COMMAND_TextAll	= TAP_COMMAND_Section_Play + 1,
+    TAP_COMMAND_AliasAll	= TAP_COMMAND_TextAll + 1,
+    TAP_COMMAND_TextSize	= TAP_COMMAND_AliasAll + 1,
+    TAP_COMMAND_Error	= TAP_COMMAND_TextSize + 1,
+    TAP_COMMAND_Continue	= TAP_COMMAND_Error + 1,
+    TAP_COMMAND_End	= TAP_COMMAND_Continue + 1,
+    TAP_COMMAND_Layer_Prepare	= TAP_COMMAND_End + 1,
+    TAP_COMMAND_Layer_Play	= TAP_COMMAND_Layer_Prepare + 1,
+    TAP_COMMAND_Layer_AllPlay	= TAP_COMMAND_Layer_Play + 1,
+    TAP_COMMAND_Layer_PauseResume	= TAP_COMMAND_Layer_AllPlay + 1,
+    TAP_COMMAND_Layer_Count	= TAP_COMMAND_Layer_PauseResume + 1,
+    TAP_COMMAND_Layer_AllCutOut	= TAP_COMMAND_Layer_Count + 1,
+    TAP_COMMAND_Layer_Stop	= TAP_COMMAND_Layer_AllCutOut + 1,
+    TAP_COMMAND_Layer_AllStop	= TAP_COMMAND_Layer_Stop + 1,
+    TAP_COMMAND_Layer_ScrollSpeed	= TAP_COMMAND_Layer_AllStop + 1,
+    TAP_COMMAND_Change_Sequence_Mode	= TAP_COMMAND_Layer_ScrollSpeed + 1,
+    TAP_COMMAND_NoMatch	= TAP_COMMAND_Change_Sequence_Mode + 1
+    );
+
+  TTAPAttr = (
+    TAP_ATTR_Value	= TTAPAttr(TAP_COMMAND_NoMatch) + 1,
+    TAP_ATTR_Type	= TAP_ATTR_Value + 1,
+    TAP_ATTR_Color	= TAP_ATTR_Type + 1,
+    TAP_ATTR_Color_Start	= TAP_ATTR_Color + 1,
+    TAP_ATTR_Width	= TAP_ATTR_Color_Start + 1,
+    TAP_ATTR_Height	= TAP_ATTR_Width + 1,
+    TAP_ATTR_Depth	= TAP_ATTR_Height + 1,
+    TAP_ATTR_Position	= TAP_ATTR_Depth + 1,
+    TAP_ATTR_Pivot	= TAP_ATTR_Position + 1,
+    TAP_ATTR_BarWidth	= TAP_ATTR_Pivot + 1,
+    TAP_ATTR_Rotation	= TAP_ATTR_BarWidth + 1,
+    TAP_ATTR_Scale	= TAP_ATTR_Rotation + 1,
+    TAP_ATTR_Scale_Start	= TAP_ATTR_Scale + 1,
+    TAP_ATTR_Slant	= TAP_ATTR_Scale_Start + 1,
+    TAP_ATTR_Text_Format	= TAP_ATTR_Slant + 1,
+    TAP_ATTR_TextType	= TAP_ATTR_Text_Format + 1,
+    TAP_ATTR_TextType_Text	= TAP_ATTR_TextType + 1,
+    TAP_ATTR_TextType_Clock	= TAP_ATTR_TextType_Text + 1,
+    TAP_ATTR_TextType_Timer	= TAP_ATTR_TextType_Clock + 1,
+    TAP_ATTR_TextType_Counter	= TAP_ATTR_TextType_Timer + 1,
+    TAP_ATTR_TimerBegin	= TAP_ATTR_TextType_Counter + 1,
+    TAP_ATTR_TimerEnd	= TAP_ATTR_TimerBegin + 1,
+    TAP_ATTR_TimerDuration	= TAP_ATTR_TimerEnd + 1,
+    TAP_ATTR_TimerUpdate	= TAP_ATTR_TimerDuration + 1,
+    TAP_ATTR_Seq_Start	= TAP_ATTR_TimerUpdate + 1,
+    TAP_ATTR_Seq_Finish	= TAP_ATTR_Seq_Start + 1,
+    TAP_ATTR_Seq_Loop	= TAP_ATTR_Seq_Finish + 1,
+    TAP_ATTR_Circle_Angle	= TAP_ATTR_Seq_Loop + 1,
+    TAP_ATTR_Effect	= TAP_ATTR_Circle_Angle + 1,
+    TAP_ATTR_NoMatch	= TAP_ATTR_Effect + 1
+    );
+
+  TTAPBg = (
+    TAP_BG_FileName	= TTAPBg(TAP_ATTR_NoMatch) + 1,
+    TAP_BG_Begin	= TAP_BG_FileName + 1,
+    TAP_BG_End	= TAP_BG_Begin + 1,
+    TAP_BG_Loop	= TAP_BG_End + 1,
+    TAP_BG_Start	= TAP_BG_Loop + 1,
+    TAP_BG_Finish	= TAP_BG_Start + 1,
+    TAP_BG_NoMatch	= TAP_BG_Finish + 1
+    );
+
+  TTAPEffect = (
+    TAP_EFFECT_Cut	= TTAPEffect(TAP_BG_NoMatch) + 1,
+    TAP_EFFECT_Wipe	= TAP_EFFECT_Cut + 1,
+    TAP_EFFECT_Push	= TAP_EFFECT_Wipe + 1,
+    TAP_EFFECT_Dve	= TAP_EFFECT_Push + 1,
+    TAP_EFFECT_Curl	= TAP_EFFECT_Dve + 1,
+    TAP_EFFECT_Particle	= TAP_EFFECT_Curl + 1,
+    TAP_EFFECT_Ripple	= TAP_EFFECT_Particle + 1,
+    TAP_EFFECT_Organic	= TAP_EFFECT_Ripple + 1,
+    TAP_EFFECT_Distortion	= TAP_EFFECT_Organic + 1,
+    TAP_EFFECT_Blink	= TAP_EFFECT_Distortion + 1,
+    TAP_EFFECT_Mask	= TAP_EFFECT_Blink + 1,
+    TAP_EFFECT_Frame	= TAP_EFFECT_Mask + 1,
+    TAP_EFFECT_NoMatch	= TAP_EFFECT_Frame + 1
+    );
+
+  TTAPEffectWipe = (
+    TAP_EFFECT_Wipe_Shape	= TTAPEffectWipe(TAP_EFFECT_NoMatch) + 1,
+    TAP_EFFECT_Wipe_Shape_Divide	= TAP_EFFECT_Wipe_Shape + 1,
+    TAP_EFFECT_Wipe_Shape_Rectangle	= TAP_EFFECT_Wipe_Shape_Divide + 1,
+    TAP_EFFECT_Wipe_Shape_Circle	= TAP_EFFECT_Wipe_Shape_Rectangle + 1,
+    TAP_EFFECT_Wipe_Shape_Fan	= TAP_EFFECT_Wipe_Shape_Circle + 1,
+    TAP_EFFECT_Wipe_Position	= TAP_EFFECT_Wipe_Shape_Fan + 1,
+    TAP_EFFECT_Wipe_Position_Up	= TAP_EFFECT_Wipe_Position + 1,
+    TAP_EFFECT_Wipe_Position_Down	= TAP_EFFECT_Wipe_Position_Up + 1,
+    TAP_EFFECT_Wipe_Position_Left	= TAP_EFFECT_Wipe_Position_Down + 1,
+    TAP_EFFECT_Wipe_Position_Right	= TAP_EFFECT_Wipe_Position_Left + 1,
+    TAP_EFFECT_Wipe_Position_UpLeft	= TAP_EFFECT_Wipe_Position_Right + 1,
+    TAP_EFFECT_Wipe_Position_UpRight	= TAP_EFFECT_Wipe_Position_UpLeft + 1,
+    TAP_EFFECT_Wipe_Position_DownLeft	= TAP_EFFECT_Wipe_Position_UpRight + 1,
+    TAP_EFFECT_Wipe_Position_DownRight	= TAP_EFFECT_Wipe_Position_DownLeft + 1,
+    TAP_EFFECT_Wipe_Position_Center	= TAP_EFFECT_Wipe_Position_DownRight + 1,
+    TAP_EFFECT_Wipe_NoMatch	= TAP_EFFECT_Wipe_Position_Center + 1
+    );
+
+  TTAPEffectPush = (
+    TAP_EFFECT_Push_Direction	= TTAPEffectPush(TAP_EFFECT_Wipe_NoMatch) + 1,
+    TAP_EFFECT_Push_Direction_Up	= TAP_EFFECT_Push_Direction + 1,
+    TAP_EFFECT_Push_Direction_Down	= TAP_EFFECT_Push_Direction_Up + 1,
+    TAP_EFFECT_Push_Direction_Left	= TAP_EFFECT_Push_Direction_Down + 1,
+    TAP_EFFECT_Push_Direction_Right	= TAP_EFFECT_Push_Direction_Left + 1,
+    TAP_EFFECT_Push_Direction_UpLeft	= TAP_EFFECT_Push_Direction_Right + 1,
+    TAP_EFFECT_Push_Direction_UpRight	= TAP_EFFECT_Push_Direction_UpLeft + 1,
+    TAP_EFFECT_Push_Direction_DownLeft	= TAP_EFFECT_Push_Direction_UpRight + 1,
+    TAP_EFFECT_Push_Direction_DownRight	= TAP_EFFECT_Push_Direction_DownLeft + 1,
+    TAP_EFFECT_Push_NoMatch	= TAP_EFFECT_Push_Direction_DownRight + 1
+    );
+
+  TTAPEffectCurl = (
+    TAP_EFFECT_Curl_Radius	= TTAPEffectCurl(TAP_EFFECT_Push_NoMatch) + 1,
+    TAP_EFFECT_Curl_Angle	= TAP_EFFECT_Curl_Radius + 1,
+    TAP_EFFECT_Curl_NoMatch	= TAP_EFFECT_Curl_Angle + 1
+    );
+
+  TTAPEffectDve = (
+    TAP_EFFECT_Dve_Position	= TTAPEffectDve(TAP_EFFECT_Curl_NoMatch) + 1,
+    TAP_EFFECT_Dve_Center	= TAP_EFFECT_Dve_Position + 1,
+    TAP_EFFECT_Dve_Scale	= TAP_EFFECT_Dve_Center + 1,
+    TAP_EFFECT_Dve_Rotation	= TAP_EFFECT_Dve_Scale + 1,
+    TAP_EFFECT_Dve_NoMatch	= TAP_EFFECT_Dve_Rotation + 1
+    );
+
+  TTAPEffectParticle = (
+    TAP_EFFECT_Particle_Shape	= TTAPEffectParticle(TAP_EFFECT_Dve_NoMatch) + 1,
+    TAP_EFFECT_Particle_Shape_Tile	= TAP_EFFECT_Particle_Shape + 1,
+    TAP_EFFECT_Particle_Shape_Random	= TAP_EFFECT_Particle_Shape_Tile + 1,
+    TAP_EFFECT_Particle_Shape_Radial	= TAP_EFFECT_Particle_Shape_Random + 1,
+    TAP_EFFECT_Particle_Order	= TAP_EFFECT_Particle_Shape_Radial + 1,
+    TAP_EFFECT_Particle_Order_AtOnce	= TAP_EFFECT_Particle_Order + 1,
+    TAP_EFFECT_Particle_Order_Random	= TAP_EFFECT_Particle_Order_AtOnce + 1,
+    TAP_EFFECT_Particle_Order_Top	= TAP_EFFECT_Particle_Order_Random + 1,
+    TAP_EFFECT_Particle_Order_Bottom	= TAP_EFFECT_Particle_Order_Top + 1,
+    TAP_EFFECT_Particle_Order_Left	= TAP_EFFECT_Particle_Order_Bottom + 1,
+    TAP_EFFECT_Particle_Order_Right	= TAP_EFFECT_Particle_Order_Left + 1,
+    TAP_EFFECT_Particle_Order_TopLeft	= TAP_EFFECT_Particle_Order_Right + 1,
+    TAP_EFFECT_Particle_Order_TopRight	= TAP_EFFECT_Particle_Order_TopLeft + 1,
+    TAP_EFFECT_Particle_Order_BottomLeft	= TAP_EFFECT_Particle_Order_TopRight + 1,
+    TAP_EFFECT_Particle_Order_BottomRight	= TAP_EFFECT_Particle_Order_BottomLeft + 1,
+    TAP_EFFECT_Particle_Order_PointCenter	= TAP_EFFECT_Particle_Order_BottomRight + 1,
+    TAP_EFFECT_Particle_Order_PointSide	= TAP_EFFECT_Particle_Order_PointCenter + 1,
+    TAP_EFFECT_Particle_Order_SnakeTop	= TAP_EFFECT_Particle_Order_PointSide + 1,
+    TAP_EFFECT_Particle_Order_SnakeBottom	= TAP_EFFECT_Particle_Order_SnakeTop + 1,
+    TAP_EFFECT_Particle_Order_SnakeLeft	= TAP_EFFECT_Particle_Order_SnakeBottom + 1,
+    TAP_EFFECT_Particle_Order_SnakeRight	= TAP_EFFECT_Particle_Order_SnakeLeft + 1,
+    TAP_EFFECT_Particle_Order_SnakeCenter	= TAP_EFFECT_Particle_Order_SnakeRight + 1,
+    TAP_EFFECT_Particle_Order_SnakeSide	= TAP_EFFECT_Particle_Order_SnakeCenter + 1,
+    TAP_EFFECT_Particle_Motion	= TAP_EFFECT_Particle_Order_SnakeSide + 1,
+    TAP_EFFECT_Particle_Motion_Scatter2D	= TAP_EFFECT_Particle_Motion + 1,
+    TAP_EFFECT_Particle_Motion_Scatter3D	= TAP_EFFECT_Particle_Motion_Scatter2D + 1,
+    TAP_EFFECT_Particle_Motion_Converge	= TAP_EFFECT_Particle_Motion_Scatter3D + 1,
+    TAP_EFFECT_Particle_Motion_Directional	= TAP_EFFECT_Particle_Motion_Converge + 1,
+    TAP_EFFECT_Particle_DIVIDEY	= TAP_EFFECT_Particle_Motion_Directional + 1,
+    TAP_EFFECT_Particle_OrderX	= TAP_EFFECT_Particle_DIVIDEY + 1,
+    TAP_EFFECT_Particle_OrderY	= TAP_EFFECT_Particle_OrderX + 1,
+    TAP_EFFECT_Particle_ConvergeX	= TAP_EFFECT_Particle_OrderY + 1,
+    TAP_EFFECT_Particle_ConvergeY	= TAP_EFFECT_Particle_ConvergeX + 1,
+    TAP_EFFECT_Particle_Direction	= TAP_EFFECT_Particle_ConvergeY + 1,
+    TAP_EFFECT_Particle_NoMatch	= TAP_EFFECT_Particle_Direction + 1
+    );
+
+  TTAPEffectRipple = (
+   	TAP_EFFECT_Ripple_Shape	= TTAPEffectRipple(TAP_EFFECT_Particle_NoMatch) + 1,
+    TAP_EFFECT_Ripple_Shape_Water	= TAP_EFFECT_Ripple_Shape + 1,
+    TAP_EFFECT_Ripple_Shape_Flag	= TAP_EFFECT_Ripple_Shape_Water + 1,
+    TAP_EFFECT_Ripple_Frequency	= TAP_EFFECT_Ripple_Shape_Flag + 1,
+    TAP_EFFECT_Ripple_Amplitude	= TAP_EFFECT_Ripple_Frequency + 1,
+    TAP_EFFECT_Ripple_OriginX	= TAP_EFFECT_Ripple_Amplitude + 1,
+    TAP_EFFECT_Ripple_OriginY	= TAP_EFFECT_Ripple_OriginX + 1,
+    TAP_EFFECT_Ripple_Slant	= TAP_EFFECT_Ripple_OriginY + 1,
+    TAP_EFFECT_Ripple_NoMatch	= TAP_EFFECT_Ripple_Slant + 1
+    );
+
+  TTAPEffectOrganic = (
+    TAP_EFFECT_Organic_UseMatte	= TTAPEffectOrganic(TAP_EFFECT_Ripple_NoMatch) + 1,
+    TAP_EFFECT_Organic_FILE	= TAP_EFFECT_Organic_UseMatte + 1,
+    TAP_EFFECT_Organic_NoMatch	= TAP_EFFECT_Organic_FILE + 1
+    );
+
+  TTAPEffectDistortion = (
+    TAP_EFFECT_Distortion_Height	= TTAPEffectDistortion(TAP_EFFECT_Organic_NoMatch) + 1,
+    TAP_EFFECT_Distortion_File	= TAP_EFFECT_Distortion_Height + 1,
+    TAP_EFFECT_Distortion_NoMatch	= TAP_EFFECT_Distortion_File + 1
+    );
+
+  TLayer = (
+   	LAYER_BASE	= 0,
+    LAYER_TOP	= LAYER_BASE + 1,
+    LAYER_SECTION_0	= LAYER_TOP + 1,
+    LAYER_SECTION_1	= LAYER_SECTION_0 + 1,
+    LAYER_SECTION_2	= LAYER_SECTION_1 + 1,
+    LAYER_SECTION_3	= LAYER_SECTION_2 + 1,
+    LAYER_COUNT	= LAYER_SECTION_3 + 1
+    );
+
+  TEffectType = (
+    EFFECT_CUT	= 0,
+    EFFECT_WIPE	= EFFECT_CUT + 1,
+    EFFECT_PUSH	= EFFECT_WIPE + 1,
+    EFFECT_DVE	= EFFECT_PUSH + 1,
+    EFFECT_CURL	= EFFECT_DVE + 1,
+    EFFECT_PARTICLE	= EFFECT_CURL + 1,
+    EFFECT_RIPPLE	= EFFECT_PARTICLE + 1,
+    EFFECT_ORGANIC	= EFFECT_RIPPLE + 1,
+    EFFECT_DISTORTION	= EFFECT_ORGANIC + 1,
+    EFFECT_BLINK	= EFFECT_DISTORTION + 1,
+    EFFECT_MASK	= EFFECT_BLINK + 1,
+    EFFECT_COUNT	= EFFECT_MASK + 1
+    );
+
+const
+  CLSID_TAPEventHandler: TGUID = '{5086449B-9A59-4A0C-ACA7-7E4E03BB7001}';
+  CLSID_TAP: TGUID = '{9B6BE992-8D43-4481-B91B-8E588905236B}';
+  CLSID_TAPParser: TGUID = '{C43B085B-8DE1-4482-8124-DE5588C67F07}';
+
+  IID_ITAPEventHandler: TGUID = '{7D2FDF75-28D2-4264-8C5E-3C7417AA4046}';
+  IID_ITAP: TGUID = '{F672346C-DAFA-4748-95DA-AE568C68E1B1}';
+  IID_ITAPParser: TGUID = '{BF754FD0-3663-4C2C-9848-29281519E6EC}';
+
+type
+  ITAPEventHandler = interface(IUnknown)
+    ['{7D2FDF75-28D2-4264-8C5E-3C7417AA4046}']
+    function OnConnect: HRESULT; stdcall;
+    function OnReceive(pData: TBStr): HRESULT; stdcall;
+    function OnClose: HRESULT; stdcall;
+  end;
+
+  ITAP = interface(IDispatch)
+    ['{F672346C-DAFA-4748-95DA-AE568C68E1B1}']
+    function Connect(bTCP: Boolean; ServerIPAddress: TBStr; ServerPort: LongInt; ClientPort: LongInt; pHandler: ITAPEventHandler): HRESULT; stdcall;
+    function Hello(bCheck: Boolean): HRESULT; stdcall;
+    function Destroys: HRESULT; stdcall;
+    function SetEventHandler(pHandler: ITAPEventHandler): HRESULT; stdcall;
+    function Send(Str: TBStr): HRESULT; stdcall;
+    function Bye: HRESULT; stdcall;
+//    function LoadPage(FileName: TBstr; PageName: TBStr; out ret: Boolean): HRESULT; stdcall;
+    function LoadPage(FileName: TBstr; PageName: TBStr): HRESULT; stdcall;
+    function UnloadPage(PageName: TBstr): HRESULT; stdcall;
+    function UnloadAllPages: HRESULT; stdcall;
+    function LoadProject(T3DFileName: TBstr): HRESULT; stdcall;
+    function SaveProject(T3DFileName: TBstr): HRESULT; stdcall;
+    function PreparePage(PageName: TBstr; Layer: TLayer; bAutoPreview: Boolean): HRESULT; stdcall;
+    function Play(Layer: TLayer): HRESULT; stdcall;
+    function Stop: HRESULT; stdcall;
+    function PauseResume(Layer: TLayer; bBackground: Boolean): HRESULT; stdcall;
+    function Outs(Layer: TLayer): HRESULT; stdcall;
+    function SetObjValue(PageName: TBStr; ObjName: TBstr; Value: TBStr; bTextImage: Boolean): HRESULT; stdcall;
+    function SetText(PageName: TBStr; ObjName: TBstr; TextValue: TBStr): HRESULT; stdcall;
+    function SetObjVisible(PageName: TBStr; ObjName: TBstr; bVisible: Boolean): HRESULT; stdcall;
+    function SetObjAttr(PageName: TBStr; ObjName: TBstr; Options: TBStr): HRESULT; stdcall;
+    function SetPageDefault(PageName: TBStr): HRESULT; stdcall;
+    function SetBackground(PageName: TBStr; BGFileName: TBStr): HRESULT; stdcall;
+    function SetPageEffect(PageName: TBStr; bIn: Boolean; EffectType: TEffectType; Options: TBstr): HRESULT; stdcall;
+    function SetPageEffectEx(PageName: TBStr; bIn: Boolean; EffectType: TEffectType; FrameCount: LongInt): HRESULT; stdcall;
+    function AddPause(PageName: TBStr; PauseFrame: LongInt; DelayFrame: LongInt; bAutoResume: Boolean): HRESULT; stdcall;
+    function DeletePause(PageName: TBStr; PauseFrame: LongInt): HRESULT; stdcall;
+    function SetScrollSpeed(PageName: TBStr; Speed: LongInt): HRESULT; stdcall;
+    function SetAirScrollSpeed(Speed: LongInt): HRESULT; stdcall;
+    function SetAudioFile(PageName: TBStr; bIn: Boolean; AudioFileName: TBStr): HRESULT; stdcall;
+    function SetAudioEnable(PageName: TBStr; bIn: Boolean; bEnable: Boolean): HRESULT; stdcall;
+    function SetStyleText(PageName: TBStr; ObjName: TBStr; StyleID: LongInt; TextValue: TBStr): HRESULT; stdcall;
+    function SetImageObject(PageName: TBStr; ObjName: TBStr; ObjectID: LongInt): HRESULT; stdcall;
+    function AddStyleText(PageName: TBStr; ObjName: TBStr; StyleID: LongInt; TextValue: TBStr): HRESULT; stdcall;
+    function AddImageObject(PageName: TBStr; ObjName: TBStr; ObjectID: LongInt): HRESULT; stdcall;
+    function AddScrollObject(PageName: TBStr; ObjName: TBStr): HRESULT; stdcall;
+    function CreateImageFile(PageName: TBStr; ImageWidth: LongInt; ImageHeight: LongInt; ImagePathName: TBstr): HRESULT; stdcall;
+    function QueryLoad(PageName: TBStr): HRESULT; stdcall;
+    function QueryPageMode(PageName: TBStr): HRESULT; stdcall;
+    function QueryPageAlias(PageName: TBStr): HRESULT; stdcall;
+    function QueryAliasAll(PageName: TBStr): HRESULT; stdcall;
+    function QueryObjValue(PageName: TBStr; ObjName: TBStr): HRESULT; stdcall;
+    function QueryObjAttr(PageName: TBStr; ObjName: TBStr): HRESULT; stdcall;
+    function QueryAudioFile(PageName: TBStr; bIn: Boolean): HRESULT; stdcall;
+    function QueryAudioEnable(PageName: TBStr; bIn: Boolean): HRESULT; stdcall;
+    function QueryScrollSpeed(PageName: TBStr): HRESULT; stdcall;
+    function QueryAirScrollMargin(Layer: TLayer): HRESULT; stdcall;
+    function QueryPageEffect(PageName: TBStr; bIn: Boolean): HRESULT; stdcall;
+    function QueryPageEffectEx(PageName: TBStr; bIn: Boolean): HRESULT; stdcall;
+    function SetObjLine(PageName: TBStr; ObjName: TBStr; Value: TBStr; bSeqTga: Boolean): HRESULT; stdcall;
+    function SetObjValue2(PageName: TBStr; VariableName: TBStr; b3D: Boolean; Thick: Integer; Depth: Integer; strCoordinates: TBStr): HRESULT; stdcall;
+    function SetImageObject2(PageName: TBStr; ObjName: TBStr; FileName: TBStr): HRESULT; stdcall;
+    function AddScrollObject2(PageName: TBStr; ObjName: TBStr; LayerID: TLayer): HRESULT; stdcall;
+    function TopLayerIn(PageName: TBStr): HRESULT; stdcall;
+    function TopLayerOut: HRESULT; stdcall;
+    function QueryPageTime(PageName: TBStr): HRESULT; stdcall;
+    function ChangeSequenceMode(Mode: Integer): HRESULT; stdcall;
+  end;
+
+  ITAPParser = interface(IDispatch)
+    function Parse(Text: TBStr; out ret: Boolean): HRESULT; stdcall;
+    function GetCommand(out Command: TTAPCommand): HRESULT; stdcall;
+    function GetNextCommand(out Command: TTAPCommand): HRESULT; stdcall;
+    function GetNextString(out str: TBSTR): HRESULT; stdcall;
+    function GetNextQuotationString(out str: TBSTR): HRESULT; stdcall;
+    function GetNextStringAll(out str: TBSTR): HRESULT; stdcall;
+    function GetNextOptionString(out str: TBSTR): HRESULT; stdcall;
+  end;
+
+type
+  TTAP = class;
+
+  TTAPReceiveEvent = procedure(Sender: TObject; ReceiveData: String) of object;
+
+  TTAPEventHandler = class(TObject, ITAPEventHandler)
+  private
+    FTAP: TTAP;
+    FTAPParser: ITAPParser;
+
+    FRefCount: Integer;
+  protected
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+
+    function OnConnect: HRESULT; virtual; stdcall;
+    function OnReceive(pData: TBStr): HRESULT; virtual; stdcall;
+    function OnClose: HRESULT; virtual; stdcall;
+  public
+    constructor Create(ATAP: TTAP);
+    destructor Destroy; override;
+
+    property TAP: TTAP read FTAP;
+  end;
+
+  TTAP = class(TObject)
+  private
+    FTAPEventHandler: TTAPEventHandler;
+    FTAP: ITAP;
+
+    FLastCommand: TTAPCommand;
+    FLastRecvData: String;
+
+    FSyncMsgEvent: THandle;
+    FTimeOut: Word;
+    FLastResult: Integer;
+
+    FOnConnectEvent: TNotifyEvent;
+    FOnReceiveEvent: TTAPReceiveEvent;
+    FOnCloseEvent: TNotifyEvent;
+
+    function WaitForSyncMsgEvent: Integer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Connect(ATCP: Boolean; AIP: String; APort: LongInt): Integer;
+    function Hello(ACheck: Boolean): Integer;
+    function Destroys: Integer;
+    function SetEventHandler(AHandler: ITAPEventHandler): Integer;
+    function Send(AStr: String): Integer;
+    function Bye: Integer;
+//    function LoadPage(AFileName: String; APageName: String; out AReturn: Boolean = True): Integer;
+    function LoadPage(AFileName: String; APageName: String): Integer;
+    function UnloadPage(APageName: String): Integer;
+    function UnloadAllPages: Integer;
+    function LoadProject(AT3DFileName: String): Integer;
+    function SaveProject(AT3DFileName: String): Integer;
+    function PreparePage(APageName: String; ALayer: TLayer; AAutoPreview: Boolean): Integer;
+    function Play(ALayer: TLayer): Integer;
+    function Stop: Integer;
+
+    function PauseResume(ALayer: TLayer; ABackground: Boolean): Integer;
+    function Outs(ALayer: TLayer): Integer;
+    function SetObjValue(APageName: String; AObjName: String; AValue: String; ATextImage: Boolean): Integer;
+    function SetText(APageName: String; AObjName: String; ATextValue: String): Integer;
+    function SetObjVisible(APageName: String; AObjName: String; AVisible: Boolean): Integer;
+    function SetObjAttr(APageName: String; AObjName: String; AOptions: String): Integer;
+    function SetPageDefault(APageName: String): Integer;
+    function SetBackground(APageName: String; ABgFileName: String): Integer;
+    function SetPageEffect(APageName: String; AIn: Boolean; AEffectType: TEffectType; AOptions: String): Integer;
+    function SetPageEffectEx(APageName: String; AIn: Boolean; AEffectType: TEffectType; AFrameCount: LongInt): Integer;
+    function AddPause(APageName: String; APauseFrame: LongInt; ADelayFrame: LongInt; AAutoResume: Boolean): Integer;
+    function DeletePause(APageName: String; APauseFrame: LongInt): Integer;
+    function SetScrollSpeed(APageName: String; ASpeed: LongInt): Integer;
+    function SetAirScrollSpeed(ASpeed: LongInt): Integer;
+    function SetAudioFile(APageName: String; AIn: Boolean; AAudioFileName: String): Integer;
+    function SetAudioEnable(APageName: String; AIn: Boolean; AEnable: Boolean): Integer;
+    function SetStyleText(APageName: String; AObjName: String; AStyleID: LongInt; ATextValue: String): Integer;
+    function SetImageObject(APageName: String; AObjName: String; AObjectID: LongInt): Integer;
+    function AddStyleText(APageName: String; AObjName: String; AStyleID: LongInt; ATextValue: String): Integer;
+    function AddImageObject(APageName: String; AObjName: String; AObjectID: LongInt): Integer;
+    function AddScrollObject(APageName: String; AObjName: String): Integer;
+    function CreateImageFile(APageName: String; AImageWidth: LongInt; AImageHeight: LongInt; AImagePathName: String): Integer;
+
+    function QueryLoad(APageName: String): Integer;
+    function QueryPageMode(APageName: String; out APageMode: String): Integer;
+    function QueryPageAlias(APageName: String): Integer;
+    function QueryAliasAll(APageName: String): Integer;
+    function QueryObjValue(APageName: String; AObjName: String): Integer;
+    function QueryObjAttr(APageName: String; AObjName: String): Integer;
+{    function QueryAudioFile(APageName: String; AIn: Boolean): Integer;
+    function QueryAudioEnable(APageName: String; AIn: Boolean): Integer;
+    function QueryScrollSpeed(APageName: String): Integer;
+    function QueryAirScrollMargin(ALayer: TLayer): Integer;
+    function QueryPageEffect(APageName: String; AIn: Boolean): Integer;
+    function QueryPageEffectEx(APageName: String; AIn: Boolean): Integer;
+    function SetObjLine(APageName: String; AObjName: String; AValue: String; ASeqTga: Boolean): Integer;
+    function SetObjValue2(APageName: String; AVariableName: String; A3D: Boolean; AThick: Integer; ADepth: Integer; AStrCoordinates: String): Integer;
+    function SetImageObject2(APageName: String; AObjName: String; AFileName: String): Integer;
+    function AddScrollObject2(APageName: String; AObjName: String; ALayerID: TLayer): Integer;
+    function TopLayerIn(APageName: String): Integer;
+    function TopLayerOut: Integer;
+    function QueryPageTime(APageName: String): Integer;
+    function ChangeSequenceMode(AMode: Integer): Integer; }
+
+    property TimeOut: Word read FTimeOut write FTimeOut default 1000;
+    property LastResult: Integer read FLastResult write FLastResult;
+
+    property OnConnectEvent: TNotifyEvent read FOnConnectEvent write FOnConnectEvent;
+    property OnReceiveEvent: TTAPReceiveEvent read FOnReceiveEvent write FOnReceiveEvent;
+    property OnCloseEvent: TNotifyEvent read FOnCloseEvent write FOnCloseEvent;
+  end;
+
+implementation
+
+//var
+//  aa: Integer;
+//
+//implementation
+
+function MsgWaitForHandles(ACount: Cardinal; AHandles: array of THandle; ATimeOut, AWakeMask: DWORD): DWORD;
+var
+  // wait for the event to be signalled, or for the timeout (in MS) to expire.
+  // allow SENT messages to be processed while we wait
+  Wait, StartTime: DWord;
+  // set the waiting period.
+  WaitTime: Dword;
+  Msg: TMsg;
+  Elapsed: DWord;
+begin
+  WaitTime := ATimeout;
+
+  // the timeout will eventually run down as we iterate processing messages.
+  // grab the start time so that we can calculate elapsed times.
+  if (WaitTime <> INFINITE) then
+    StartTime := timeGetTime
+  else
+    StartTime := 0; // don't generate compiler hint
+
+  repeat
+    Wait := MsgWaitForMultipleObjects(ACount, AHandles, False, WaitTime, AWakeMask);
+    if (Wait = WAIT_OBJECT_0 + ACount) then
+    begin
+      while (PeekMessage(Msg, 0, 0, 0, PM_REMOVE)) do
+      begin
+        TranslateMessage(Msg);
+        DispatchMessage(Msg);
+//        Application.HandleMessage;
+      end;
+      //==PeekMessage(Msg, 0, 0, 0, PM_REMOVE);
+
+	    // If we have an explicit length of time to wait calculate the next wake up point - which might be now.
+	    // If dwTimeout is INFINITE, it stays INFINITE
+	    if (WaitTime <> INFINITE) then
+      begin
+    	  Elapsed := timeGetTime - StartTime;
+        if (Elapsed >= ATimeout) then
+          WaitTime := 0
+        else // wake up with WAIT_TIMEOUT
+    	    WaitTime := ATimeout - Elapsed;
+      end;
+    end;
+  until (Wait <> WAIT_OBJECT_0 + ACount);
+
+  // return True if we woke on the event handle, FALSE if we timed out.
+  Result := Wait; //(Wait = WAIT_OBJECT_0);
+end;
+
+{ TTAPEventHandler }
+
+constructor TTAPEventHandler.Create(ATAP: TTAP);
+var
+  HR: HRESULT;
+begin
+  FTAP := ATAP;
+
+  HR := CoCreateInstance(CLSID_TAPParser, nil, CLSCTX_INPROC, IID_ITAPParser, FTAPParser);
+  if Failed(HR) then exit;
+
+  FRefCount := 1;
+end;
+
+destructor TTAPEventHandler.Destroy;
+begin
+  if (FTAPParser <> nil) then
+    FTAPParser := nil;
+
+  FTAP := nil;
+
+  inherited Destroy;
+end;
+
+function TTAPEventHandler.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  Result := S_FALSE;
+end;
+
+function TTAPEventHandler._AddRef: Integer;
+begin
+  Result := InterlockedIncrement(FRefCount);
+//	Inc(FRefCount);
+//  Result := FRefCount;
+end;
+
+function TTAPEventHandler._Release: Integer;
+begin
+  Result := InterlockedDecrement(FRefCount);
+//	Dec(FRefCount);
+
+//  if (FRefCount = 0) then
+//    Destroy;
+
+//  Result := FRefCount;
+end;
+
+function TTAPEventHandler.OnConnect: HRESULT;
+begin
+//  FTAP.FLastResult := T3D_TRUE;
+//  SetEvent(FTAP.FSyncMsgEvent);
+
+  if Assigned(FTAP.FOnConnectEvent) then
+    FTAP.FOnConnectEvent(Self);
+
+  Result := S_OK;
+end;
+
+function TTAPEventHandler.OnReceive(pData: TBStr): HRESULT;
+var
+  CheckParse: Boolean;
+  Command: TTAPCommand;
+begin
+  Result := FTAPParser.Parse(pData, CheckParse);
+  if (Failed(Result)) then exit;
+
+  if (CheckParse) then
+  begin
+    Result := FTAPParser.GetCommand(Command);
+    if (Failed(Result)) then exit;
+
+    FTAP.FLastCommand := Command;
+    FTAP.FLastRecvData := String(pData);
+
+    case Command of
+      TAP_COMMAND_Play: ;
+      TAP_COMMAND_Pause: ;
+      TAP_COMMAND_Out: ;
+      TAP_COMMAND_Stop: ;
+      TAP_COMMAND_Prepare: ;
+      TAP_COMMAND_StopPreview: ;
+      TAP_COMMAND_Section_Prepare: ;
+      TAP_COMMAND_Section_In: ;
+      TAP_COMMAND_Section_Out: ;
+      TAP_COMMAND_SECTION_Pause: ;
+      TAP_COMMAND_Stop_All_Sections: ;
+      TAP_COMMAND_TopLayer_In: ;
+      TAP_COMMAND_TopLayer_Out: ;
+      TAP_COMMAND_Default_Out: ;
+      TAP_COMMAND_Load_Project: ;
+      TAP_COMMAND_Save_Project: ;
+      TAP_COMMAND_UnloadAll: ;
+      TAP_COMMAND_DeleteAll: ;
+      TAP_COMMAND_Load: ;
+      TAP_COMMAND_LoadEx: ;
+      TAP_COMMAND_LoadEx_2: ;
+      TAP_COMMAND_Insert: ;
+      TAP_COMMAND_Unload: ;
+      TAP_COMMAND_Save_Page: ;
+      TAP_COMMAND_CreateFile: ;
+      TAP_COMMAND_CreateImage: ;
+      TAP_COMMAND_PageDefault: ;
+      TAP_COMMAND_BackGrnd: ;
+      TAP_COMMAND_ObjValue: ;
+      TAP_COMMAND_ObjValue2: ;
+      TAP_COMMAND_SetStyleText: ;
+      TAP_COMMAND_AddStyleText: ;
+      TAP_COMMAND_SetStyleText2: ;
+      TAP_COMMAND_AddStyleText2: ;
+      TAP_COMMAND_SetImageObject: ;
+      TAP_COMMAND_AddImageObject: ;
+      TAP_COMMAND_AddScrollObject: ;
+      TAP_COMMAND_ObjAttr: ;
+      TAP_COMMAND_PageEffect: ;
+      TAP_COMMAND_PageEffectEx: ;
+      TAP_COMMAND_PageTime: ;
+      TAP_COMMAND_Query: ;
+      TAP_COMMAND_Hello: ;
+      TAP_COMMAND_HeartBeat: ;
+      TAP_COMMAND_Bye: ;
+      TAP_COMMAND_Hello_Connected: ;
+      TAP_COMMAND_Hello_Check_Ok: ;
+      TAP_COMMAND_AudioEnable: ;
+      TAP_COMMAND_AudioFile: ;
+      TAP_COMMAND_ScrollSpeed: ;
+      TAP_COMMAND_AirScrollSpeed: ;
+      TAP_COMMAND_AirSectionScrollSpeed: ;
+      TAP_COMMAND_Pause_Add: ;
+      TAP_COMMAND_Pause_Delete: ;
+      TAP_COMMAND_ObjPath: ;
+      TAP_COMMAND_ObjLine: ;
+      TAP_COMMAND_Page: ;
+      TAP_COMMAND_PageAlias: ;
+      TAP_COMMAND_ObjValueEx: ;
+      TAP_COMMAND_PageMode: ;
+      TAP_COMMAND_ScrollMargin: ;
+      TAP_COMMAND_Section_Play: ;
+      TAP_COMMAND_TextAll: ;
+      TAP_COMMAND_AliasAll: ;
+      TAP_COMMAND_TextSize: ;
+      TAP_COMMAND_Error: ;
+      TAP_COMMAND_Continue: ;
+      TAP_COMMAND_End: ;
+      TAP_COMMAND_Layer_Prepare: ;
+      TAP_COMMAND_Layer_Play: ;
+      TAP_COMMAND_Layer_AllPlay: ;
+      TAP_COMMAND_Layer_PauseResume: ;
+      TAP_COMMAND_Layer_Count: ;
+      TAP_COMMAND_Layer_AllCutOut: ;
+      TAP_COMMAND_Layer_Stop: ;
+      TAP_COMMAND_Layer_AllStop: ;
+      TAP_COMMAND_Layer_ScrollSpeed: ;
+      TAP_COMMAND_Change_Sequence_Mode: ;
+      TAP_COMMAND_NoMatch: ;
+    end;
+  end;
+
+  if (Command <> TAP_COMMAND_NoMatch) then
+  begin
+    if (Pos('SUCCESS', String(pData)) > 0) then
+      FTAP.FLastResult := T3D_TRUE
+    else
+      FTAP.FLastResult := T3D_FALSE;
+  end
+  else
+    FTAP.FLastResult := T3D_TRUE;
+
+  SetEvent(FTAP.FSyncMsgEvent);
+
+  if Assigned(FTAP.FOnReceiveEvent) then
+  begin
+    FTAP.FOnReceiveEvent(Self, String(pData));
+  end;
+
+  Result := S_OK;
+end;
+
+function TTAPEventHandler.OnClose: HRESULT;
+begin
+  FTAP.FLastResult := T3D_TRUE;
+  SetEvent(FTAP.FSyncMsgEvent);
+
+  if Assigned(FTAP.FOnCloseEvent) then
+    FTAP.FOnCloseEvent(Self);
+
+  Result := S_OK;
+end;
+
+{ TTAP }
+
+constructor TTAP.Create;
+var
+  HR: HRESULT;
+begin
+  inherited Create;
+
+  FTAPEventHandler := TTAPEventHandler.Create(Self);
+
+  HR := CoCreateInstance(CLSID_TAP, nil, CLSCTX_INPROC, IID_ITAP, FTAP);
+  if Failed(HR) then exit;
+
+  FSyncMsgEvent := CreateEvent(nil, True, False, nil);
+
+  FLastCommand  := TAP_COMMAND_NoMatch;
+  FLastRecvData := '';
+
+  FTimeOut := 2000;
+  FLastResult := T3D_TRUE;
+end;
+
+destructor TTAP.Destroy;
+begin
+  CloseHandle(FSyncMsgEvent);
+  FSyncMsgEvent := 0;
+
+  if (FTAP <> nil) then
+    FTAP := nil;
+
+  if (FTAPEventHandler <> nil) then
+    FreeAndNil(FTAPEventHandler);
+
+  inherited Destroy;
+end;
+
+function TTAP.WaitForSyncMsgEvent: Integer;
+var
+  R: DWORD;
+  WaitHandles: array[0..0] of THandle;
+begin
+  WaitHandles[0] := FSyncMsgEvent;
+
+  ResetEvent(FSyncMsgEvent);
+  R := MsgWaitForHandles(1, WaitHandles, FTimeOut, QS_POSTMESSAGE);
+  case R of
+    WAIT_OBJECT_0:
+      begin
+        Result := FLastResult;
+      end;
+    else Result := T3D_E_TIMEOUT;
+   end;
+end;
+
+function TTAP.Connect(ATCP: Boolean; AIP: String; APort: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Connect(BOOL(ATCP), PChar(AIP), APort, 0, FTAPEventHandler);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Hello(ACheck: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Hello(BOOL(ACheck));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+
+{  if (Result = T3D_TRUE) then
+  begin
+    if (ACheck) then
+    begin
+      if (FLastCommand <> TAP_COMMAND_Hello_Check_Ok) then
+        Result := T3D_FALSE;
+    end
+    else
+    begin
+      if (FLastCommand <> TAP_COMMAND_Hello_Connected) then
+        Result := T3D_FALSE;
+    end;
+  end; }
+end;
+
+function TTAP.Destroys: Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Destroys;
+  if (Failed(HR)) then exit;
+
+// If disconnect no receive data
+//  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetEventHandler(AHandler: ITAPEventHandler): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetEventHandler(AHandler);
+  if (Failed(HR)) then exit;
+
+//  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Send(AStr: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Send(PChar(AStr));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Bye: Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Bye;
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+
+  if (Result = T3D_TRUE) then
+  begin
+    if (FLastCommand <> TAP_COMMAND_Bye) then
+      Result := T3D_FALSE;
+  end;
+end;
+
+{function TTAP.LoadPage(AFileName: String; APageName: String; out AReturn: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.LoadPage(PChar(AFileName), PChar(APageName), AReturn);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end; }
+
+function TTAP.LoadPage(AFileName: String; APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.LoadPage(PChar(AFileName), PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+
+  if (Result = T3D_TRUE) then
+  begin
+    if (FLastCommand <> TAP_COMMAND_Load) then
+      Result := T3D_FALSE;
+  end;
+end;
+
+function TTAP.UnloadPage(APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.UnloadPage(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.UnloadAllPages: Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.UnloadAllPages;
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.LoadProject(AT3DFileName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.LoadProject(PChar(AT3DFileName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SaveProject(AT3DFileName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SaveProject(PChar(AT3DFileName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.PreparePage(APageName: String; ALayer: TLayer; AAutoPreview: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.PreparePage(PChar(APageName), ALayer, AAutoPreview);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Play(ALayer: TLayer): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Play(ALayer);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Stop: Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Stop;
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.PauseResume(ALayer: TLayer; ABackground: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.PauseResume(ALayer, ABackground);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.Outs(ALayer: TLayer): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.Outs(ALayer);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetObjValue(APageName: String; AObjName: String; AValue: String; ATextImage: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetObjValue(PChar(APageName), PChar(AObjName), PChar(AValue), ATextImage);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetText(APageName: String; AObjName: String; ATextValue: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetText(PChar(APageName), PChar(AObjName), PChar(ATextValue));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetObjVisible(APageName: String; AObjName: String; AVisible: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetObjVisible(PChar(APageName), PChar(AObjName), AVisible);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetObjAttr(APageName: String; AObjName: String; AOptions: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetObjAttr(PChar(APageName), PChar(AObjName), PChar(AOptions));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetPageDefault(APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetPageDefault(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetBackground(APageName: String; ABgFileName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetBackground(PChar(APageName), PChar(ABgFileName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetPageEffect(APageName: String; AIn: Boolean; AEffectType: TEffectType; AOptions: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetPageEffect(PChar(APageName), AIn, AEffectType, PChar(AOptions));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetPageEffectEx(APageName: String; AIn: Boolean; AEffectType: TEffectType; AFrameCount: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetPageEffectEx(PChar(APageName), AIn, AEffectType, AFrameCount);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.AddPause(APageName: String; APauseFrame: LongInt; ADelayFrame: LongInt; AAutoResume: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.AddPause(PChar(APageName), APauseFrame, ADelayFrame, AAutoResume);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.DeletePause(APageName: String; APauseFrame: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.DeletePause(PChar(APageName), APauseFrame);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetScrollSpeed(APageName: String; ASpeed: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetScrollSpeed(PChar(APageName), ASpeed);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetAirScrollSpeed(ASpeed: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetAirScrollSpeed(ASpeed);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetAudioFile(APageName: String; AIn: Boolean; AAudioFileName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetAudioFile(PChar(APageName), AIn, PChar(AAudioFileName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetAudioEnable(APageName: String; AIn: Boolean; AEnable: Boolean): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetAudioEnable(PChar(APageName), AIn, AEnable);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetStyleText(APageName: String; AObjName: String; AStyleID: LongInt; ATextValue: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetStyleText(PChar(APageName), PChar(AObjName), AStyleID, PChar(ATextValue));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.SetImageObject(APageName: String; AObjName: String; AObjectID: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.SetImageObject(PChar(APageName), PChar(AObjName), AObjectID);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.AddStyleText(APageName: String; AObjName: String; AStyleID: LongInt; ATextValue: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.AddStyleText(PChar(APageName), PChar(AObjName), AStyleID, PChar(ATextValue));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.AddImageObject(APageName: String; AObjName: String; AObjectID: LongInt): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.AddImageObject(PChar(APageName), PChar(AObjName), AObjectID);
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.AddScrollObject(APageName: String; AObjName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.AddScrollObject(PChar(APageName), PChar(AObjName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.CreateImageFile(APageName: String; AImageWidth: LongInt; AImageHeight: LongInt; AImagePathName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.CreateImageFile(PChar(APageName), AImageWidth, AImageHeight, PChar(AImagePathName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryLoad(APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryLoad(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryPageMode(APageName: String; out APageMode: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryPageMode(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryPageAlias(APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryPageAlias(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryAliasAll(APageName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryAliasAll(PChar(APageName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryObjValue(APageName: String; AObjName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryObjValue(PChar(APageName), PChar(AObjName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TTAP.QueryObjAttr(APageName: String; AObjName: String): Integer;
+var
+  HR: HRESULT;
+begin
+  Result := T3D_FALSE;
+
+  HR := FTAP.QueryObjValue(PChar(APageName), PChar(AObjName));
+  if (Failed(HR)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+{function TTAP.QueryAudioFile(APageName: String; AIn: Boolean): Integer;
+function TTAP.QueryAudioEnable(APageName: String; AIn: Boolean): Integer;
+function TTAP.QueryScrollSpeed(APageName: String): Integer;
+function TTAP.QueryAirScrollMargin(ALayer: TLayer): Integer;
+function TTAP.QueryPageEffect(APageName: String; AIn: Boolean): Integer;
+function TTAP.QueryPageEffectEx(APageName: String; AIn: Boolean): Integer;
+function TTAP.SetObjLine(APageName: String; AObjName: String; AValue: String; ASeqTga: Boolean): Integer;
+function TTAP.SetObjValue2(APageName: String; AVariableName: String; A3D: Boolean; AThick: Integer; ADepth: Integer; AStrCoordinates: String): Integer;
+function TTAP.SetImageObject2(APageName: String; AObjName: String; AFileName: String): Integer;
+function TTAP.AddScrollObject2(APageName: String; AObjName: String; ALayerID: TLayer): Integer;
+function TTAP.TopLayerIn(APageName: String): Integer;
+function TTAP.TopLayerOut: Integer;
+function TTAP.QueryPageTime(APageName: String): Integer;
+function TTAP.ChangeSequenceMode(AMode: Integer): Integer; }
+
+end.

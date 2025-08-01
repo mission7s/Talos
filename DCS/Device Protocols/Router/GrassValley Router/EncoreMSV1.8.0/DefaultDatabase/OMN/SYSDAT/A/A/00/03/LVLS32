@@ -1,0 +1,72 @@
+;RouterLevels
+{
+:Version=1
+;Levels[32]
+{
+:Label
+:Type
+[7]=Level 1
+=0
+[7]=Level 2
+=0
+[7]=Level 3
+=0
+[7]=Level 4
+=0
+[7]=Level 5
+=0
+[7]=Level 6
+=0
+[7]=Level 7
+=0
+[7]=Level 8
+=0
+[7]=Level 9
+=0
+[8]=Level 10
+=0
+[8]=Level 11
+=0
+[8]=Level 12
+=0
+[8]=Level 13
+=0
+[8]=Level 14
+=0
+[8]=Level 15
+=0
+[8]=Level 16
+=0
+[8]=Level 17
+=0
+[8]=Level 18
+=0
+[8]=Level 19
+=0
+[8]=Level 20
+=0
+[8]=Level 21
+=0
+[8]=Level 22
+=0
+[8]=Level 23
+=0
+[8]=Level 24
+=0
+[8]=Level 25
+=0
+[8]=Level 26
+=0
+[8]=Level 27
+=0
+[8]=Level 28
+=0
+[8]=Level 29
+=0
+[8]=Level 30
+=0
+[8]=Level 31
+=0
+[8]=Level 32
+=0
+}

@@ -1,0 +1,1646 @@
+{$MINENUMSIZE 4}
+
+unit UnitK3DAsyncEngine;
+
+interface
+
+uses Winapi.Windows, Winapi.ActiveX, Winapi.MMSystem, System.Classes,
+  System.SysUtils;
+
+type
+  TKBackgroundType = (
+    BACKGROUND_TYPE_NONE,
+    BACKGROUND_TYPE_COLOR,
+    BACKGROUND_TYPE_TEXTURE,
+    BACKGROUND_TYPE_VIDEO
+    );
+
+  TKBackground = record
+    BackgroundType: TKBackgroundType;
+    TextureFilePath: TBStr;
+    R: Integer;
+    G: Integer;
+    B: Integer;
+  end;
+
+  TKSceneEffectType = (
+    SCENE_CHANGE_EFFECT_NONE = 0,
+    SCENE_CHANGE_EFFECT_WIPE = 1,
+    SCENE_CHANGE_EFFECT_PUSH = 2,
+    SCENE_CHANGE_EFFECT_TRANSFORM = 3,
+    SCENE_CHANGE_EFFECT_CURL = 4,
+    SCENE_CHANGE_EFFECT_RIPPLE = 5,
+    SCENE_CHANGE_EFFECT_PARTICLE = 6,
+    SCENE_CHANGE_EFFECT_FADE = 7,
+    SCENE_CHANGE_EFFECT_DISTORTION = 8,
+    SCENE_CHANGE_EFFECT_BLINK = 9,
+    SCENE_CHANGE_EFFECT_CROP = 10,
+    SCENE_CHANGE_EFFECT_BLUR = 11,
+    SCENE_CHANGE_EFFECT_COLOR = 12,
+    SCENE_CHANGE_EFFECT_SIDE_FADE = 13,
+    SCENE_CHANGE_EFFECT_CUT_OUT = 14,
+    SCENE_CHANGE_EFFECT_COUNT = 15
+    );
+
+  TKChangeOutType = (
+    CHANGE_OUT_TYPE_CHANGE_OUT = 0,
+    CHANGE_OUT_TYPE_DEFAULT_OUT = 1,
+    CHANGE_OUT_TYPE_CUT_OUT = 2
+    );
+
+  TKBackgroundChangeType = (
+    BACKGROUND_CHANGE_TYPE_KEEP_WHEN_INFINITE_LOOP = 0,
+    BACKGROUND_CHANGE_TYPE_ALWAYS_CHANGE = 1,
+    BACKGROUND_CHANGE_TYPE_ALWAYS_KEEP = 2
+    );
+
+  TKBackgroundPauseType = (
+    BACKGROUND_PAUSE_TYPE_IGNORE_WHEN_INFINITE_LOOP = 0,
+    BACKGROUND_PAUSE_TYPE_WHEN_PAUSED = 1,
+    BACKGROUND_PAUSE_TYPE_IGNORE = 2
+    );
+
+  TKCameraType = (
+    PRESETTYPE_PERSPECTIVE = 0,
+    PRESETTYPE_FRONT = 1,
+    PRESETTYPE_TOP = 2,
+    PRESETTYPE_LEFT = 3,
+    PRESETTYPE_RIGHT = 4,
+    PRESETTYPE_BOTTOM = 5,
+    PRESETTYPE_BACK = 6,
+    PRESETTYPE_CAMERA = 7,
+    PRESETTYPE_COUNT = 8
+    );
+
+  TKEffectTarget = (
+    EFFECT_TARGET_IN = 0,
+    EFFECT_TARGET_OUT = 1,
+    EFFECT_TARGET_BOTH = 2
+    );
+
+  TKCodec = (
+    CODEC_IBP_420 = 0,
+    CODEC_IBP_422 = 1,
+    CODEC_MPEG2 = 2,
+    CODEC_MPEG2_DVD = 3,
+    CODEC_IFRAME_420 = 4,
+    CODEC_IFRAME_422 = 5,
+    CODEC_IFRAME_4224 = 6,
+    CODEC_XDCAM_HD_25 = 7,
+    CODEC_XDCAM_HD_35 = 8,
+    CODEC_XDCAM_HD_422 = 9,
+    CODEC_DNXHD_LB = 10,
+    CODEC_DNXHD_SQ = 11,
+    CODEC_DNXHD_HQ = 12,
+    CODEC_DNXHD_WITH_ALPHA = 13,
+    CODEC_DNXHR_LB = 14,
+    CODEC_DNXHR_SQ = 15,
+    CODEC_DNXHR_HQ = 16,
+    CODEC_DNXHR_HQX = 17,
+    CODEC_DNXHR_444 = 18,
+    CODEC_DVCAM_411 = 19,
+    CODEC_DVCAM_420 = 20,
+    CODEC_DVCPRO_411 = 21,
+    CODEC_DVCPRO_50_422 = 22,
+    CODEC_DVCPRO_HD = 23,
+    CODEC_AVCINTRA_CLASS_50 = 24,
+    CODEC_AVCINTRA_CLASS_100 = 25,
+    CODEC_MPEG_D10_422 = 26,
+    CODEC_QUICKTIME_RLE = 27,
+    CODEC_QUICKTIME_PNG = 28,
+    CODEC_PRORES_422 = 29,
+    CODEC_PRORES_422_HQ = 30,
+    CODEC_PRORES_422_LT = 31,
+    CODEC_PRORES_422_PROXY = 32,
+    CODEC_PRORES_4444 = 33,
+    CODEC_PRORES_4444_WITH_ALPHA = 34,
+    CODEC_H264 = 35,
+    CODEC_MPEG4 = 36,
+    CODEC_XAVC_INTRA_CLASS_100_CBG = 37,
+    CODEC_XAVC_INTRA_CLASS_300_CBG = 38,
+    CODEC_XAVC_INTRA_CLASS_300_VBR = 39,
+    CODEC_XAVC_INTRA_CLASS_480_CBG = 40,
+    CODEC_XAVC_INTRA_CLASS_480_VBR = 41,
+    CODEC_XAVC_LONG_GOP_25 = 42,
+    CODEC_XAVC_LONG_GOP_35 = 43,
+    CODEC_XAVC_LONG_GOP_50 = 44,
+    CODEC_WMV = 45,
+    CODEC_VRV = 46,
+    CODEC_COUNT = 47
+    );
+
+  TKOutputType = (
+    OUT_PUT_TYPE_DEFAULT = 0,
+    OUT_PUT_TYPE_FILL = 1,
+    OUT_PUT_TYPE_KEY = 2,
+    OUT_PUT_TYPE_FILL_KEY = 3,
+    OUT_PUT_TYPE_COUNT = 4
+    );
+
+  TKLayerInfo = record
+    LayerNo: Integer;
+    PlaybackRangeNo: Integer;
+    CameraType: TKCameraType;
+    CameraIndex: Integer;
+    RepeatCount: Integer;
+    ClearDepth: LongInt;
+    AutoPrepare: LongInt;
+    PreviewOff: LongInt;
+  end;
+
+  TKPlayAudioType = (
+    PLAY_AUDIO_SDI = 0,
+    PLAY_AUDIO_SPEAKER = 1,
+    PLAY_AUDIO_SDI_SPEAKER = 2
+    );
+
+  TKVideoFormat = (
+    VIDEO_FORMAT_1080i_2500 = 0,
+    VIDEO_FORMAT_1080i_2997 = 1,
+    VIDEO_FORMAT_1080i_3000 = 2,
+    VIDEO_FORMAT_720p_5994 = 3,
+    VIDEO_FORMAT_720p_6000 = 4,
+    VIDEO_FORMAT_1080psf_2398 = 5,
+    VIDEO_FORMAT_1080psf_2400 = 6,
+    VIDEO_FORMAT_1080p_2997 = 7,
+    VIDEO_FORMAT_1080p_3000 = 8,
+    VIDEO_FORMAT_1080p_2500 = 9,
+    VIDEO_FORMAT_1080p_2398 = 10,
+    VIDEO_FORMAT_1080p_2400 = 11,
+    VIDEO_FORMAT_1080p_2K_2398 = 12,
+    VIDEO_FORMAT_1080p_2K_2400 = 13,
+    VIDEO_FORMAT_1080psf_2K_2398 = 14,
+    VIDEO_FORMAT_1080psf_2K_2400 = 15,
+    VIDEO_FORMAT_720p_5000 = 16,
+    VIDEO_FORMAT_525_2997 = 17,
+    VIDEO_FORMAT_625_2500 = 18,
+    VIDEO_FORMAT_487_2997 = 19,
+    VIDEO_FORMAT_1080p_50 = 20,
+    VIDEO_FORMAT_1080p_5994 = 21,
+    VIDEO_FORMAT_2160p_2997 = 22,
+    VIDEO_FORMAT_2160p_3000 = 23,
+    VIDEO_FORMAT_2160p_5994 = 24,
+    VIDEO_FORMAT_2160p_6000 = 25,
+    VIDEO_FORMAT_2160p_2398 = 26,
+    VIDEO_FORMAT_2160p_2400 = 27,
+    VIDEO_FORMAT_2160p_2500 = 28,
+    VIDEO_FORMAT_3840_1080i_2997 = 29,
+    VIDEO_FORMAT_CUSTOM = 30,
+    VIDEO_FORMAT_2160p_5000 = 31,
+    VIDEO_FORMAT_COUNT = 32
+    );
+
+  TKFrameRate = (
+    FRAME_RATE_2398 = 0,
+    FRAME_RATE_2400 = 1,
+    FRAME_RATE_2500 = 2,
+    FRAME_RATE_2997 = 3,
+    FRAME_RATE_3000 = 4,
+    FRAME_RATE_5000 = 5,
+    FRAME_RATE_5994 = 6,
+    FRAME_RATE_6000 = 7,
+    FRAME_RATE_COUNT = 8
+    );
+
+  TKScan = (
+    SCAN_PROGRESSIVE = 0,
+    SCAN_UPPER_FIELD_FIRST = 1,
+    SCAN_LOWER_FIELD_FIRST = 2,
+    SCAN_PROGRESSIVE_SEGMENTED = 3,
+    SCAN_COUNT = 4
+    );
+
+  TKSize = record
+    cx: Integer;
+    cy: Integer;
+  end;
+
+  TKVideoFormatRec = record
+    FrameSize: TKSize;
+    FrameRate: TKFrameRate;
+    ScanMode: TKScan;
+  end;
+
+  TKAnimationType = (
+    ANIMATION_TYPE_DEFAULT = 0,
+    ANIMATION_TYPE_OUT = 1,
+    ANIMATION_TYPE_CHANGE_OUT = 2,
+    ANIMATION_TYPE_TRIGGER_0 = 3
+    );
+
+const
+  CLSID_KAEventHandler: TGUID = '{39828C77-EFF0-4E59-979B-8673C028C718}';
+  CLSID_KACamera: TGUID = '{44846521-6bbc-42ba-a373-fd108724964e}';
+  CLSID_KAEffect: TGUID = '{9d6126b3-b521-4fb3-8c89-ed3c5198d355}';
+  CLSID_KAObject: TGUID = '{3EDCA029-CF4F-4E02-8FCE-4B8ED0DE3E8F}';
+  CLSID_KAScene: TGUID = '{3827312B-6CE7-48EA-89B0-90493345AA53}';
+  CLSID_KAScenePlayer: TGUID = '{599F7ED4-55C9-4C4D-9964-4A94E227DCDE}';
+  CLSID_KAEngine: TGUID = '{D756CDBE-AA31-42B2-9CC7-018753CA61BF}';
+
+  IID_IKAEventHandler: TGUID = '{C21817DB-C0D3-4647-8D85-027338DCF832}';
+  IID_IKACamera: TGUID = '{48c5f034-5e76-4047-9afd-f6f54acdfe5b}';
+  IID_IKAEffect: TGUID = '{e2fc3835-637c-4cee-a475-fb459cedbea1}';
+  IID_IKAObject: TGUID = '{B138B515-505B-4C7B-A3E1-F82782005ECF}';
+  IID_IKAScene: TGUID = '{BFD73274-AC76-437B-AF85-35682543F44C}';
+  IID_IKAScenePlayer: TGUID = '{14083C84-4B17-41BF-AE1A-206F13C0E5C5}';
+  IID_IKAEngine: TGUID = '{0078871C-2181-4339-8A75-3D08606A5F83}';
+
+type
+  IKACamera = interface;
+  IKAEffect = interface;
+  IKAObject = interface;
+  IKAScene = interface;
+  IKAScenePlayer = interface;
+
+  IKAEventHandler = interface(IUnknown)
+    ['{C21817DB-C0D3-4647-8D85-027338DCF832}']
+    function raw_OnLogMessage(LogMessage: TBStr): HRESULT; stdcall;
+    function raw_OnMessageNo(MessageNo: LongInt): HRESULT; stdcall;
+
+    // Engine
+    function raw_OnHello: HRESULT; stdcall;
+    function raw_OnClose(ErrorCode: Integer): HRESULT; stdcall;
+    function raw_OnLoadProject(bSuccess: Boolean; pScene: IKAScene; TotalCount: Integer): HRESULT; stdcall;
+    function raw_OnNewProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnCloseProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnSelectProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnLoadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT; stdcall;
+    function raw_OnUnloadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT; stdcall;
+    function raw_OnReloadScene(bSuccess: Boolean; FileName: TBStr; SceneName: TBStr): HRESULT; stdcall;
+    function raw_OnBeginTransaction(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnEndTransaction(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnRollbackTransaction(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnHeartBeat(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnUnloadAll(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnSetTrialPlayMode(bSuccess: Boolean): HRESULT; stdcall;
+
+    // ScenePlayer
+    function raw_OnScenePrepare(bSuccess: Boolean; SceneName: TBStr; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnScenePrepareEx(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnPlay(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnPlayOut(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnStop(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnStopAll(bSuccess: Boolean): HRESULT; stdcall;
+    function raw_OnPause(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnResume(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnQueryIsOnAir(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnTrigger(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType): HRESULT; stdcall;
+    function raw_OnTriggerByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationName: TBStr): HRESULT; stdcall;
+    function raw_OnTriggerObject(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType; bWithChildren: Boolean): HRESULT; stdcall;
+    function raw_OnTriggerObjectByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationNmae: TBStr; bWithChildren: Boolean): HRESULT; stdcall;
+    function raw_OnSavePreviewImage(bSuccess: Boolean; ImagePathName: TBStr; Width: Integer; Height: Integer): HRESULT; stdcall;
+    function raw_OnSetScrollSpeedByScenePlayer(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; Speed: Double): HRESULT; stdcall;
+    function raw_OnAdjustScrollSpeed(bSuccess: Boolean; LayerNo: Integer; SpeedDelta: Double): HRESULT; stdcall;
+    function raw_OnResumeBackground(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnPlayDirect(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex, LayerNo: Integer; pScene: IKAScene): HRESULT; stdcall;
+    function raw_OnCutIn(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnCutOut(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnClearNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnPlayRange(bSuccess: Boolean; OutputChannelIndex, LayerNo, PlaybackRangeNo: Integer): HRESULT; stdcall;
+    function raw_OnPlayInNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+    function raw_OnPlayOutNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; stdcall;
+  end;
+
+  IKACamera = interface(IDispatch)
+    ['{48c5f034-5e76-4047-9afd-f6f54acdfe5b}']
+  end;
+
+  IKAEffect = interface(IDispatch)
+    ['{e2fc3835-637c-4cee-a475-fb459cedbea1}']
+  end;
+
+  IKAObject = interface(IDispatch)
+    ['{B138B515-505B-4C7B-A3E1-F82782005ECF}']
+  end;
+
+  IKAScene = interface(IDispatch)
+    ['{BFD73274-AC76-437B-AF85-35682543F44C}']
+      function raw_Unload: HRESULT; stdcall;
+      function raw_GetSceneName(out _SceneName: TBStr): HRESULT; stdcall;
+      function raw_GetFileName(out _FileName: TBStr): HRESULT; stdcall;
+      function raw_QueryVariables: HRESULT; stdcall;
+      function raw_QueryAnimationNames: HRESULT; stdcall;
+      function raw_GetObject(ObjectName: TBStr; out pObject: IKAObject): HRESULT; stdcall;
+      function raw_SetBackground(pKBackground: TKBackground): HRESULT; stdcall;
+      function raw_QueryAnimationCount: HRESULT; stdcall;
+      function raw_SaveScene(K3SFileName: TBStr; UseCollect: LongInt): HRESULT; stdcall;
+      function raw_QueryChartObjects: HRESULT; stdcall;
+      function raw_QueryLightNames: HRESULT; stdcall;
+      function raw_SetSceneEffectType(bInEffect: LongInt; EffectType: TKSceneEffectType; Duration: Integer): HRESULT; stdcall;
+      function raw_QuerySceneEffectType(bInEffect: LongInt): HRESULT; stdcall;
+      function raw_SaveImageFile(ImagePathName: TBStr; ImageWidth: Integer; ImageHeight: Integer; Frame: LongInt): HRESULT; stdcall;
+      function raw_Reload: HRESULT; stdcall;
+      function raw_AddPause(AnimationType: Integer; FrameNo: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_AddPauseByName(AnimationName: TBStr; FrameNo: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_DeletePause(AnimationType: Integer; FrameNo: Integer; bAll: LongInt): HRESULT; stdcall;
+      function raw_DeletePauseByName(AnimationName: Integer; FrameNo: Integer; bAll: LongInt): HRESULT; stdcall;
+      function raw_UpdateTextures: HRESULT; stdcall;
+      function raw_SetChangeOut(ChangeOutType: TKChangeOutType): HRESULT; stdcall;
+      function raw_SetBackgroundFill(R: Integer; G: Integer; B: Integer; A: Integer): HRESULT; stdcall;
+      function raw_SetBackgroundTexture(TextureFileName: TBStr): HRESULT; stdcall;
+      function raw_SetBackgroundVideo(VideoFileName: TBStr; LoopCount: Integer; LoopInfinite: LongInt): HRESULT; stdcall;
+      function raw_SetBackgroundLiveIn(InputChannel: Integer): HRESULT; stdcall;
+      function raw_UseBackground(Use: LongInt): HRESULT; stdcall;
+      function raw_AddObject(pObject: IKAObject): HRESULT; stdcall;
+      function raw_QueryPickedObjects(X: Integer; Y: Integer): HRESULT; stdcall;
+      function raw_SetSceneScrollSpeed(Speed: Double): HRESULT; stdcall;
+      function raw_CreateWithAFile(FileName: TBStr; VariableName: TBStr): HRESULT; stdcall;
+      function raw_SetSceneAudioFile(AnimationType: Integer; AudioFileName: TBStr): HRESULT; stdcall;
+      function raw_EnableSceneAudio(AnimationType: Integer; bEnable: LongInt): HRESULT; stdcall;
+      function raw_UpdateThumbnail: HRESULT; stdcall;
+      function raw_SetSceneDuration(AnimationType: Integer; Duration: Integer): HRESULT; stdcall;
+      function raw_SetBackgroundChangeType(ChangeType: TKBackgroundChangeType): HRESULT; stdcall;
+      function raw_SetBackgroundPauseType(ChangeType: TKBackgroundPauseType): HRESULT; stdcall;
+      function raw_AddAbsolutePause(AnimationType: Integer; FrameNo: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_ResetTotalTime(AnimationType: Integer): HRESULT; stdcall;
+      function raw_SetTotalTime(AnimationType: Integer; Frame: Integer): HRESULT; stdcall;
+      function raw_DownloadThumbnail(ImagePathName: TBStr; ImageWidth: Integer; ImageHeight: Integer; Frame: Integer): HRESULT; stdcall;
+      function raw_SetBackgroundPauseAtZeroFrameAsStandBy(bPause: LongInt): HRESULT; stdcall;
+      function raw_GetKAEffect(out pEffect: IKAEffect): HRESULT; stdcall;
+      function raw_AddCloneObject(pObject: IKAObject; NewVariable: TBStr): HRESULT; stdcall;
+      function raw_ApplyLibrary(LibraryPath: TBStr; EffectTarget: TKEffectTarget): HRESULT; stdcall;
+      function raw_QueryPauseCount(AnimationType: Integer): HRESULT; stdcall;
+      function raw_QueryPauseCountByName(AnimationName: TBStr): HRESULT; stdcall;
+      function raw_QueryPlaybackRangeCount: HRESULT; stdcall;
+      function raw_QueryPlaybackRange(PlaybackRangeNo: Integer): HRESULT; stdcall;
+      function raw_SetVROffset(Horz: Double; Vert: Double): HRESULT; stdcall;
+      function raw_SetOutputChannelIndex(OutputChannelIndex: Integer): HRESULT; stdcall;
+      function raw_QueryOutputChannelIndex: HRESULT; stdcall;
+      function raw_QueryTotalTime(AnimationType: Integer): HRESULT; stdcall;
+      function raw_SetPlaybackCamera(CameraVariable: TBStr): HRESULT; stdcall;
+      function raw_GetPlaybackCamera(out pICamera: IKACamera): HRESULT; stdcall;
+      function raw_GetCamera(Variable: TBStr; out pICamera: IKACamera): HRESULT; stdcall;
+      function raw_ExportVideo(FileName: TBStr; VideoFormat: TKVideoFormatRec; bPremultipliedAlpha: LongInt; Codec: TKCodec; OutputType: TKOutputType; bOverWrite: LongInt): HRESULT; stdcall;
+      function raw_StopVideoExporting: HRESULT; stdcall;
+      function raw_QueryVideoExportingProgress: HRESULT; stdcall;
+      function raw_SetPause(AnimationType: Integer; FrameNo: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_SetPauseByName(AnimationName: TBStr; FrameNo: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_SetPauseWithIndex(AnimationType: Integer; Index: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_SetPauseWithIndexByName(AnimationName: TBStr; Index: Integer; Delay: Integer; bAuto: LongInt): HRESULT; stdcall;
+      function raw_DeletePauseWithIndex(AnimationType: Integer; Index: Integer; bAll: LongInt): HRESULT; stdcall;
+      function raw_DeletePauseWithIndexByName(AnimationName: TBStr; Index: Integer; bAll: LongInt): HRESULT; stdcall;
+  end;
+
+  IKAScenePlayer = interface(IDispatch)
+    ['{14083C84-4B17-41BF-AE1A-206F13C0E5C5}']
+    function raw_Prepare(LayerNo: Integer; pScene: IKAScene): HRESULT; stdcall;
+    function raw_PrepareEx(pLayerInfo: TKLayerInfo; pScene: IKAScene): HRESULT; stdcall;
+    function raw_Play(LayerNo: Integer): HRESULT; stdcall;
+    function raw_PlayOut(LayerNo: Integer): HRESULT; stdcall;
+    function raw_Stop(LayerNo: Integer): HRESULT; stdcall;
+    function raw_StopAll: HRESULT; stdcall;
+    function raw_Pause(LayerNo: Integer): HRESULT; stdcall;
+    function raw_Resume(LayerNo: Integer): HRESULT; stdcall;
+    function raw_QueryIsOnAir(LayerNo: Integer): HRESULT; stdcall;
+    function raw_Trigger(LayerNo: Integer; AnimationType: Integer): HRESULT; stdcall;
+    function raw_TriggerObject(ObjectName: TBStr; LayerNo: Integer; AnimationType: Integer; bWithChildren: LongInt): HRESULT; stdcall;
+    function raw_TriggerByName(LayerNo: Integer; AnimationName: TBStr): HRESULT; stdcall;
+    function raw_TriggerObjectByName(ObjectName: TBStr; LayerNo: Integer; AnimationName: TBstr; bWithChildren: LongInt): HRESULT; stdcall;
+    function raw_GetPlayingScene(LayerNo: Integer; out pScene: IKAScene): HRESULT; stdcall;
+    function raw_SavePreviewImage(ImagePathName: TBStr; Width: Integer; Height: Integer): HRESULT; stdcall;
+    function raw_SetScrollSpeed(LayerNo: Integer; Speed: Double): HRESULT; stdcall;
+    function raw_AdjustScrollSpeed(LayerNo: Integer; SpeedDelta: Double): HRESULT; stdcall;
+    function raw_ResumeBackground(LayerNo: Integer): HRESULT; stdcall;
+    function raw_PlayDirect(LayerNo: Integer; pScene: IKAScene): HRESULT; stdcall;
+    function raw_CutIn(LayerNo: Integer): HRESULT; stdcall;
+    function raw_CutOut(LayerNo: Integer): HRESULT; stdcall;
+    function raw_ClearNextPreview(LayerNo: Integer): HRESULT; stdcall;
+    function raw_PlayRange(LayerNo: Integer; PlaybackRangeNo: Integer): HRESULT; stdcall;
+    function raw_PlayInNextPreview(LayerNo: Integer): HRESULT; stdcall;
+    function raw_PlayOutNextPreview(LayerNo: Integer): HRESULT; stdcall;
+  end;
+
+  IKAEngine = interface(IDispatch)
+    ['{0078871C-2181-4339-8A75-3D08606A5F83}']
+    function raw_KTAPConnect(bTCP: LongInt; HostAddress: TBStr; nHostPort: LongInt; nClientPort: LongInt; pHandler: IKAEventHandler; out LongInt): HRESULT; stdcall;
+    function raw_Disconnect: HRESULT; stdcall;
+    function raw_GetScenePlayer(out pScenePlayer: IKAScenePlayer): HRESULT; stdcall;
+    function raw_LoadScene(FileName: TBStr; SceneName: TBStr; out pSceene: IKAScene): HRESULT; stdcall;
+    function raw_UnloadScene(SceneName: TBStr): HRESULT; stdcall;
+    function raw_LoadProject(FileName: TBStr; AliasName: TBStr): HRESULT; stdcall;
+    function raw_BeginTransaction: HRESULT; stdcall;
+    function raw_EndTransaction: HRESULT; stdcall;
+    function raw_RollbackTransaction: HRESULT; stdcall;
+    function raw_GetLastMessageNo(out pMessageNo: Cardinal): HRESULT; stdcall;
+    function raw_HeartBeat: HRESULT; stdcall;
+    function raw_UnloadAll: HRESULT; stdcall;
+    function raw_SelectProject(AliasName: TBStr): HRESULT; stdcall;
+    function raw_CloseProject(AliasName: TBStr): HRESULT; stdcall;
+    function raw_SendMosMessage(MosMessage: TBStr): HRESULT; stdcall;
+    function raw_ReceiveFile(ExistingFileName: TBStr; NewFileName: TBStr): HRESULT; stdcall;
+    function raw_NewProject(TitleName: TBStr; AliasName: TBStr): HRESULT; stdcall;
+    function raw_PrepareItem(LayerNo: Integer; AliasName: TBStr; SceneName: TBStr): HRESULT; stdcall;
+    function raw_BeginUpdateItems(AliasName: TBStr): HRESULT; stdcall;
+    function raw_EndUpdateItems: HRESULT; stdcall;
+    function raw_UpdateItems(SceneName: TBStr; ScenePath: TBStr): HRESULT; stdcall;
+    function raw_StartVideoCapture(FilePath: TBStr; VideoCodecIndex: Integer): HRESULT; stdcall;
+    function raw_StopVideoCapture: HRESULT; stdcall;
+    function raw_CaptureImage(FilePath: TBStr): HRESULT; stdcall;
+    function raw_LoadStyleLibrarys(LibraryPath: TBStr): HRESULT; stdcall;
+    function raw_LoadAnimationLibrarys(LibraryPath: TBStr): HRESULT; stdcall;
+    function raw_LoadMaterialLibrarys(LibraryPath: TBStr): HRESULT; stdcall;
+    function raw_CheckVersion: HRESULT; stdcall;
+    function raw_LoadSceneForce(FileName: TBStr; SceneName: TBStr; out pScene: IKAScene): HRESULT; stdcall;
+    function raw_SetAudioOutput(PlayAudioType: TKPlayAudioType): HRESULT; stdcall;
+    function raw_SetTrialPlayMode: HRESULT; stdcall;
+    function raw_GetScenePlayerOnChannel(OutputChannelIndex: Integer; out pScenePlayer: IKAScenePlayer): HRESULT; stdcall;
+    function raw_EndTransactionOnChannel(OutputChannelIndex: Integer): HRESULT; stdcall;
+    function raw_GetVideoFormat(VideoFormatID: TKVideoFormat; out VideoFormat: TKVideoFormatRec): HRESULT; stdcall;
+  end;
+
+type
+  TKAScenePlayer = class;
+  TKAEngine = class;
+
+  TKAEventHandler = class(TObject, IKAEventHandler)
+  private
+    FEngine: TKAEngine;
+
+    FRefCount: Integer;
+  protected
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+
+    function raw_OnLogMessage(LogMessage: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnMessageNo(MessageNo: LongInt): HRESULT; virtual; stdcall;
+
+    // Engine
+    function raw_OnHello: HRESULT; virtual; stdcall;
+    function raw_OnClose(ErrorCode: Integer): HRESULT; virtual; stdcall;
+    function raw_OnLoadProject(bSuccess: Boolean; pScene: IKAScene; TotalCount: Integer): HRESULT; stdcall;
+    function raw_OnNewProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnCloseProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnSelectProject(bSuccess: Boolean; AliasName: TBStr): HRESULT; stdcall;
+    function raw_OnLoadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnLoadSceneForce(bSuccess: Boolean; SceneName: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnUnloadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnReloadScene(bSuccess: Boolean; FileName: TBStr; SceneName: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnBeginTransaction(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnEndTransaction(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnRollbackTransaction(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnHeartBeat(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnUnloadAll(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnSetTrialPlayMode(bSuccess: Boolean): HRESULT; virtual; stdcall;
+
+    // ScenePlayer
+    function raw_OnScenePrepare(bSuccess: Boolean; SceneName: TBStr; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnScenePrepareEx(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlay(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlayOut(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnStop(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnStopAll(bSuccess: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnPause(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnResume(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnQueryIsOnAir(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnTrigger(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType): HRESULT; virtual; stdcall;
+    function raw_OnTriggerByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationName: TBStr): HRESULT; virtual; stdcall;
+    function raw_OnTriggerObject(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType; bWithChildren: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnTriggerObjectByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationNmae: TBStr; bWithChildren: Boolean): HRESULT; virtual; stdcall;
+    function raw_OnSavePreviewImage(bSuccess: Boolean; ImagePathName: TBStr; Width: Integer; Height: Integer): HRESULT; virtual; stdcall;
+    function raw_OnSetScrollSpeedByScenePlayer(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; Speed: Double): HRESULT; virtual; stdcall;
+    function raw_OnAdjustScrollSpeed(bSuccess: Boolean; LayerNo: Integer; SpeedDelta: Double): HRESULT; virtual; stdcall;
+    function raw_OnResumeBackground(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlayDirect(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex, LayerNo: Integer; pScene: IKAScene): HRESULT; virtual; stdcall;
+    function raw_OnCutIn(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnCutOut(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnClearNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlayRange(bSuccess: Boolean; OutputChannelIndex, LayerNo, PlaybackRangeNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlayInNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnPlayOutNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+
+    // Scene
+
+    function raw_OnScenePlayed(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnSceneAnimationPlayed(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnScenePaused(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT; virtual; stdcall;
+    function raw_OnSceneSaved(bSuccess: Boolean; FileName: TBStr): HRESULT; virtual; stdcall;
+
+    function raw_OnFinishedVideoExporting(bSuccess: Boolean; FileName: TBStr): HRESULT; virtual; stdcall;
+  public
+    constructor Create(AKAEngine: TKAEngine);
+    destructor Destroy; override;
+
+    property KAEngine: TKAEngine read FEngine;
+  end;
+
+  TKAScenePlayer = class(TObject)
+  private
+    FScenePlayer: IKAScenePlayer;
+    FEngine: TKAEngine;
+  public
+    constructor Create(AKAEngine: TKAEngine);
+    destructor Destroy; override;
+
+    function Prepare(ALayerNo: Integer; AScene: IKAScene): HRESULT;
+    function PrepareEx(ALayerInfo: TKLayerInfo; AScene: IKAScene): HRESULT;
+    function Play(ALayerNo: Integer): HRESULT;
+    function PlayOut(ALayerNo: Integer): HRESULT;
+    function Stop(ALayerNo: Integer): HRESULT;
+    function StopAll: HRESULT;
+    function Pause(ALayerNo: Integer): HRESULT;
+    function Resume(ALayerNo: Integer): HRESULT;
+    function QueryIsOnAir(ALayerNo: Integer): HRESULT;
+    function Trigger(ALayerNo: Integer; AAnimationType: Integer): HRESULT;
+    function TriggerObject(AObjectName: TBStr; ALayerNo: Integer; AAnimationType: Integer; AWithChildren: LongInt): HRESULT;
+    function TriggerByName(ALayerNo: Integer; AAnimationName: TBStr): HRESULT;
+    function TriggerObjectByName(AObjectName: TBStr; ALayerNo: Integer; AAnimationName: TBstr; AWithChildren: LongInt): HRESULT;
+    function GetPlayingScene(ALayerNo: Integer; out AScene: IKAScene): HRESULT;
+    function SavePreviewImage(AImagePathName: TBStr; AWidth: Integer; AHeight: Integer): HRESULT;
+    function SetScrollSpeed(ALayerNo: Integer; ASpeed: Double): HRESULT;
+    function AdjustScrollSpeed(ALayerNo: Integer; ASpeedDelta: Double): HRESULT;
+    function ResumeBackground(ALayerNo: Integer): HRESULT;
+    function PlayDirect(ALayerNo: Integer; AScene: IKAScene): HRESULT;
+    function CutIn(ALayerNo: Integer): HRESULT;
+    function CutOut(ALayerNo: Integer): HRESULT;
+    function ClearNextPreview(ALayerNo: Integer): HRESULT;
+    function PlayRange(ALayerNo: Integer; APlaybackRangeNo: Integer): HRESULT;
+    function PlayInNextPreview(ALayerNo: Integer): HRESULT;
+    function PlayOutNextPreview(ALayerNo: Integer): HRESULT;
+  end;
+
+  TKALogMessageEvent = procedure(Sender: TObject; ALogMessage: String) of object;
+  TKAMessageNoEvent = procedure(Sender: TObject; AMessageNo: LongInt) of object;
+
+  TKAReceiveEvent = procedure(Sender: TObject; ReceiveData: String) of object;
+
+  TKAEngine = class(TObject)
+  private
+    FEventHandler: TKAEventHandler;
+    FEngine: IKAEngine;
+
+    FOnLogMessage: TKALogMessageEvent;
+    FOnMessageNo: TKAMessageNoEvent;
+
+    FOnConnectEvent: TNotifyEvent;
+    FOnCloseEvent: TNotifyEvent;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Connect(ATCP: Boolean; AHostAddress: String; AHostPort: LongInt; AClientPort: LongInt): HRESULT;
+    function Disconnect: HRESULT;
+    function GetScenePlayer(AScenePlayer: TKAScenePlayer): HRESULT;
+    function LoadScene(AFileName: String; ASceneName: String; out ASceene: IKAScene): HRESULT;
+    function UnloadScene(ASceneName: String): HRESULT;
+    function LoadProject(AFileName: String; AAliasName: String; out AScene: IKAScene; out ATotalCount: Integer): HRESULT;
+    function BeginTransaction: HRESULT;
+    function EndTransaction: HRESULT;
+    function RollbackTransaction: HRESULT;
+    function GetLastMessageNo(out AMessageNo: Cardinal): HRESULT;
+    function HeartBeat: HRESULT;
+    function UnloadAll: HRESULT;
+    function SelectProject(AAliasName: String): HRESULT;
+    function CloseProject(AAliasName: String): HRESULT;
+    function SendMosMessage(AMosMessage: String): HRESULT;
+    function ReceiveFile(AExistingFileName: String; ANewFileName: String): HRESULT;
+    function NewProject(ATitleName: String; AAliasName: String): HRESULT;
+    function PrepareItem(ALayerNo: Integer; AAliasName: String; ASceneName: String): HRESULT;
+    function BeginUpdateItems(AAliasName: String): HRESULT;
+    function EndUpdateItems: HRESULT;
+    function UpdateItems(ASceneName: String; AScenePath: String): HRESULT;
+    function StartVideoCapture(AFilePath: String; AVideoCodecIndex: Integer): HRESULT;
+    function StopVideoCapture: HRESULT;
+    function CaptureImage(AFilePath: String): HRESULT;
+    function LoadStyleLibrarys(ALibraryPath: String): HRESULT;
+    function LoadAnimationLibrarys(ALibraryPath: String): HRESULT;
+    function LoadMaterialLibrarys(ALibraryPath: String): HRESULT;
+    function CheckVersion: HRESULT;
+    function LoadSceneForce(AFileName: String; ASceneName: String; out AScene: IKAScene): HRESULT;
+    function SetAudioOutput(APlayAudioType: TKPlayAudioType): HRESULT;
+    function SetTrialPlayMode: HRESULT;
+    function GetScenePlayerOnChannel(AOutputChannelIndex: Integer; AScenePlayer: TKAScenePlayer): HRESULT;
+    function EndTransactionOnChannel(AOutputChannelIndex: Integer): HRESULT;
+    function GetVideoFormat(AVideoFormatID: TKVideoFormat; out AVideoFormat: TKVideoFormatRec): HRESULT;
+
+    property OnLogMessage: TKALogMessageEvent read FOnLogMessage write FOnLogMessage;
+    property OnMessageNo: TKAMessageNoEvent read FOnMessageNo write FOnMessageNo;
+
+//    property OnConnectEvent: TNotifyEvent read FOnConnectEvent write FOnConnectEvent;
+//    property OnReceiveEvent: TK3DAyncEngineReceiveEvent read FOnReceiveEvent write FOnReceiveEvent;
+//    property OnCloseEvent: TNotifyEvent read FOnCloseEvent write FOnCloseEvent;
+  end;
+
+implementation
+
+var
+  KASyncMsgEvent: THandle;
+  KATimeOut: Word;
+  KALastResult: HRESULT;
+
+  KALastScene: IKAScene;
+  KALastTotalCount: Integer;
+
+//  function MsgWaitForHandles(ACount: Cardinal; AHandles: array of THandle; ATimeOut, AWakeMask: DWORD): DWORD;
+//  function WaitForSyncMsgEvent: Integer;
+
+//var
+//  aa: Integer;
+//
+//implementation
+
+function MsgWaitForHandles(ACount: Cardinal; AHandles: array of THandle; ATimeOut, AWakeMask: DWORD): DWORD;
+var
+  // wait for the event to be signalled, or for the timeout (in MS) to expire.
+  // allow SENT messages to be processed while we wait
+  Wait, StartTime: DWord;
+  // set the waiting period.
+  WaitTime: Dword;
+  Msg: TMsg;
+  Elapsed: DWord;
+begin
+  WaitTime := ATimeout;
+
+  // the timeout will eventually run down as we iterate processing messages.
+  // grab the start time so that we can calculate elapsed times.
+  if (WaitTime <> INFINITE) then
+    StartTime := timeGetTime
+  else
+    StartTime := 0; // don't generate compiler hint
+
+  repeat
+    Wait := MsgWaitForMultipleObjects(ACount, AHandles, False, WaitTime, AWakeMask);
+    if (Wait = WAIT_OBJECT_0 + ACount) then
+    begin
+      while (PeekMessage(Msg, 0, 0, 0, PM_REMOVE)) do
+      begin
+        TranslateMessage(Msg);
+        DispatchMessage(Msg);
+//        Application.HandleMessage;
+      end;
+      //==PeekMessage(Msg, 0, 0, 0, PM_REMOVE);
+
+	    // If we have an explicit length of time to wait calculate the next wake up point - which might be now.
+	    // If dwTimeout is INFINITE, it stays INFINITE
+	    if (WaitTime <> INFINITE) then
+      begin
+    	  Elapsed := timeGetTime - StartTime;
+        if (Elapsed >= ATimeout) then
+          WaitTime := 0
+        else // wake up with WAIT_TIMEOUT
+    	    WaitTime := ATimeout - Elapsed;
+      end;
+    end;
+  until (Wait <> WAIT_OBJECT_0 + ACount);
+
+  // return True if we woke on the event handle, FALSE if we timed out.
+  Result := Wait; //(Wait = WAIT_OBJECT_0);
+end;
+
+function WaitForSyncMsgEvent: Integer;
+var
+  R: DWORD;
+  WaitHandles: array[0..0] of THandle;
+begin
+  WaitHandles[0] := KASyncMsgEvent;
+
+  ResetEvent(KASyncMsgEvent);
+  R := MsgWaitForHandles(1, WaitHandles, KATimeOut, QS_POSTMESSAGE);
+  case R of
+    WAIT_OBJECT_0:
+    begin
+      Result := KALastResult;
+    end;
+  else
+    Result := E_FAIL;
+  end;
+end;
+
+function GetLastResult(ASuccess: Boolean): HRESULT;
+begin
+  if (ASuccess) then
+    Result := S_OK
+  else
+    Result := E_FAIL;
+end;
+
+{ TKAEventHandler }
+
+constructor TKAEventHandler.Create(AKAEngine: TKAEngine);
+var
+  HR: HRESULT;
+begin
+  FEngine := AKAEngine;
+
+  FRefCount := 1;
+end;
+
+destructor TKAEventHandler.Destroy;
+begin
+  FEngine := nil;
+
+  inherited Destroy;
+end;
+
+function TKAEventHandler.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  Result := S_FALSE;
+end;
+
+function TKAEventHandler._AddRef: Integer;
+begin
+  Result := InterlockedIncrement(FRefCount);
+//	Inc(FRefCount);
+//  Result := FRefCount;
+end;
+
+function TKAEventHandler._Release: Integer;
+begin
+  Result := InterlockedDecrement(FRefCount);
+//	Dec(FRefCount);
+
+//  if (FRefCount = 0) then
+//    Destroy;
+
+//  Result := FRefCount;
+end;
+
+function TKAEventHandler.raw_OnLogMessage(LogMessage: TBStr): HRESULT;
+begin
+  if Assigned(FEngine.OnLogMessage) then
+    FEngine.OnLogMessage(Self, String(LogMessage));
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnMessageNo(MessageNo: LongInt): HRESULT;
+begin
+  if Assigned(FEngine.OnMessageNo) then
+    FEngine.OnMessageNo(Self, MessageNo);
+
+  Result := S_OK;
+end;
+
+// Engine handler
+function TKAEventHandler.raw_OnHello: HRESULT;
+begin
+  KALastResult := S_OK;
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnClose(ErrorCode: Integer): HRESULT;
+begin
+  KALastResult := ErrorCode;
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnLoadProject(bSuccess: Boolean; pScene: IKAScene; TotalCount: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  KALastScene := pScene;
+  KALastTotalCount := TotalCount;
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnNewProject(bSuccess: Boolean; AliasName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnCloseProject(bSuccess: Boolean; AliasName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSelectProject(bSuccess: Boolean; AliasName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnLoadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnLoadSceneForce(bSuccess: Boolean; SceneName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnUnloadScene(bSuccess: Boolean; SceneName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnReloadScene(bSuccess: Boolean; FileName: TBStr; SceneName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnBeginTransaction(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnEndTransaction(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnRollbackTransaction(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnHeartBeat(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnUnloadAll(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSetTrialPlayMode(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+// ScenePlayer handler
+function TKAEventHandler.raw_OnScenePrepare(bSuccess: Boolean; SceneName: TBStr; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnScenePrepareEx(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlay(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlayOut(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnStop(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnStopAll(bSuccess: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPause(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnResume(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnQueryIsOnAir(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnTrigger(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnTriggerByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationName: TBStr): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnTriggerObject(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationType: TKAnimationType; bWithChildren: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnTriggerObjectByName(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer; AnimationNmae: TBStr; bWithChildren: Boolean): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnScenePlayed(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  // event
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSavePreviewImage(bSuccess: Boolean; ImagePathName: TBStr; Width, Height: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSetScrollSpeedByScenePlayer(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer; Speed: Double): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnAdjustScrollSpeed(bSuccess: Boolean; LayerNo: Integer; SpeedDelta: Double): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnResumeBackground(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlayDirect(bSuccess: Boolean; SceneName: TBStr; OutputChannelIndex, LayerNo: Integer; pScene: IKAScene): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnCutIn(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnCutOut(bSuccess: Boolean; OutputChannelIndex: Integer; LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnClearNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlayRange(bSuccess: Boolean; OutputChannelIndex, LayerNo, PlaybackRangeNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlayInNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnPlayOutNextPreview(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  KALastResult := GetLastResult(bSuccess);
+
+  SetEvent(KASyncMsgEvent);
+
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSceneAnimationPlayed(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  // event
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnScenePaused(bSuccess: Boolean; OutputChannelIndex, LayerNo: Integer): HRESULT;
+begin
+  // event
+  Result := S_OK;
+end;
+
+function TKAEventHandler.raw_OnSceneSaved(bSuccess: Boolean; FileName: TBStr): HRESULT;
+begin
+  // event
+  Result := S_OK;
+end;
+
+// Scene handler
+function TKAEventHandler.raw_OnFinishedVideoExporting(bSuccess: Boolean; FileName: TBStr): HRESULT;
+begin
+  Result := S_OK;
+end;
+
+{ TKAScenePlayer }
+
+constructor TKAScenePlayer.Create;
+begin
+  FEngine := AKAEngine;
+end;
+
+destructor TKAScenePlayer.Destroy;
+begin
+  FScenePlayer := nil;
+
+  FEngine := nil;
+end;
+
+function TKAScenePlayer.Prepare(ALayerNo: Integer; AScene: IKAScene): HRESULT;
+begin
+  Result := FScenePlayer.raw_Prepare(ALayerNo, AScene);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PrepareEx(ALayerInfo: TKLayerInfo; AScene: IKAScene): HRESULT;
+begin
+  Result := FScenePlayer.raw_PrepareEx(ALayerInfo, AScene);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.Play(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_Play(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PlayOut(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_PlayOut(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.Stop(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_Stop(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.StopAll: HRESULT;
+begin
+  Result := FScenePlayer.raw_StopAll;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.Pause(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_Pause(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.Resume(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_Resume(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.QueryIsOnAir(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_QueryIsOnAir(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.Trigger(ALayerNo: Integer; AAnimationType: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_Trigger(ALayerNo, AAnimationType);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.TriggerObject(AObjectName: TBStr; ALayerNo: Integer; AAnimationType: Integer; AWithChildren: LongInt): HRESULT;
+begin
+  Result := FScenePlayer.raw_TriggerObject(AObjectName, ALayerNo, AAnimationType, AWithChildren);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.TriggerByName(ALayerNo: Integer; AAnimationName: TBStr): HRESULT;
+begin
+  Result := FScenePlayer.raw_TriggerByName(ALayerNo, AAnimationName);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.TriggerObjectByName(AObjectName: TBStr; ALayerNo: Integer; AAnimationName: TBstr; AWithChildren: LongInt): HRESULT;
+begin
+  Result := FScenePlayer.raw_TriggerObjectByName(AObjectName, ALayerNo, AAnimationName, AWithChildren);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.GetPlayingScene(ALayerNo: Integer; out AScene: IKAScene): HRESULT;
+begin
+  Result := FScenePlayer.raw_GetPlayingScene(ALayerNo, AScene);
+end;
+
+function TKAScenePlayer.SavePreviewImage(AImagePathName: TBStr; AWidth: Integer; AHeight: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_SavePreviewImage(AImagePathName, AWidth, AHeight);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.SetScrollSpeed(ALayerNo: Integer; ASpeed: Double): HRESULT;
+begin
+  Result := FScenePlayer.raw_SetScrollSpeed(ALayerNo, ASpeed);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.AdjustScrollSpeed(ALayerNo: Integer; ASpeedDelta: Double): HRESULT;
+begin
+  Result := FScenePlayer.raw_AdjustScrollSpeed(ALayerNo, ASpeedDelta);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.ResumeBackground(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_ResumeBackground(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PlayDirect(ALayerNo: Integer; AScene: IKAScene): HRESULT;
+begin
+  Result := FScenePlayer.raw_PlayDirect(ALayerNo, AScene);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.CutIn(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_CutIn(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.CutOut(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_CutOut(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.ClearNextPreview(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_ClearNextPreview(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PlayRange(ALayerNo: Integer; APlaybackRangeNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_PlayRange(ALayerNo, APlaybackRangeNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PlayInNextPreview(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_PlayInNextPreview(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAScenePlayer.PlayOutNextPreview(ALayerNo: Integer): HRESULT;
+begin
+  Result := FScenePlayer.raw_PlayOutNextPreview(ALayerNo);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+{ TKAEngine }
+
+constructor TKAEngine.Create;
+var
+  HR: HRESULT;
+begin
+  inherited Create;
+
+  FEventHandler := TKAEventHandler.Create(Self);
+
+  HR := CoCreateInstance(CLSID_KAEngine, nil, CLSCTX_INPROC, IID_IKAEngine, FEngine);
+  if Failed(HR) then exit;
+end;
+
+destructor TKAEngine.Destroy;
+begin
+  if (FEngine <> nil) then
+    FEngine := nil;
+
+  if (FEventHandler <> nil) then
+    FreeAndNil(FEventHandler);
+
+  inherited Destroy;
+end;
+
+function TKAEngine.Connect(ATCP: Boolean; AHostAddress: String; AHostPort: LongInt; AClientPort: LongInt): HRESULT;
+var
+  R: LongInt;
+begin
+  Result := FEngine.raw_KTAPConnect(LongInt(ATCP), TBStr(AHostAddress), AHostPort, AClientPort, FEventHandler, R);
+  if (Failed(Result)) then exit;
+
+  if (R <> 0) then
+  begin
+    Result := E_FAIL;
+    exit;
+  end;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.Disconnect: HRESULT;
+begin
+  Result := FEngine.raw_Disconnect;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.GetScenePlayer(AScenePlayer: TKAScenePlayer): HRESULT;
+begin
+  Result := E_FAIL;
+
+  if (AScenePlayer = nil) then exit;
+
+  Result := FEngine.raw_GetScenePlayer(AScenePlayer.FScenePlayer);
+end;
+
+function TKAEngine.LoadScene(AFileName: String; ASceneName: String; out ASceene: IKAScene): HRESULT;
+begin
+  Result := FEngine.raw_LoadScene(TBStr(AFileName), TBStr(ASceneName), ASceene);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.UnloadScene(ASceneName: String): HRESULT;
+begin
+  Result := FEngine.raw_UnloadScene(TBStr(ASceneName));
+end;
+
+function TKAEngine.LoadProject(AFileName: String; AAliasName: String; out AScene: IKAScene; out ATotalCount: Integer): HRESULT;
+begin
+  AScene := nil;
+  ATotalCount := 0;
+
+  Result := FEngine.raw_LoadProject(TBStr(AFileName), TBStr(AAliasName));
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+
+  AScene := KALastScene;
+  ATotalCount := KALastTotalCount;
+end;
+
+function TKAEngine.BeginTransaction: HRESULT;
+begin
+  Result := FEngine.raw_BeginTransaction;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.EndTransaction: HRESULT;
+begin
+  Result := FEngine.raw_EndTransaction;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.RollbackTransaction: HRESULT;
+begin
+  Result := FEngine.raw_RollbackTransaction;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.GetLastMessageNo(out AMessageNo: Cardinal): HRESULT;
+begin
+  Result := FEngine.raw_GetLastMessageNo(AMessageNo);
+end;
+
+function TKAEngine.HeartBeat: HRESULT;
+begin
+  Result := FEngine.raw_HeartBeat;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.UnloadAll: HRESULT;
+begin
+  Result := FEngine.raw_UnloadAll;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.SelectProject(AAliasName: String): HRESULT;
+begin
+  Result := FEngine.raw_SelectProject(TBStr(AAliasName));
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.CloseProject(AAliasName: String): HRESULT;
+begin
+  Result := FEngine.raw_CloseProject(TBStr(AAliasName));
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.SendMosMessage(AMosMessage: String): HRESULT;
+begin
+  Result := FEngine.raw_SendMosMessage(TBStr(AMosMessage));
+end;
+
+function TKAEngine.ReceiveFile(AExistingFileName: String; ANewFileName: String): HRESULT;
+begin
+  Result := FEngine.raw_ReceiveFile(TBStr(AExistingFileName), TBStr(ANewFileName));
+end;
+
+function TKAEngine.NewProject(ATitleName: String; AAliasName: String): HRESULT;
+begin
+  Result := FEngine.raw_NewProject(TBStr(ATitleName), TBStr(AAliasName));
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.PrepareItem(ALayerNo: Integer; AAliasName: String; ASceneName: String): HRESULT;
+begin
+  Result := FEngine.raw_PrepareItem(ALayerNo, TBStr(AAliasName), TBStr(ASceneName));
+end;
+
+function TKAEngine.BeginUpdateItems(AAliasName: String): HRESULT;
+begin
+  Result := FEngine.raw_BeginUpdateItems(TBStr(AAliasName));
+end;
+
+function TKAEngine.EndUpdateItems: HRESULT;
+begin
+  Result := FEngine.raw_EndUpdateItems;
+end;
+
+function TKAEngine.UpdateItems(ASceneName: String; AScenePath: String): HRESULT;
+begin
+  Result := FEngine.raw_UpdateItems(TBStr(ASceneName), TBStr(AScenePath));
+end;
+
+function TKAEngine.StartVideoCapture(AFilePath: String; AVideoCodecIndex: Integer): HRESULT;
+begin
+  Result := FEngine.raw_StartVideoCapture(TBStr(AFilePath), AVideoCodecIndex);
+end;
+
+function TKAEngine.StopVideoCapture: HRESULT;
+begin
+  Result := FEngine.raw_StopVideoCapture;
+end;
+
+function TKAEngine.CaptureImage(AFilePath: String): HRESULT;
+begin
+  Result := FEngine.raw_CaptureImage(TBStr(AFilePath));
+end;
+
+function TKAEngine.LoadStyleLibrarys(ALibraryPath: String): HRESULT;
+begin
+  Result := FEngine.raw_LoadStyleLibrarys(TBStr(ALibraryPath));
+end;
+
+function TKAEngine.LoadAnimationLibrarys(ALibraryPath: String): HRESULT;
+begin
+  Result := FEngine.raw_LoadAnimationLibrarys(TBStr(ALibraryPath));
+end;
+
+function TKAEngine.LoadMaterialLibrarys(ALibraryPath: String): HRESULT;
+begin
+  Result := FEngine.raw_LoadMaterialLibrarys(TBStr(ALibraryPath));
+end;
+
+function TKAEngine.CheckVersion: HRESULT;
+begin
+  Result := FEngine.raw_CheckVersion;
+end;
+
+function TKAEngine.LoadSceneForce(AFileName: String; ASceneName: String; out AScene: IKAScene): HRESULT;
+begin
+  Result := FEngine.raw_LoadSceneForce(TBStr(AFileName), TBStr(ASceneName), AScene);
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.SetAudioOutput(APlayAudioType: TKPlayAudioType): HRESULT;
+begin
+  Result := FEngine.raw_SetAudioOutput(APlayAudioType);
+end;
+
+function TKAEngine.SetTrialPlayMode: HRESULT;
+begin
+  Result := FEngine.raw_SetTrialPlayMode;
+  if (Failed(Result)) then exit;
+
+  Result := WaitForSyncMsgEvent;
+end;
+
+function TKAEngine.GetScenePlayerOnChannel(AOutputChannelIndex: Integer; AScenePlayer: TKAScenePlayer): HRESULT;
+begin
+  Result := E_FAIL;
+  if (AScenePlayer = nil) then exit;
+
+  Result := FEngine.raw_GetScenePlayerOnChannel(AOutputChannelIndex, AScenePlayer.FScenePlayer);
+end;
+
+function TKAEngine.EndTransactionOnChannel(AOutputChannelIndex: Integer): HRESULT;
+begin
+  Result := FEngine.raw_EndTransactionOnChannel(AOutputChannelIndex);
+end;
+
+function TKAEngine.GetVideoFormat(AVideoFormatID: TKVideoFormat; out AVideoFormat: TKVideoFormatRec): HRESULT;
+begin
+  Result := FEngine.raw_GetVideoFormat(AVideoFormatID, AVideoFormat);
+end;
+
+initialization
+  KASyncMsgEvent := CreateEvent(nil, True, False, nil);
+
+  KATimeOut := 1000;
+  KALastResult := E_FAIL;
+
+finalization
+  CloseHandle(KASyncMsgEvent);
+  KASyncMsgEvent := 0;
+
+end.

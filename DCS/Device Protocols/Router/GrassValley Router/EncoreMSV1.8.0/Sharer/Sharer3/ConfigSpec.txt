@@ -1,0 +1,19 @@
+load \SharerVOB\watchdog
+load \SharerVOB\stl
+load \SharerVOB\sharer3
+load \SharerVOB\release
+load \SharerVOB\rebuild
+load \SharerVOB\omnilibs
+load \SharerVOB\examples
+load \SharerVOB\lost+found
+
+element * CHECKEDOUT
+
+# SharerVOB rules here
+element \SharerVOB\... REL36314 -nocheckout
+
+# Libraries version 15.14 selected into view
+element \OmniLibs\... RELEASE_15_14_5 -nocheckout
+
+
+element * \main\LATEST

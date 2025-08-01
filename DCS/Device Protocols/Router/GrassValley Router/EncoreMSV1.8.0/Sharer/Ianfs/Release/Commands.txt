@@ -1,0 +1,50 @@
+INIT:               Initialise filing system (USE WITH CARE)
+SYS_INIT:           Resets the system files (USE WITH CARE)
+
+CONVERT:            Convert OMN directory to native filing system
+ALL_PATH_PREFIXES:  Alters the start of every path in the OMN database
+PATH_PREFIXES:      Alters the start of every path in a single category
+                    specified by directory
+
+REBUILD_LOST_INDEX: Rebuilds a category, assuming the INDEX file has been lost
+                    Sorts the file - do not use on system categories.
+FIX_LOST_INDEX:     Rebuilds an INDEX, leaving the DATA file intact, but
+                    rejecting invalid entries and garbage data. Safe for
+                    system categories.
+FIX_CAT_INDICES:    Rebuilds all INDEX files from DATA files, rejecting
+                    invalid entries and garbage data. Also 'fixes' master
+                    category
+REBUILD:            Rebuilds a damaged index using a parent index
+REBUILD_FROM_CATS:  Rebuilds a damaged category by referring to all
+                    other categories.
+RECOVER:            Recovers items from the dustbin using the log file
+                    as a guide
+
+REMOVE:             Removes an entry from an index specified by index
+                    name and entry name
+REMOVE_ITEM:        Removes an entry from an index specified by index
+                    file name and entry reference
+REMOVE_NAME:        Removes an entry from a category by category path
+                    and item name
+DELETE:             Removes a named entry from all its categories and
+                    puts it in the dustbin
+
+TIDY:               Optimises and removes dead space in a named category
+TIDY_ALL:           Optimises all categorys (make take some time)
+TIDY_NAMES:         Tidies the NAMES category
+
+INFO:               Searches for an entry in a named category and
+                    returns its info
+NAMES:              Lists all the entries in the names index
+
+CAT:                List all categories
+LIST:               Lists a category specified by its name
+LIST_INDEX:         Lists a complete index specified by its file name
+DUMP_INDEX:         Displays the raw contents of an index specified
+                    by its file name
+
+SORT:               Resorts a category by name
+SORT_BY_PATH:       Resorts a category by its path
+SORT_ALL:           Resorts all user categories
+
+EXIT:               Exits program

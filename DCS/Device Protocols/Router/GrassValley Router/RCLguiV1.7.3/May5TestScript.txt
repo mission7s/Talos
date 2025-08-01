@@ -1,0 +1,95 @@
+#####################################################################################################
+# NOTE: 't' at the beginning of each line stands for transmit. The word 'transmit' can be used too. #
+#####################################################################################################
+# QUERY SOURCE NAMES
+t,QuerySourceNames,kQNS,110,0
+#
+# QUERY SOURCE INDICES
+t,QuerySourceNames,kQNIS,110,0
+#
+# QUERY DESTINATION NAMES
+t,QueryDestinationNames,kQND,110,0
+#
+# QUERY LEVEL NAMES
+t,QueryLevelNames,110,0
+#
+# QUERY DESTINATION INDICES
+t,QueryDestinationNames,kQNID,110,0
+#
+# GET LEVEL4ECHO
+t,GetLevel4Echo,110,0
+#
+# SET LEVEL4ECHO OFF
+t,SetLevel4Echo,kEchoOFF,110,0
+#
+# SET LEVEL4ECHO ON
+t,SetLevel4Echo,kEchoON,110,0
+#
+# RESET DESTINATION STATUS
+t,ResetDestinationStatus,110,0
+#
+# RESET PROTECT
+t,ResetProtect,110,0
+#
+# RESET DESTINATION CHANGE
+t,ResetDestinationChange,110,0
+#
+# RESET TIELINE CHANGE 
+t,ResetTieLineChange,110,0
+#
+# RESET SOURCE CHANGE
+t,ResetSourceChange,110,0
+#
+# RESET LEVEL CHANGE
+t,ResetLevelChange,110,0
+#
+# RESET SALVO CHANGE
+t,ResetSalvoChange,110,0
+#
+# RESET ROOM CHANGE
+t,ResetRoomChange,110,0
+#
+# QUERY DESTINATION STATUS (COMBINED STATUS FOR ALL DESTINATIONS)
+t,QueryDestinationStatus,kQC,110,0
+#
+# QUERY DESTINATION STATUS (ALL DESTINATION STATUS WITH SOURCE INFO)
+t,QueryDestinationStatus,kQD,110,0
+#
+# QUERY DESTINATION STATUS (ALL DESTINATIONS STATUS WITHOUT SOURCE INFO)
+t,QueryDestinationStatus,kQd,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION STATUS WITH SOURCE INFO)
+#t,QueryDestinationStatus,dst1,kQD,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION STATUS WITHOUT SOURCE INFO)
+#t,QueryDestinationStatus,dst2,kQd,110,0
+#
+# QUERY DESTINATION STATUS (ALL DESTINATION INDEX STATUS WITH SOURCE INFO)
+t,QueryDestinationStatus,kQJ,110,0
+#
+# QUERY DESTINATION STATUS (ALL DESTINATION INDEX STATUS WITHOUT SOURCE INFO)
+t,QueryDestinationStatus,kQj,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION "INDEX" WITH SOURCE INFO)
+t,QueryDestinationStatus,2,kQJ,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION "INDEX" WITHOUT SOURCE INFO)
+t,QueryDestinationStatus,2,kQj,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION "INDEX" and LEVEL "INDEX " WITH SOURCE INDEX INFO)
+#t,QueryDestinationStatus,2,0,kQI,110,0
+#
+# QUERY DESTINATION STATUS (SINGLE DESTINATION "INDEX" and LEVEL "INDEX " WITHOUT SOURCE INDEX INFO)
+#t,QueryDestinationStatus,2,0,kQi,110,0
+#
+# TAKE DESTINATION (USING DST and SRC NAMES and a dummy timestamp entry)
+#t,TakeDestination,dst1,src1,00:00:00,110,0
+#
+# TAKE DESTINATION INDEX  (USING DST AND SRC INDEX)
+t,TakeDestinationIndex,1,0,00:00:00,110,0
+#
+# TAKE DESTINATION INDEX (USING DST AND SRC INDEX WITH LEVEL INDEX)
+t,TakeDestinationLevelIndex,2,2,0,00:00:00,110,0
+# WAIT
+#wait,1000 
+############################################################################################

@@ -1,0 +1,1544 @@
+object Form12: TForm12
+  Left = 0
+  Top = 0
+  Caption = 'Form12'
+  ClientHeight = 679
+  ClientWidth = 1083
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 96
+  TextHeight = 13
+  object SplitterH: TSplitter
+    Left = 0
+    Top = 377
+    Width = 1083
+    Height = 3
+    Cursor = crVSplit
+    Align = alTop
+    Beveled = True
+    ResizeStyle = rsUpdate
+    ExplicitLeft = -3
+    ExplicitTop = 369
+    ExplicitWidth = 1036
+  end
+  object pCtlMain: TPageControl
+    Left = 0
+    Top = 0
+    Width = 1083
+    Height = 377
+    ActivePage = TabSheetRecord
+    Align = alTop
+    TabOrder = 0
+    object TabSheetSwitch: TTabSheet
+      Caption = 'Master switch'
+      ImageIndex = 2
+      object Label7: TLabel
+        Left = 102
+        Top = 197
+        Width = 37
+        Height = 13
+        Caption = 'PRESET'
+      end
+      object Label8: TLabel
+        Left = 173
+        Top = 197
+        Width = 46
+        Height = 13
+        Caption = 'OUTPUT1'
+      end
+      object Label9: TLabel
+        Left = 246
+        Top = 197
+        Width = 46
+        Height = 13
+        Caption = 'OUTPUT2'
+      end
+      object Label10: TLabel
+        Left = 31
+        Top = 197
+        Width = 50
+        Height = 13
+        Caption = 'PROGRAM'
+      end
+      object LabeledEditSwitchPort: TLabeledEdit
+        Left = 80
+        Top = 16
+        Width = 121
+        Height = 21
+        EditLabel.Width = 48
+        EditLabel.Height = 13
+        EditLabel.Caption = 'First port:'
+        LabelPosition = lpLeft
+        TabOrder = 0
+        OnChange = LabeledEditSwitchPortChange
+      end
+      object ButtonSwitchOpen: TButton
+        Left = 446
+        Top = 14
+        Width = 75
+        Height = 25
+        Caption = 'Open'
+        TabOrder = 1
+        OnClick = ButtonSwitchOpenClick
+      end
+      object ButtonSwitchClose: TButton
+        Left = 544
+        Top = 14
+        Width = 75
+        Height = 25
+        Caption = 'Close'
+        TabOrder = 2
+        OnClick = ButtonSwitchCloseClick
+      end
+      object CheckBoxSwitchProgram: TCheckBox
+        Left = 32
+        Top = 64
+        Width = 82
+        Height = 17
+        Caption = 'PROGRAM'
+        Checked = True
+        State = cbChecked
+        TabOrder = 3
+      end
+      object CheckBoxSwitchPreset: TCheckBox
+        Left = 32
+        Top = 80
+        Width = 82
+        Height = 17
+        Caption = 'PRESET'
+        TabOrder = 4
+      end
+      object CheckBoxSwitchOutput1: TCheckBox
+        Left = 32
+        Top = 96
+        Width = 81
+        Height = 17
+        Caption = 'OUTPUT1'
+        TabOrder = 5
+      end
+      object CheckBoxSwitchOutput2: TCheckBox
+        Left = 32
+        Top = 112
+        Width = 81
+        Height = 17
+        Caption = 'OUTPUT2'
+        TabOrder = 6
+      end
+      object LabeledEditSwitchID: TLabeledEdit
+        Left = 32
+        Top = 135
+        Width = 41
+        Height = 21
+        EditLabel.Width = 15
+        EditLabel.Height = 13
+        EditLabel.Caption = 'ID:'
+        LabelPosition = lpLeft
+        TabOrder = 7
+        Text = '1'
+      end
+      object ComboBoxSwitchBuses: TComboBox
+        Left = 173
+        Top = 64
+        Width = 113
+        Height = 21
+        Style = csDropDownList
+        ItemIndex = 0
+        TabOrder = 8
+        Text = 'PROGRAM'
+        Items.Strings = (
+          'PROGRAM'
+          'PRESET'
+          'OUTPUT1'
+          'OUTPUT2')
+      end
+      object ButtonSwitchGetCrosspointTake: TButton
+        Left = 173
+        Top = 91
+        Width = 113
+        Height = 25
+        Caption = 'GetCrosspointTake'
+        TabOrder = 9
+        OnClick = ButtonSwitchGetCrosspointTakeClick
+      end
+      object StaticTextSwitcID: TStaticText
+        Left = 173
+        Top = 122
+        Width = 113
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 10
+      end
+      object ComboBoxSwitchTransitionType: TComboBox
+        Left = 352
+        Top = 64
+        Width = 145
+        Height = 21
+        Style = csDropDownList
+        ItemIndex = 0
+        TabOrder = 11
+        Text = 'Fade'
+        Items.Strings = (
+          'Fade'
+          'Fade-Fade'
+          'Cut-Fade'
+          'Fade-Cut'
+          'Barn'
+          'Blinds'
+          'CheckerBoard'
+          'GradientWipe'
+          'Inset'
+          'Iris'
+          'Pixelate'
+          'RadialWipe'
+          'RandomBars'
+          'RandomDissolve'
+          'Slide'
+          'Spiral'
+          'Stretch'
+          'Strips'
+          'Wheel'
+          'ZigZag')
+      end
+      object ButtonSwitchSetNextTransitionType: TButton
+        Left = 352
+        Top = 115
+        Width = 145
+        Height = 25
+        Caption = 'SetNextTransitionType'
+        TabOrder = 12
+        OnClick = ButtonSwitchSetNextTransitionTypeClick
+      end
+      object CheckListBoxSwitchSetNextTransition: TCheckListBox
+        Left = 544
+        Top = 64
+        Width = 113
+        Height = 33
+        ItemHeight = 13
+        Items.Strings = (
+          'Background'
+          'Key')
+        TabOrder = 13
+      end
+      object ButtonSwitchSetNextTransition: TButton
+        Left = 544
+        Top = 103
+        Width = 113
+        Height = 25
+        Caption = 'SetNextTransition'
+        TabOrder = 14
+        OnClick = ButtonSwitchSetNextTransitionClick
+      end
+      object ComboBoxSwitchSetTransitionRate: TComboBox
+        Left = 696
+        Top = 64
+        Width = 97
+        Height = 21
+        TabOrder = 15
+        Text = '20'
+        Items.Strings = (
+          'Fast'
+          'Medium'
+          'Slow')
+      end
+      object ButtonSwitchSetTransitionRate: TButton
+        Left = 696
+        Top = 91
+        Width = 97
+        Height = 25
+        Caption = 'SetTransitionRate'
+        TabOrder = 16
+        OnClick = ButtonSwitchSetTransitionRateClick
+      end
+      object ButtonSwitchStartTransition: TButton
+        Left = 352
+        Top = 150
+        Width = 441
+        Height = 24
+        Caption = 'StartTransition'
+        TabOrder = 17
+        OnClick = ButtonSwitchStartTransitionClick
+      end
+      object ButtonSwitchGetTransitionType: TButton
+        Left = 823
+        Top = 62
+        Width = 113
+        Height = 25
+        Caption = 'GetTransitionType'
+        TabOrder = 18
+        OnClick = ButtonSwitchGetTransitionTypeClick
+      end
+      object StaticTextSwitchGetTransitionType: TStaticText
+        Left = 943
+        Top = 64
+        Width = 90
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 19
+      end
+      object ButtonSwitchGetTransitionRate: TButton
+        Left = 823
+        Top = 117
+        Width = 113
+        Height = 25
+        Caption = 'GetTransitionRate'
+        TabOrder = 20
+        OnClick = ButtonSwitchGetTransitionRateClick
+      end
+      object StaticTextSwitchGetTransitionRate: TStaticText
+        Left = 943
+        Top = 119
+        Width = 90
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        TabOrder = 21
+      end
+      object StaticTextSwitchGetStatus: TStaticText
+        Left = 943
+        Top = 150
+        Width = 90
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 22
+      end
+      object ButtonSwitchGetStatus: TButton
+        Left = 823
+        Top = 148
+        Width = 113
+        Height = 25
+        Caption = 'GetStatus'
+        TabOrder = 23
+        OnClick = ButtonSwitchGetStatusClick
+      end
+      object ButtonSwitchCrosspointTake: TButton
+        Left = 32
+        Top = 162
+        Width = 113
+        Height = 25
+        Caption = 'CrosspointTake'
+        TabOrder = 24
+        OnClick = ButtonSwitchCrosspointTakeClick
+      end
+      object CheckListBoxSwitchKeyTakeKeysPGM: TCheckListBox
+        Left = 31
+        Top = 212
+        Width = 65
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 25
+      end
+      object ButtonKeyTake: TButton
+        Left = 319
+        Top = 212
+        Width = 82
+        Height = 25
+        Caption = 'KeyTake'
+        TabOrder = 26
+        OnClick = ButtonKeyTakeClick
+      end
+      object CheckListBoxSwitchSetEnableKey: TCheckListBox
+        Left = 454
+        Top = 214
+        Width = 82
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 27
+      end
+      object ButtonSwitchSetEnableKey: TButton
+        Left = 542
+        Top = 212
+        Width = 75
+        Height = 25
+        Caption = 'SetEnableKey'
+        TabOrder = 28
+        OnClick = ButtonSwitchSetEnableKeyClick
+      end
+      object ButtonSwitchGetKeyTake: TButton
+        Left = 319
+        Top = 243
+        Width = 82
+        Height = 25
+        Caption = 'GetKeyTake'
+        TabOrder = 29
+        OnClick = ButtonSwitchGetKeyTakeClick
+      end
+      object ButtonSwitchGetEnableKey: TButton
+        Left = 542
+        Top = 243
+        Width = 75
+        Height = 25
+        Caption = 'GetEnableKey'
+        TabOrder = 30
+        OnClick = ButtonSwitchGetEnableKeyClick
+      end
+      object CheckListBoxSwitchKeyTakeKeysPST: TCheckListBox
+        Left = 102
+        Top = 212
+        Width = 65
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 31
+      end
+      object CheckListBoxSwitchKeyTakeKeysOut1: TCheckListBox
+        Left = 173
+        Top = 212
+        Width = 67
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 32
+      end
+      object CheckListBoxSwitchKeyTakeKeysOut2: TCheckListBox
+        Left = 246
+        Top = 212
+        Width = 67
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 33
+      end
+      object CheckListBoxSwitchKeyTransition: TCheckListBox
+        Left = 670
+        Top = 214
+        Width = 82
+        Height = 108
+        ItemHeight = 13
+        Items.Strings = (
+          'Key1'
+          'Key2'
+          'Key3'
+          'Key4'
+          'Key5'
+          'Key6'
+          'Key7'
+          'Key8')
+        TabOrder = 34
+      end
+      object ButtonSetKeyTransitionType: TButton
+        Left = 757
+        Top = 284
+        Width = 115
+        Height = 25
+        Caption = 'SetKeyTransitionType'
+        TabOrder = 35
+        OnClick = ButtonSetKeyTransitionTypeClick
+      end
+      object ComboBoxSetKeyTransitionType: TComboBox
+        Left = 758
+        Top = 214
+        Width = 113
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 36
+        Items.Strings = (
+          'Fade'
+          'Fade-Fade'
+          'Cut-Fade'
+          'Fade-Cut'
+          'Barn'
+          'Blinds'
+          'CheckerBoard'
+          'GradientWipe'
+          'Inset'
+          'Iris'
+          'Pixelate'
+          'RadialWipe'
+          'RandomBars'
+          'RandomDissolve'
+          'Slide'
+          'Spiral'
+          'Stretch'
+          'Strips'
+          'Wheel'
+          'ZigZag'
+          'Cut')
+      end
+      object LabeledEditSetKeyTransitionParams: TLabeledEdit
+        Left = 758
+        Top = 257
+        Width = 113
+        Height = 21
+        EditLabel.Width = 59
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Parameters:'
+        TabOrder = 37
+      end
+      object ButtonGetKeyTransitionType: TButton
+        Left = 758
+        Top = 313
+        Width = 113
+        Height = 25
+        Caption = 'GetKeyTransitionType'
+        TabOrder = 38
+        OnClick = ButtonGetKeyTransitionTypeClick
+      end
+      object ComboBoxSetKeyTransitionRate: TComboBox
+        Left = 904
+        Top = 214
+        Width = 113
+        Height = 21
+        TabOrder = 39
+        Text = '20'
+        Items.Strings = (
+          'Fast'
+          'Medium'
+          'Slow')
+      end
+      object ButtonSetKeyTransitionRate: TButton
+        Left = 904
+        Top = 241
+        Width = 113
+        Height = 25
+        Caption = 'SetKeyTransitionRate'
+        TabOrder = 40
+        OnClick = ButtonSetKeyTransitionRateClick
+      end
+      object ButtonGetKeyTransitionRate: TButton
+        Left = 904
+        Top = 272
+        Width = 113
+        Height = 25
+        Caption = 'GetKeyTransitionRate'
+        TabOrder = 41
+        OnClick = ButtonGetKeyTransitionRateClick
+      end
+      object LabeledEditTransitionParams: TLabeledEdit
+        Left = 352
+        Top = 91
+        Width = 144
+        Height = 21
+        EditLabel.Width = 59
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Parameters:'
+        LabelPosition = lpLeft
+        TabOrder = 42
+      end
+      object LabeledEditSwitchGetTransitionParametrs: TLabeledEdit
+        Left = 942
+        Top = 93
+        Width = 90
+        Height = 21
+        EditLabel.Width = 59
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Parameters:'
+        LabelPosition = lpLeft
+        ReadOnly = True
+        TabOrder = 43
+      end
+      object ButtonKeyTransition: TButton
+        Left = 319
+        Top = 274
+        Width = 82
+        Height = 25
+        Caption = 'KeyTransition'
+        TabOrder = 44
+        OnClick = ButtonKeyTransitionClick
+      end
+    end
+    object TabSheetMedia: TTabSheet
+      Caption = 'Media devices'
+      object Label3: TLabel
+        Left = 232
+        Top = 19
+        Width = 75
+        Height = 13
+        Caption = 'Device number:'
+      end
+      object Label4: TLabel
+        Left = 25
+        Top = 139
+        Width = 49
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Timecode:'
+      end
+      object Label5: TLabel
+        Left = 653
+        Top = 99
+        Width = 28
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Start:'
+      end
+      object Label6: TLabel
+        Left = 780
+        Top = 99
+        Width = 45
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Duration:'
+      end
+      object LabeledEditMediaPort: TLabeledEdit
+        Left = 80
+        Top = 16
+        Width = 118
+        Height = 21
+        EditLabel.Width = 48
+        EditLabel.Height = 13
+        EditLabel.Caption = 'First port:'
+        LabelPosition = lpLeft
+        TabOrder = 0
+        OnChange = LabeledEditMediaPortChange
+      end
+      object ButtonMediaOpen: TButton
+        Left = 446
+        Top = 14
+        Width = 72
+        Height = 25
+        Caption = 'Open'
+        TabOrder = 1
+        OnClick = ButtonMediaOpenClick
+      end
+      object ButtonMediaClose: TButton
+        Left = 544
+        Top = 14
+        Width = 72
+        Height = 25
+        Caption = 'Close'
+        TabOrder = 2
+        OnClick = ButtonMediaCloseClick
+      end
+      object ComboBoxMediaDeviceNumber: TComboBox
+        Left = 313
+        Top = 16
+        Width = 30
+        Height = 21
+        ItemIndex = 0
+        TabOrder = 3
+        Text = '1'
+        Items.Strings = (
+          '1'
+          '2'
+          '3')
+      end
+      object LabeledEditMediaFileName: TLabeledEdit
+        Left = 81
+        Top = 96
+        Width = 407
+        Height = 21
+        EditLabel.Width = 49
+        EditLabel.Height = 13
+        EditLabel.Caption = 'File name:'
+        LabelPosition = lpLeft
+        TabOrder = 4
+      end
+      object ButtonMediaFileOpen: TButton
+        Left = 488
+        Top = 94
+        Width = 30
+        Height = 25
+        Caption = '...'
+        TabOrder = 5
+        OnClick = ButtonMediaFileOpenClick
+      end
+      object ButtonMediaPlayCue: TButton
+        Left = 544
+        Top = 94
+        Width = 72
+        Height = 25
+        Caption = 'PlayCue'
+        TabOrder = 6
+        OnClick = ButtonMediaPlayCueClick
+      end
+      object ButtonMediaGetNo: TButton
+        Left = 24
+        Top = 57
+        Width = 72
+        Height = 25
+        Caption = 'GetDeviceNo'
+        TabOrder = 7
+        OnClick = ButtonMediaGetNoClick
+      end
+      object StaticTextMediaGetDeviceNo: TStaticText
+        Left = 105
+        Top = 57
+        Width = 29
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 8
+      end
+      object ButtonMediaPlay: TButton
+        Left = 160
+        Top = 57
+        Width = 72
+        Height = 25
+        Caption = 'Play'
+        TabOrder = 9
+        OnClick = ButtonMediaPlayClick
+      end
+      object ButtonMediaPause: TButton
+        Left = 241
+        Top = 57
+        Width = 72
+        Height = 25
+        Caption = 'Pause'
+        TabOrder = 10
+        OnClick = ButtonMediaPauseClick
+      end
+      object ButtonMediaStop: TButton
+        Left = 322
+        Top = 57
+        Width = 72
+        Height = 25
+        Caption = 'Stop'
+        TabOrder = 11
+        OnClick = ButtonMediaStopClick
+      end
+      object MaskEditSetTimecode: TMaskEdit
+        Left = 81
+        Top = 136
+        Width = 70
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 12
+        Text = ''
+      end
+      object ButtonSetTimecode: TButton
+        Left = 159
+        Top = 134
+        Width = 73
+        Height = 25
+        Caption = 'SetTimecode'
+        TabOrder = 13
+        OnClick = ButtonSetTimecodeClick
+      end
+      object ButtonGetTimecode: TButton
+        Left = 288
+        Top = 134
+        Width = 79
+        Height = 25
+        Caption = 'GetTimecode'
+        TabOrder = 14
+        OnClick = ButtonGetTimecodeClick
+      end
+      object LabeledEditMediaSetRate: TLabeledEdit
+        Left = 81
+        Top = 176
+        Width = 70
+        Height = 21
+        EditLabel.Width = 27
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Rate:'
+        LabelPosition = lpLeft
+        TabOrder = 15
+        Text = '2.0'
+      end
+      object ButtonMediaSetRate: TButton
+        Left = 159
+        Top = 174
+        Width = 73
+        Height = 25
+        Caption = 'SetRate'
+        TabOrder = 16
+        OnClick = ButtonMediaSetRateClick
+      end
+      object ButtonMediaGetRate: TButton
+        Left = 288
+        Top = 174
+        Width = 79
+        Height = 25
+        Caption = 'GetRate'
+        TabOrder = 17
+        OnClick = ButtonMediaGetRateClick
+      end
+      object StaticTextMediaGetRate: TStaticText
+        Left = 375
+        Top = 179
+        Width = 80
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 18
+      end
+      object ButtonMediaGetStatus: TButton
+        Left = 544
+        Top = 174
+        Width = 73
+        Height = 25
+        Caption = 'GetStatus'
+        TabOrder = 19
+        OnClick = ButtonMediaGetStatusClick
+      end
+      object StaticTextMediaGetStatus: TStaticText
+        Left = 631
+        Top = 179
+        Width = 96
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 20
+      end
+      object MaskEditMediaPlayCueDataStart: TMaskEdit
+        Left = 689
+        Top = 96
+        Width = 71
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 21
+        Text = ''
+      end
+      object MaskEditMediaPlayCueDataDuration: TMaskEdit
+        Left = 833
+        Top = 96
+        Width = 70
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 22
+        Text = ''
+      end
+      object ButtonMediaPlayCueData: TButton
+        Left = 928
+        Top = 94
+        Width = 75
+        Height = 25
+        Caption = 'PlayCueData'
+        TabOrder = 23
+        OnClick = ButtonMediaPlayCueDataClick
+      end
+      object LabeledEditHelperFilename: TLabeledEdit
+        Left = 81
+        Top = 240
+        Width = 410
+        Height = 21
+        EditLabel.Width = 49
+        EditLabel.Height = 13
+        EditLabel.Caption = 'File name:'
+        LabelPosition = lpLeft
+        TabOrder = 24
+      end
+      object ButtonHelperFileOpen: TButton
+        Left = 488
+        Top = 238
+        Width = 33
+        Height = 25
+        Caption = '...'
+        TabOrder = 25
+        OnClick = ButtonHelperFileOpenClick
+      end
+      object ButtonGetClipExist: TButton
+        Left = 544
+        Top = 238
+        Width = 81
+        Height = 25
+        Caption = 'GetClipExist'
+        TabOrder = 26
+        OnClick = ButtonGetClipExistClick
+      end
+      object StaticTextMediaGetClipExist: TStaticText
+        Left = 631
+        Top = 243
+        Width = 82
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 27
+      end
+      object ButtonGetClipSize: TButton
+        Left = 736
+        Top = 238
+        Width = 81
+        Height = 25
+        Caption = 'GetClipSize'
+        TabOrder = 28
+        OnClick = ButtonGetClipSizeClick
+      end
+      object StaticTextMediaGetClipSize: TStaticText
+        Left = 823
+        Top = 243
+        Width = 82
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 29
+      end
+      object ComboBoxGetTimecodeType: TComboBox
+        Left = 376
+        Top = 136
+        Width = 65
+        Height = 21
+        Style = csDropDownList
+        ItemIndex = 0
+        TabOrder = 30
+        Text = 'Current'
+        Items.Strings = (
+          'Current'
+          'Remain')
+      end
+      object StaticTextMediaGetTimecode: TStaticText
+        Left = 447
+        Top = 136
+        Width = 82
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 31
+      end
+    end
+    object TabSheetCG: TTabSheet
+      Caption = 'CG devices'
+      ImageIndex = 1
+      object Label12: TLabel
+        Left = 232
+        Top = 19
+        Width = 75
+        Height = 13
+        Caption = 'Device number:'
+      end
+      object Label13: TLabel
+        Left = 3
+        Top = 234
+        Width = 75
+        Height = 13
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = 'Content:'
+      end
+      object LabeledEditCGPort: TLabeledEdit
+        Left = 80
+        Top = 16
+        Width = 121
+        Height = 21
+        EditLabel.Width = 48
+        EditLabel.Height = 13
+        EditLabel.Caption = 'First port:'
+        LabelPosition = lpLeft
+        TabOrder = 0
+        OnChange = LabeledEditCGPortChange
+      end
+      object ComboBoxCGDeviceNumber: TComboBox
+        Left = 313
+        Top = 16
+        Width = 33
+        Height = 21
+        ItemIndex = 0
+        TabOrder = 1
+        Text = '1'
+        Items.Strings = (
+          '1'
+          '2'
+          '3')
+      end
+      object ButtonCGOpen: TButton
+        Left = 446
+        Top = 14
+        Width = 75
+        Height = 25
+        Caption = 'Open'
+        TabOrder = 2
+        OnClick = ButtonCGOpenClick
+      end
+      object ButtonCGClose: TButton
+        Left = 544
+        Top = 14
+        Width = 75
+        Height = 25
+        Caption = 'Close'
+        TabOrder = 3
+        OnClick = ButtonCGCloseClick
+      end
+      object ButtonCGGetNo: TButton
+        Left = 24
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'GetDeviceNo'
+        TabOrder = 4
+        OnClick = ButtonCGGetNoClick
+      end
+      object StaticTextCGGetDeviceNo: TStaticText
+        Left = 105
+        Top = 57
+        Width = 32
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 5
+      end
+      object ButtonCGPlay: TButton
+        Left = 160
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'Play'
+        TabOrder = 6
+        OnClick = ButtonCGPlayClick
+      end
+      object ButtonCGPause: TButton
+        Left = 241
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'Pause'
+        TabOrder = 7
+        OnClick = ButtonCGPauseClick
+      end
+      object ButtonCGStop: TButton
+        Left = 322
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'Stop'
+        TabOrder = 8
+        OnClick = ButtonCGStopClick
+      end
+      object LabeledEditCGFileName: TLabeledEdit
+        Left = 81
+        Top = 96
+        Width = 410
+        Height = 21
+        EditLabel.Width = 49
+        EditLabel.Height = 13
+        EditLabel.Caption = 'File name:'
+        LabelPosition = lpLeft
+        TabOrder = 9
+      end
+      object ButtonCGFileOpen: TButton
+        Left = 488
+        Top = 94
+        Width = 33
+        Height = 25
+        Caption = '...'
+        TabOrder = 10
+        OnClick = ButtonCGFileOpenClick
+      end
+      object ButtonCGPlayCue: TButton
+        Left = 544
+        Top = 94
+        Width = 75
+        Height = 25
+        Caption = 'PlayCue'
+        TabOrder = 11
+        OnClick = ButtonCGPlayCueClick
+      end
+      object ButtonCGRewind: TButton
+        Left = 403
+        Top = 57
+        Width = 75
+        Height = 25
+        Caption = 'Rewind'
+        TabOrder = 12
+        OnClick = ButtonCGRewindClick
+      end
+      object LabeledEditCGPropName: TLabeledEdit
+        Left = 81
+        Top = 177
+        Width = 121
+        Height = 21
+        EditLabel.Width = 75
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Property name:'
+        LabelPosition = lpLeft
+        TabOrder = 13
+      end
+      object LabeledEditCGPropValue: TLabeledEdit
+        Left = 81
+        Top = 204
+        Width = 440
+        Height = 21
+        EditLabel.Width = 75
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Property value:'
+        LabelPosition = lpLeft
+        TabOrder = 14
+      end
+      object ButtonCGSetData: TButton
+        Left = 528
+        Top = 202
+        Width = 75
+        Height = 25
+        Caption = 'SetData'
+        TabOrder = 15
+        OnClick = ButtonCGSetDataClick
+      end
+      object LabeledEditCGObjectID: TLabeledEdit
+        Left = 81
+        Top = 150
+        Width = 121
+        Height = 21
+        EditLabel.Width = 50
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Object ID:'
+        LabelPosition = lpLeft
+        TabOrder = 16
+      end
+      object ButtonCGGetData: TButton
+        Left = 609
+        Top = 202
+        Width = 75
+        Height = 25
+        Caption = 'GetData'
+        TabOrder = 17
+        OnClick = ButtonCGGetDataClick
+      end
+      object MemoCGContent: TMemo
+        Left = 81
+        Top = 231
+        Width = 440
+        Height = 82
+        TabOrder = 18
+      end
+      object ButtonCGSetContent: TButton
+        Left = 527
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = 'SetContent'
+        TabOrder = 19
+        OnClick = ButtonCGSetContentClick
+      end
+      object ButtonCGGetContent: TButton
+        Left = 609
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = 'GetContent'
+        TabOrder = 20
+        OnClick = ButtonCGGetContentClick
+      end
+      object ButtonCGGetStatus: TButton
+        Left = 814
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = 'GetStatus'
+        TabOrder = 21
+        OnClick = ButtonCGGetStatusClick
+      end
+      object StaticTextCGGetStatus: TStaticText
+        Left = 895
+        Top = 288
+        Width = 98
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 22
+      end
+      object ButtonCGGetClipExist: TButton
+        Left = 664
+        Top = 94
+        Width = 81
+        Height = 25
+        Caption = 'GetClipExist'
+        TabOrder = 23
+        OnClick = ButtonCGGetClipExistClick
+      end
+      object StaticTextCGGetClipExist: TStaticText
+        Left = 751
+        Top = 99
+        Width = 82
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 24
+      end
+    end
+    object TabSheetRecord: TTabSheet
+      Caption = 'Recording devices'
+      ImageIndex = 3
+      ExplicitTop = 22
+      object Label11: TLabel
+        Left = 232
+        Top = 19
+        Width = 75
+        Height = 13
+        Caption = 'Device number:'
+      end
+      object Label14: TLabel
+        Left = 397
+        Top = 139
+        Width = 45
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Duration:'
+      end
+      object Label15: TLabel
+        Left = 265
+        Top = 225
+        Width = 74
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Splice duration:'
+      end
+      object Label16: TLabel
+        Left = 282
+        Top = 198
+        Width = 57
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Splice start:'
+      end
+      object LabeledEditRecordPort: TLabeledEdit
+        Left = 80
+        Top = 16
+        Width = 120
+        Height = 21
+        EditLabel.Width = 48
+        EditLabel.Height = 13
+        EditLabel.Caption = 'First port:'
+        LabelPosition = lpLeft
+        TabOrder = 0
+        OnChange = LabeledEditRecordPortChange
+      end
+      object ComboBoxRecordDeviceNumber: TComboBox
+        Left = 313
+        Top = 16
+        Width = 32
+        Height = 21
+        ItemIndex = 0
+        TabOrder = 1
+        Text = '1'
+        Items.Strings = (
+          '1'
+          '2'
+          '3')
+      end
+      object ButtonRecordOPen: TButton
+        Left = 446
+        Top = 14
+        Width = 74
+        Height = 25
+        Caption = 'Open'
+        TabOrder = 2
+        OnClick = ButtonRecordOPenClick
+      end
+      object ButtonRecordClose: TButton
+        Left = 544
+        Top = 14
+        Width = 74
+        Height = 25
+        Caption = 'Close'
+        TabOrder = 3
+        OnClick = ButtonRecordCloseClick
+      end
+      object ButtonRecordGetDeviceNo: TButton
+        Left = 24
+        Top = 57
+        Width = 74
+        Height = 25
+        Caption = 'GetDeviceNo'
+        TabOrder = 4
+        OnClick = ButtonRecordGetDeviceNoClick
+      end
+      object StaticTextRecordGetDeviceNo: TStaticText
+        Left = 105
+        Top = 57
+        Width = 31
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 5
+      end
+      object ButtonRecordPlay: TButton
+        Left = 160
+        Top = 57
+        Width = 74
+        Height = 25
+        Caption = 'Play'
+        TabOrder = 6
+        OnClick = ButtonRecordPlayClick
+      end
+      object ButtonRecordPause: TButton
+        Left = 241
+        Top = 57
+        Width = 74
+        Height = 25
+        Caption = 'Pause'
+        TabOrder = 7
+        OnClick = ButtonRecordPauseClick
+      end
+      object ButtonRecordStop: TButton
+        Left = 322
+        Top = 57
+        Width = 74
+        Height = 25
+        Caption = 'Stop'
+        TabOrder = 8
+        OnClick = ButtonRecordStopClick
+      end
+      object ButtonRecordGetTimecode: TButton
+        Left = 24
+        Top = 166
+        Width = 74
+        Height = 25
+        Caption = 'GetTimecode'
+        TabOrder = 9
+        OnClick = ButtonRecordGetTimecodeClick
+      end
+      object ButtonRecordGetStatus: TButton
+        Left = 24
+        Top = 206
+        Width = 74
+        Height = 25
+        Caption = 'GetStatus'
+        TabOrder = 10
+        OnClick = ButtonRecordGetStatusClick
+      end
+      object StaticTextRecordGetStatus: TStaticText
+        Left = 111
+        Top = 211
+        Width = 97
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 11
+      end
+      object LabeledEditRecordFileName: TLabeledEdit
+        Left = 81
+        Top = 96
+        Width = 437
+        Height = 21
+        EditLabel.Width = 31
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Name:'
+        LabelPosition = lpLeft
+        TabOrder = 12
+      end
+      object ButtonRecordRecordCue: TButton
+        Left = 544
+        Top = 94
+        Width = 74
+        Height = 25
+        Caption = 'RecordCue'
+        TabOrder = 13
+        OnClick = ButtonRecordRecordCueClick
+      end
+      object MaskEditRecordRecordCueDataDuration: TMaskEdit
+        Left = 449
+        Top = 136
+        Width = 70
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 14
+        Text = ''
+      end
+      object ButtonRecordRecordCueData: TButton
+        Left = 544
+        Top = 134
+        Width = 89
+        Height = 25
+        Caption = 'RecordCueData'
+        TabOrder = 15
+        OnClick = ButtonRecordRecordCueDataClick
+      end
+      object ComboBoxGetRecordTimecodeType: TComboBox
+        Left = 105
+        Top = 168
+        Width = 65
+        Height = 21
+        Style = csDropDownList
+        ItemIndex = 0
+        TabOrder = 16
+        Text = 'Current'
+        Items.Strings = (
+          'Current'
+          'Remain')
+      end
+      object StaticTextRecordGetTimecode: TStaticText
+        Left = 176
+        Top = 168
+        Width = 82
+        Height = 17
+        AutoSize = False
+        BorderStyle = sbsSunken
+        Caption = ' '
+        TabOrder = 17
+      end
+      object LabeledEditRecordSpliceID: TLabeledEdit
+        Left = 347
+        Top = 168
+        Width = 68
+        Height = 21
+        EditLabel.Width = 45
+        EditLabel.Height = 13
+        EditLabel.Caption = 'Splice ID:'
+        LabelPosition = lpLeft
+        TabOrder = 18
+      end
+      object MaskEditRecordSpliceTime: TMaskEdit
+        Left = 347
+        Top = 195
+        Width = 69
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 19
+        Text = ''
+      end
+      object MaskEditRecordSpliceDuration: TMaskEdit
+        Left = 347
+        Top = 222
+        Width = 70
+        Height = 21
+        EditMask = '99:99:99;99;0;0'
+        MaxLength = 11
+        TabOrder = 20
+        Text = ''
+      end
+      object ButtonSetSCTE35: TButton
+        Left = 423
+        Top = 166
+        Width = 75
+        Height = 25
+        Caption = 'SetSCTE35'
+        TabOrder = 21
+        OnClick = ButtonSetSCTE35Click
+      end
+      object ButtonGetSCTE35: TButton
+        Left = 423
+        Top = 195
+        Width = 75
+        Height = 25
+        Caption = 'GetSCTE35'
+        TabOrder = 22
+        OnClick = ButtonGetSCTE35Click
+      end
+    end
+  end
+  object PanelBottom: TPanel
+    Left = 0
+    Top = 380
+    Width = 1083
+    Height = 299
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 1
+    object Splitter1: TSplitter
+      Left = 500
+      Top = 0
+      Height = 299
+      Beveled = True
+      ResizeStyle = rsUpdate
+      ExplicitLeft = 632
+      ExplicitTop = 120
+      ExplicitHeight = 100
+    end
+    object PanelBL: TPanel
+      Left = 0
+      Top = 0
+      Width = 500
+      Height = 299
+      Align = alLeft
+      BevelOuter = bvNone
+      TabOrder = 0
+      DesignSize = (
+        500
+        299)
+      object Label1: TLabel
+        Left = 8
+        Top = 4
+        Width = 48
+        Height = 13
+        Caption = 'Received:'
+      end
+      object MemoRecvd: TMemo
+        Left = 3
+        Top = 23
+        Width = 491
+        Height = 267
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ScrollBars = ssBoth
+        TabOrder = 0
+      end
+    end
+    object PanelBR: TPanel
+      Left = 503
+      Top = 0
+      Width = 580
+      Height = 299
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 1
+      DesignSize = (
+        580
+        299)
+      object Label2: TLabel
+        Left = 10
+        Top = 6
+        Width = 26
+        Height = 13
+        Caption = 'Sent:'
+      end
+      object MemoSent: TMemo
+        Left = 4
+        Top = 22
+        Width = 572
+        Height = 268
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ScrollBars = ssBoth
+        TabOrder = 0
+      end
+    end
+  end
+end

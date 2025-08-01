@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.970,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.154,=D:\User Data\Git\APC\DCS\Device Units\PCS\UnitPCSControl.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.409,D:\User Data\Git\APC\PCSDLL\TestRemoteControl\UnitTestRemoteControl.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.322,=D:\User Data\Git\APC\PCSDLL\TestRemoteControl\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.344,D:\User Data\Git\APC\Common\UnitCommons.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.427,=D:\User Data\Git\APC\UDP\UnitUDPIn.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.559,D:\User Data\Git\APC\DCS\Device Units\IP Protocol\PCS\UnitPCSRemote.pas=D:\User Data\Git\APC\DCS\Device Protocols\PCS Protocol\TestRemoteControl\UnitClientRemoteControl.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.873,=D:\User Data\Git\APC\Common\UnitCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.497,=D:\User Data\Git\APC\UDP\UnitUDPIn.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.739,=D:\User Data\Git\APC\UDP\UnitUDPCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.509,=D:\User Data\Git\APC\UDP\UnitUDPOut.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.409,D:\User Data\Git\APC\PCSDLL\TestRemoteControl\UnitTestRemoteControl.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.030,D:\User Data\Git\APC\PCSDLL\TestRemoteControl\UnitClientRemoteControl.pas=D:\User Data\Git\APC\PCSDLL\TestRemoteControl\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.444,=D:\User Data\Git\APC\UDP\UnitUDPOut.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.619,D:\User Data\Git\APC\PCSDLL\TestRemoteControl\TestRemoteControl.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project12.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.507,D:\User Data\Git\APC\DCS\Device Units\IP Protocol\PCS\UnitPCSControl.pas=D:\User Data\Git\APC\DCS\Device Units\IP Protocol\PCS\UnitPCSRemote.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.494,=D:\User Data\Git\APC\UDP\UnitUDPOut.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.163,D:\User Data\Git\APC\UDP\UnitUDPOut.pas=D:\User Data\Git\APC\UDP\UnitUDPCommons.pas</Transaction>
+  </Transactions>
+</BorlandProject>

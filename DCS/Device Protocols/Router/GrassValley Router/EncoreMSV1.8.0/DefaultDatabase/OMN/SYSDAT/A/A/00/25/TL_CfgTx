@@ -1,0 +1,16 @@
+:TlCfgVersion[19]=TieLine Config V2.0
+:SysMode=1
+:MaxDepth=1
+:TlmOn=0
+:NoMessages=0
+:ParkTies=1
+:AutoTlm=1
+:FnMode=1
+:FnParam=0
+:TimeOutRecd=0
+:TimeOutProcd=500
+:TimeOutMirrOK=0
+:EventLogFlags=0
+:EnableAssignments=0
+:ConfigName[15]=TLM_DEFAULT_CFG
+:DontCareLvls=0

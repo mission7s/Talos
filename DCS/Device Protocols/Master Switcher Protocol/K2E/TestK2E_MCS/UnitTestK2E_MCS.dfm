@@ -1,0 +1,411 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 881
+  ClientWidth = 865
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = #47569#51008' '#44256#46357
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignSize = (
+    865
+    881)
+  PixelsPerInch = 96
+  TextHeight = 15
+  object Label2: TLabel
+    Left = 29
+    Top = 26
+    Width = 63
+    Height = 15
+    Caption = 'Port Numer'
+  end
+  object Label3: TLabel
+    Left = 13
+    Top = 98
+    Width = 58
+    Height = 15
+    Caption = 'PGM Input'
+  end
+  object Label4: TLabel
+    Left = 12
+    Top = 127
+    Width = 52
+    Height = 15
+    Caption = 'PST Input'
+  end
+  object Label5: TLabel
+    Left = 12
+    Top = 196
+    Width = 89
+    Height = 15
+    Caption = 'Transition Speed'
+  end
+  object Label6: TLabel
+    Left = 13
+    Top = 225
+    Width = 87
+    Height = 15
+    Caption = 'Transition Mode'
+  end
+  object Label8: TLabel
+    Left = 12
+    Top = 158
+    Width = 67
+    Height = 15
+    Caption = 'Router Input'
+  end
+  object cbComportNum: TComboBox
+    Left = 107
+    Top = 21
+    Width = 145
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 0
+  end
+  object edPGMInput: TEdit
+    Left = 107
+    Top = 95
+    Width = 79
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 1
+    Text = '1'
+  end
+  object edPSTInput: TEdit
+    Left = 107
+    Top = 124
+    Width = 79
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 2
+    Text = '1'
+  end
+  object cbTransitionSpeed: TComboBox
+    Left = 107
+    Top = 193
+    Width = 184
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 3
+  end
+  object cbTransitionMode: TComboBox
+    Left = 107
+    Top = 222
+    Width = 184
+    Height = 23
+    Style = csDropDownList
+    ImeName = #54620#44397#50612' '#51077#47141' '#49884#49828#53596' (IME 2000)'
+    TabOrder = 4
+  end
+  object btnConnect: TButton
+    Left = 258
+    Top = 20
+    Width = 89
+    Height = 25
+    Caption = 'Connect'
+    TabOrder = 5
+    OnClick = btnConnectClick
+  end
+  object btnDisconnect: TButton
+    Left = 353
+    Top = 20
+    Width = 89
+    Height = 25
+    Caption = 'Disconnect'
+    TabOrder = 6
+    OnClick = btnDisconnectClick
+  end
+  object btnTake: TButton
+    Left = 107
+    Top = 326
+    Width = 89
+    Height = 25
+    Caption = 'Take'
+    TabOrder = 7
+    OnClick = btnTakeClick
+  end
+  object btnGetMatrix: TButton
+    Left = 108
+    Top = 754
+    Width = 135
+    Height = 25
+    Caption = 'Get Matrix'
+    TabOrder = 8
+    OnClick = btnGetMatrixClick
+  end
+  object mmLog: TMemo
+    Left = 480
+    Top = 8
+    Width = 377
+    Height = 865
+    Anchors = [akTop, akRight, akBottom]
+    ImeName = 'Microsoft IME 2003'
+    ScrollBars = ssVertical
+    TabOrder = 9
+  end
+  object btnTakeKey: TButton
+    Left = 314
+    Top = 399
+    Width = 89
+    Height = 25
+    Caption = 'Take Key'
+    TabOrder = 10
+    OnClick = btnTakeKeyClick
+  end
+  object btnTakeLogo: TButton
+    Left = 316
+    Top = 647
+    Width = 89
+    Height = 25
+    Caption = 'Take Logo'
+    TabOrder = 11
+    OnClick = btnTakeLogoClick
+  end
+  object btnAssignPGM: TButton
+    Left = 202
+    Top = 94
+    Width = 89
+    Height = 25
+    Caption = 'Assign PGM'
+    TabOrder = 12
+    OnClick = btnAssignPGMClick
+  end
+  object btnAssignPST: TButton
+    Left = 202
+    Top = 122
+    Width = 89
+    Height = 25
+    Caption = 'Assign PST'
+    TabOrder = 13
+    OnClick = btnAssignPSTClick
+  end
+  object edRouterInput: TEdit
+    Left = 107
+    Top = 155
+    Width = 79
+    Height = 23
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 14
+    Text = '1'
+  end
+  object Button1: TButton
+    Left = 202
+    Top = 153
+    Width = 89
+    Height = 25
+    Caption = 'Assign Router'
+    TabOrder = 15
+    OnClick = Button1Click
+  end
+  object chkbKey1: TCheckBox
+    Left = 107
+    Top = 368
+    Width = 54
+    Height = 17
+    Caption = 'Key1'
+    TabOrder = 16
+  end
+  object chkbKey2: TCheckBox
+    Left = 179
+    Top = 368
+    Width = 54
+    Height = 17
+    Caption = 'Key2'
+    TabOrder = 17
+  end
+  object chkbPip: TCheckBox
+    Left = 108
+    Top = 496
+    Width = 54
+    Height = 17
+    Caption = 'Pip'
+    TabOrder = 18
+  end
+  object btnSetKeyPGM: TButton
+    Left = 107
+    Top = 399
+    Width = 89
+    Height = 25
+    Caption = 'Set Key PGM'
+    TabOrder = 19
+    OnClick = btnSetKeyPGMClick
+  end
+  object btnSetKeyPST: TButton
+    Left = 211
+    Top = 399
+    Width = 89
+    Height = 25
+    Caption = 'Set Key PST'
+    TabOrder = 20
+    OnClick = btnSetKeyPSTClick
+  end
+  object btnSetTransitionSpeed: TButton
+    Left = 306
+    Top = 192
+    Width = 168
+    Height = 25
+    Caption = 'Set Transition Speed'
+    TabOrder = 21
+    OnClick = btnSetTransitionSpeedClick
+  end
+  object btnSetTransitionMode: TButton
+    Left = 306
+    Top = 221
+    Width = 168
+    Height = 25
+    Caption = 'Set Transition Mode'
+    TabOrder = 22
+    OnClick = btnSetTransitionModeClick
+  end
+  object btnSetKeyTransitionMode: TButton
+    Left = 306
+    Top = 252
+    Width = 168
+    Height = 25
+    Caption = 'Set Key Transition Mode'
+    TabOrder = 23
+    OnClick = btnSetKeyTransitionModeClick
+  end
+  object btnSetLogoTransitionMode: TButton
+    Left = 306
+    Top = 283
+    Width = 168
+    Height = 25
+    Caption = 'Set Logo Transition Mode'
+    TabOrder = 24
+    OnClick = btnSetLogoTransitionModeClick
+  end
+  object chkbLogo1: TCheckBox
+    Left = 107
+    Top = 616
+    Width = 54
+    Height = 17
+    Caption = 'Logo1'
+    TabOrder = 25
+  end
+  object chkbLogo2: TCheckBox
+    Left = 179
+    Top = 616
+    Width = 54
+    Height = 17
+    Caption = 'Logo2'
+    TabOrder = 26
+  end
+  object chkbLogo3: TCheckBox
+    Left = 258
+    Top = 616
+    Width = 54
+    Height = 17
+    Caption = 'Logo3'
+    TabOrder = 27
+  end
+  object chkbLogo4: TCheckBox
+    Left = 342
+    Top = 616
+    Width = 54
+    Height = 17
+    Caption = 'Logo4'
+    TabOrder = 28
+  end
+  object btnSetLogoPGM: TButton
+    Left = 108
+    Top = 647
+    Width = 89
+    Height = 25
+    Caption = 'Set Logo PGM'
+    TabOrder = 29
+    OnClick = btnSetLogoPGMClick
+  end
+  object btnSetLogoPST: TButton
+    Left = 212
+    Top = 647
+    Width = 89
+    Height = 25
+    Caption = 'Set Logo PST'
+    TabOrder = 30
+    OnClick = btnSetLogoPSTClick
+  end
+  object btnSetPipPGM: TButton
+    Left = 108
+    Top = 527
+    Width = 89
+    Height = 25
+    Caption = 'Set Pip PGM'
+    TabOrder = 31
+    OnClick = btnSetPipPGMClick
+  end
+  object btnSetPipPST: TButton
+    Left = 212
+    Top = 527
+    Width = 89
+    Height = 25
+    Caption = 'Set Pip PST'
+    TabOrder = 32
+    OnClick = btnSetPipPSTClick
+  end
+  object btnGetTransitionConfig: TButton
+    Left = 108
+    Top = 785
+    Width = 135
+    Height = 25
+    Caption = 'Get Transition Config'
+    TabOrder = 33
+    OnClick = btnGetTransitionConfigClick
+  end
+  object btnGetInputStatus: TButton
+    Left = 108
+    Top = 816
+    Width = 135
+    Height = 25
+    Caption = 'Get Input Status'
+    TabOrder = 34
+    OnClick = btnGetInputStatusClick
+  end
+  object btnOutKeyPGM: TButton
+    Left = 107
+    Top = 439
+    Width = 89
+    Height = 25
+    Caption = 'Out Key PGM'
+    TabOrder = 35
+    OnClick = btnOutKeyPGMClick
+  end
+  object btnOutKeyPST: TButton
+    Left = 211
+    Top = 439
+    Width = 89
+    Height = 25
+    Caption = 'Out Key PST'
+    TabOrder = 36
+    OnClick = btnOutKeyPSTClick
+  end
+  object btnOutLogoPGM: TButton
+    Left = 107
+    Top = 687
+    Width = 89
+    Height = 25
+    Caption = 'Out Logo PGM'
+    TabOrder = 37
+    OnClick = btnOutLogoPGMClick
+  end
+  object btnOutLogoPST: TButton
+    Left = 211
+    Top = 687
+    Width = 89
+    Height = 25
+    Caption = 'Out Logo PST'
+    TabOrder = 38
+    OnClick = btnOutLogoPSTClick
+  end
+end

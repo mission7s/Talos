@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.133,D:\User Data\Git\APC\Common\UnitCommons.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.687,D:\User Data\Git\APC\DCS\Device Protocols\K4AI48(K2E Change Over)\TestK4AI48\UnitTestK4AI48.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.222,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.874,=D:\User Data\Git\APC\Common\UnitCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.687,D:\User Data\Git\APC\DCS\Device Protocols\K4AI48(K2E Change Over)\TestK4AI48\UnitTestK4AI48.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.790,=D:\User Data\Git\APC\DCS\Device Units\Serial Protocol\K4AI48(K2E Change Over)\UnitSerialK4AI48.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.773,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.590,D:\User Data\Git\APC\DCS\Device Protocols\K4AI48(K2E Change Over)\TestK4AI48\TestK4AI48.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

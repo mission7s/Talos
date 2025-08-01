@@ -1,0 +1,17 @@
+program PlayerAPI_Test;
+
+uses
+  Vcl.Forms,
+  UnitMain in 'UnitMain.pas' {Form7},
+  UnitOmTcData in 'UnitOmTcData.pas',
+  UnitOmMediaDefs in 'UnitOmMediaDefs.pas',
+  UnitOmPlrDefs in 'UnitOmPlrDefs.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm7, Form7);
+  Application.Run;
+end.

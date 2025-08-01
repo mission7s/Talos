@@ -1,0 +1,14 @@
+program TestLouth;
+
+uses
+  Forms,
+  TestADCVDCPMain in '..\..\..\..\..\..\Supported Project\Arches Device Control\DLL\TestADCVDCPMain.pas' {Form1},
+  TestADCVDCPConsts in '..\..\..\..\..\..\Supported Project\Arches Device Control\DLL\TestADCVDCPConsts.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

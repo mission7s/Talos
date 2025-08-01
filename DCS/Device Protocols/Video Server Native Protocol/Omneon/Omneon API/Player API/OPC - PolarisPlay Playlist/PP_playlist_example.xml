@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An Example Playlist -->
+<!-- These attributes on the Schedule Element are not required by the schema,
+  they merely serve as hints to the XML editor specifying which schema should
+  be used to validate this document:
+    xmlns
+    xmlns:xsi 
+    xsi:schemaLocation
+  -->
+<Schedule
+    xmlns="http://www.harmonicinc.com/spectrum/icpPlayoutEnginePlaylist"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.harmonicinc.com/spectrum/icpPlayoutEnginePlaylist playoutengine_playlist_v1.6.xsd"
+    channel="Chan-1" frameRate="29.97" scheduleName="test-A" scheduleStart="2014-06-27T06:00:00Z" scheduleEnd="2014-06-28T06:00:00Z" schemaVersion="1.6">
+<Primary>
+<CommentEvent eventUuid="fcd2df2d-4de0-4d15-ac7c-1c8138b7cad1" sequenceId="1" eventOrigin="Traffic">
+    <Description>Some useful text</Description>
+</CommentEvent>
+<PrimaryEvent eventUuid="a6a8363b-c2a8-49a8-b332-7910dda57624" sequenceId="2" eventOrigin="Traffic"
+    scheduledStart="2014-06-28 06:00:00;00" scheduledDuration="00:00:10;00">
+    <Description>Some useful text</Description>
+    <VideoMaterial materialType="Promo" title="Bond Festival Promo 1" source="Player" materialId="BONDFEST01" segment="S" som="" arcMode="Full" audioProfile="8" afd="13.1"/>
+</PrimaryEvent>
+<PrimaryEvent eventUuid="982d70a6-5c94-4c89-8cf7-01799c6a22a3" sequenceId="3" eventOrigin="Traffic"
+    scheduledStart="2014-06-28 06:00:10;00" scheduledDuration="00:02:20;00" transition="Slow V-fade">
+    <Description>Morning Show Opening</Description>
+    <VideoMaterial materialType="Program" title="Morning Program Intro" source="Player" materialId="MORNING-OPEN" segment="S" som="" afd="8.0"/>
+    <SubtitleFiles>
+        <OpenCaptionFile file="/path/to/file/opencapfile.ext"/>
+        <SubtitleFile index="1" file="/path/to/file/closedcapfile.ext"/>
+    </SubtitleFiles>
+</PrimaryEvent>
+<PrimaryEvent eventUuid="9a9ed997-33fa-4d31-bb98-ae20c58dbcb3" sequenceId="4" eventOrigin="Traffic"
+    scheduledStart="2014-06-28 06:02:30;00" scheduledDuration="00:10:00;00" endMode="Manual">
+    <Description>Morning Show Live Segment</Description>
+    <VideoMaterial materialType="Program" title="Morning Program" source="External In" contentRating="TV-G" afd=""/>
+    <SubtitleFiles>
+        <SubtitleFile index="1" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="2" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="3" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="4" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="5" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="6" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="7" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="8" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="9" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="10" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="11" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="12" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="13" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="14" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="15" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="16" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="17" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="18" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="19" file="/path/to/file/filename.ext"/>
+        <SubtitleFile index="20" file="/path/to/file/filename.ext"/>
+    </SubtitleFiles>
+    <GraphicsEvent eventUuid="a8c76c8e-c601-4fb2-a92b-bd6700f7dec9" sequenceId="5" eventOrigin="Traffic"
+        startMode="OffsetFromStart" startOffset="+00:00:05;00" endMode="Duration" duration="00:00:15;00"
+        layer="1" templateName="tv-g-1080i" fadeIn="Fast" fadeOut="Fast" audioProfile="0">
+        <Description>The TV-G rating logo</Description>
+    </GraphicsEvent>
+    <GraphicsEvent eventUuid="8f4dfe0f-9ec4-4cf7-ab74-77a0aec98428" sequenceId="6" eventOrigin="Traffic"
+        startMode="OffsetFromStart" startOffset="+00:00:30;00" endMode="Duration" duration="00:00:30;00"
+        layer="2" templateName="am-now-next" stopAnimationLeadTime="00:00:03;00" fadeIn="Slow" fadeOut="Medium">
+        <Description>The now/next template with morning theme</Description>
+        <GraphicsText offset="00:00:00;00" boxNumber="1">Friday</GraphicsText>
+        <GraphicsText offset="00:00:00;00" boxNumber="2">Now: Morning Program</GraphicsText>
+        <GraphicsText offset="00:00:15;00" boxNumber="2">Next: Jerry Springer</GraphicsText>
+    </GraphicsEvent>
+    <GpoEvent eventUuid="8f4dfe0f-9ec4-4cf7-ab74-77a0aec12345" sequenceId="7" eventOrigin="Traffic"
+        startMode="OffsetFromStart" startOffset="+00:00:05;00" gpoName="gpo_number_one" gpoAction="Assert">
+        <Description>Assert this GPO to do something</Description>
+    </GpoEvent>
+    <GpoEvent eventUuid="8f4dfe0f-9ec4-4cf7-ab74-77a0aec12346" sequenceId="8" eventOrigin="Traffic"
+        startMode="OffsetFromEnd" startOffset="-00:00:05;00" gpoName="gpo_number_one" gpoAction="Deassert">
+        <Description>Deassert this GPO to stop doing something</Description>
+    </GpoEvent>
+    <PlayerEvent eventUuid="8f4dfe0f-9ec4-4cf7-ab74-77a0aec12347" sequenceId="9" eventOrigin="Traffic"
+        startMode="OffsetFromStart" startOffset="+00:00:05;00" endMode="Duration" duration="00:00:30;00"
+        title="Some player clip" layer="3" source="Player A" materialId="Clip-1" som="">
+        <Description>This is a player secondary event</Description>
+    </PlayerEvent>
+    <PlayerEvent eventUuid="8f4dfe0f-9ec4-4cf7-ab74-77a0aec12348" sequenceId="10" eventOrigin="Traffic"
+        startMode="OffsetFromStart" startOffset="+00:00:05;00" endMode="Duration" duration="00:00:30;00"
+        title="Some other player clip" layer="4" source="Player B" materialId="Clip-2" som="+00:00:30;00">
+        <Description>This is another player secondary event</Description>
+    </PlayerEvent>
+</PrimaryEvent>
+<PrimaryEvent eventUuid="6e5997f6-4ccd-40d2-afea-34704a20be8b" sequenceId="11" eventOrigin="Traffic"
+    scheduledStart="2014-06-28 06:12:30;00" scheduledDuration="00:00:30;00">
+    <Description>Big Al's Used Cars</Description>
+    <VideoMaterial materialType="Commercial" title="Big Al's Used Cars" source="Player" materialId="BIG_AL-23" segment="S" som="" afd=""/>
+</PrimaryEvent>
+<PrimaryEvent eventUuid="c4727e11-86d8-41ce-9348-adc2d7504034" sequenceId="12" eventOrigin="Traffic"
+    scheduledStart="2014-06-28 06:13:00;00" scheduledDuration="00:00:30;00">
+    <Description>Little Joe's Weight Loss Clinic</Description>
+    <VideoMaterial materialType="Commercial" title="Little Joe's Weight Loss Clinic" source="Player" materialId="LITTLE_JOE-02" segment="S" som=""/>
+</PrimaryEvent>
+</Primary>
+</Schedule>
+

@@ -1,0 +1,283 @@
+object Form7: TForm7
+  Left = 0
+  Top = 0
+  Caption = 'Form7'
+  ClientHeight = 679
+  ClientWidth = 1057
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label1: TLabel
+    Left = 32
+    Top = 25
+    Width = 68
+    Height = 13
+    Caption = 'Director Name'
+  end
+  object Label2: TLabel
+    Left = 32
+    Top = 52
+    Width = 60
+    Height = 13
+    Caption = 'Player Name'
+  end
+  object Button1: TButton
+    Left = 192
+    Top = 94
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 2
+    OnClick = Button1Click
+  end
+  object mmDesc: TMemo
+    Left = 552
+    Top = 8
+    Width = 497
+    Height = 663
+    ImeName = 'Microsoft IME 2010'
+    ScrollBars = ssVertical
+    TabOrder = 3
+  end
+  object btnOpen: TButton
+    Left = 24
+    Top = 94
+    Width = 75
+    Height = 25
+    Caption = 'Open'
+    TabOrder = 4
+    OnClick = btnOpenClick
+  end
+  object btnGetPlayerStatus: TButton
+    Left = 24
+    Top = 125
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status'
+    TabOrder = 5
+    OnClick = btnGetPlayerStatusClick
+  end
+  object btnPlayCue: TButton
+    Left = 24
+    Top = 500
+    Width = 75
+    Height = 25
+    Caption = 'PlayCue'
+    TabOrder = 7
+    OnClick = btnPlayCueClick
+  end
+  object btnPlay: TButton
+    Left = 24
+    Top = 531
+    Width = 75
+    Height = 25
+    Caption = 'Play'
+    TabOrder = 8
+    OnClick = btnPlayClick
+  end
+  object btnSetPos: TButton
+    Left = 120
+    Top = 500
+    Width = 75
+    Height = 25
+    Caption = 'SetPos'
+    TabOrder = 9
+    OnClick = btnSetPosClick
+  end
+  object edtPos: TEdit
+    Left = 201
+    Top = 502
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 10
+    Text = '0'
+  end
+  object btnStep: TButton
+    Left = 24
+    Top = 562
+    Width = 75
+    Height = 25
+    Caption = 'Step'
+    TabOrder = 11
+    OnClick = btnStepClick
+  end
+  object edtStep: TEdit
+    Left = 120
+    Top = 564
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    NumbersOnly = True
+    TabOrder = 12
+    Text = '1'
+  end
+  object btnStop: TButton
+    Left = 24
+    Top = 593
+    Width = 75
+    Height = 25
+    Caption = 'Stop'
+    TabOrder = 13
+    OnClick = btnStopClick
+  end
+  object btnAttach: TButton
+    Left = 24
+    Top = 324
+    Width = 145
+    Height = 25
+    Caption = 'Attach'
+    TabOrder = 14
+    OnClick = btnAttachClick
+  end
+  object edtAttach: TEdit
+    Left = 175
+    Top = 326
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 15
+    Text = 'P2017100800094'
+  end
+  object btnGetClipList: TButton
+    Left = 24
+    Top = 260
+    Width = 145
+    Height = 25
+    Caption = 'Get Clip List'
+    TabOrder = 16
+    OnClick = btnGetClipListClick
+  end
+  object btnClipExist: TButton
+    Left = 24
+    Top = 469
+    Width = 145
+    Height = 25
+    Caption = 'Clip Exist'
+    TabOrder = 17
+    OnClick = btnClipExistClick
+  end
+  object btnDetachAll: TButton
+    Left = 24
+    Top = 386
+    Width = 145
+    Height = 25
+    Caption = 'Detach All'
+    TabOrder = 18
+    OnClick = btnDetachAllClick
+  end
+  object btnDetach: TButton
+    Left = 24
+    Top = 355
+    Width = 145
+    Height = 25
+    Caption = 'Detach'
+    TabOrder = 19
+    OnClick = btnDetachClick
+  end
+  object btnSetMinMaxPosToClip: TButton
+    Left = 192
+    Top = 417
+    Width = 130
+    Height = 25
+    Caption = 'SetMinMaxPosToClip'
+    TabOrder = 20
+    OnClick = btnSetMinMaxPosToClipClick
+  end
+  object btnSetMaxPosMax: TButton
+    Left = 192
+    Top = 386
+    Width = 130
+    Height = 25
+    Caption = 'SetMaxPosMax'
+    TabOrder = 21
+    OnClick = btnSetMaxPosMaxClick
+  end
+  object btnSetMinPosMin: TButton
+    Left = 328
+    Top = 386
+    Width = 130
+    Height = 25
+    Caption = 'SetMinPosMin'
+    TabOrder = 22
+    OnClick = btnSetMinPosMinClick
+  end
+  object edtDirectorName: TEdit
+    Left = 104
+    Top = 22
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 0
+    Text = '10.40.10.25'
+  end
+  object edtPlayerName: TEdit
+    Left = 104
+    Top = 49
+    Width = 121
+    Height = 21
+    ImeName = 'Microsoft IME 2010'
+    TabOrder = 1
+    Text = 'EMER_PLUS2'
+  end
+  object btnGetPlayerTime: TButton
+    Left = 24
+    Top = 228
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Time'
+    TabOrder = 6
+    OnClick = btnGetPlayerTimeClick
+  end
+  object btnGetPlayerStatus1: TButton
+    Left = 175
+    Top = 125
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status1'
+    TabOrder = 23
+    OnClick = btnGetPlayerStatus1Click
+  end
+  object btnGetPlayerStatus2: TButton
+    Left = 326
+    Top = 125
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status2'
+    TabOrder = 24
+    OnClick = btnGetPlayerStatus2Click
+  end
+  object btnGetPlayerStatus3: TButton
+    Left = 24
+    Top = 156
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status3'
+    TabOrder = 25
+    OnClick = btnGetPlayerStatus3Click
+  end
+  object btnGetPlayerStatus4: TButton
+    Left = 175
+    Top = 156
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status4'
+    TabOrder = 26
+  end
+  object btnGetPlayerStatus5: TButton
+    Left = 326
+    Top = 156
+    Width = 145
+    Height = 25
+    Caption = 'Get Player Status5'
+    TabOrder = 27
+  end
+end

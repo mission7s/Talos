@@ -1,0 +1,197 @@
+unit UnitTestHLK20v01;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  SNMPsend, StdCtrls;
+
+const
+  MIB_OID_mIP: AnsiString = '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.9';
+
+  MIB_OID_Numbers: array[0..7] of AnsiString = (
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.59', // Logo1EnA
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.60', // Logo1EnB
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.63', // Logo2EnA
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.64', // Logo2EnB
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.67', // Logo3EnA
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.68', // Logo3EnB
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.71', // Logo4EnA
+    '1.3.6.1.4.1.44462.1.0.682800272.272891904.1.1.72'  // Logo4EnB
+    );
+
+type
+  TForm1 = class(TForm)
+    edSNMPIP: TEdit;
+    Label1: TLabel;
+    Label3: TLabel;
+    edCommunity: TEdit;
+    mmReplyString: TMemo;
+    mmReplyHex: TMemo;
+    Label5: TLabel;
+    Label6: TLabel;
+    mmDesc: TMemo;
+    btnGetOnOff: TButton;
+    btnSetOn: TButton;
+    btnSetOff: TButton;
+    cbLogo: TComboBox;
+    Label7: TLabel;
+    Label8: TLabel;
+    btnmIP: TButton;
+    procedure btnGetOnOffClick(Sender: TObject);
+    procedure btnSetOnClick(Sender: TObject);
+    procedure btnSetOffClick(Sender: TObject);
+    procedure btnmIPClick(Sender: TObject);
+  private
+    { Private declarations }
+    procedure DisplayReply(ASuccess: Boolean; AResponse: AnsiString = '');
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses asn1util, synaip;
+
+{$R *.DFM}
+
+procedure TForm1.btnmIPClick(Sender: TObject);
+var
+  OID: AnsiString;
+  Response: AnsiString;
+  R: Boolean;
+begin
+  OID := MIB_OID_mIP;
+
+  R := SNMPget(OID, edCommunity.Text, edSNMPIP.Text, Response);
+  if (R) then
+  begin
+    mmDesc.Lines.Add(Format('Call get mIP success, mIP = %s, OID = %s', [Response, OID]));
+
+    if (IsIP(Response)) then
+      mmDesc.Lines.Add(Format('mIP success, mIP = %s, OID = %s', [Response, OID]))
+    else
+      mmDesc.Lines.Add(Format('mIP fail, response = %s, OID = %s', [Response, OID]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Call get mIP fail', []));
+  end;
+
+  DisplayReply(R, Response);
+end;
+
+procedure TForm1.btnSetOffClick(Sender: TObject);
+var
+  OID: AnsiString;
+  Value: AnsiString;
+  ValueType: Integer;
+  R: Boolean;
+
+  Response: AnsiString;
+begin
+  OID := MIB_OID_Numbers[cbLogo.ItemIndex];
+
+  Value := '0';
+  ValueType := ASN1_INT;
+
+  R := SNMPSet(OID, edCommunity.Text, edSNMPIP.Text, Value, ValueType);
+  if (R) then
+  begin
+    mmDesc.Lines.Add(Format('Call set logo OFF success, Logo = %s, OID = %s', [cbLogo.Text, OID]));
+
+    R := SNMPGet(OID, edCommunity.Text, edSNMPIP.Text, Response);
+    if (R) and (Response = Value) then
+      mmDesc.Lines.Add(Format('Logo OFF success, Logo = %s, OID = %s', [cbLogo.Text, OID]))
+    else
+      mmDesc.Lines.Add(Format('Logo OFF fail, Logo = %s, OID = %s', [cbLogo.Text, OID]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Call set logo OFF', []));
+  end;
+end;
+
+procedure TForm1.btnSetOnClick(Sender: TObject);
+var
+  OID: AnsiString;
+  Value: AnsiString;
+  ValueType: Integer;
+  R: Boolean;
+
+  Response: AnsiString;
+begin
+  OID := MIB_OID_Numbers[cbLogo.ItemIndex];
+
+  Value := '1';
+  ValueType := ASN1_INT;
+
+  R := SNMPSet(OID, edCommunity.Text, edSNMPIP.Text, Value, ValueType);
+  if (R) then
+  begin
+    mmDesc.Lines.Add(Format('Call set logo ON success, Logo = %s, OID = %s', [cbLogo.Text, OID]));
+
+    R := SNMPGet(OID, edCommunity.Text, edSNMPIP.Text, Response);
+    if (R) and (Response = Value) then
+      mmDesc.Lines.Add(Format('Logo ON success, Logo = %s, OID = %s', [cbLogo.Text, OID]))
+    else
+      mmDesc.Lines.Add(Format('Logo ON fail, Logo = %s, OID = %s', [cbLogo.Text, OID]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Call set logo ON', []));
+  end;
+end;
+
+procedure TForm1.DisplayReply(ASuccess: Boolean; AResponse: AnsiString);
+var
+  I: Integer;
+  S: AnsiString;
+begin
+  mmReplyString.Lines.Clear;
+  mmReplyString.Lines.Clear;
+  if (ASuccess) then
+  begin
+    mmReplyString.Lines.Text := AResponse;
+
+    S := '';
+    for I := 1 to Length(AResponse) do
+    begin
+      S := S + '$' + IntToHex(Ord(AResponse[I]), 2) + ' ';
+    end;
+    mmReplyHex.Lines.Text := S;
+  end;
+end;
+
+procedure TForm1.btnGetOnOffClick(Sender: TObject);
+var
+  OID: AnsiString;
+  Response: AnsiString;
+  R: Boolean;
+begin
+  OID := MIB_OID_Numbers[cbLogo.ItemIndex];
+
+  R := SNMPget(OID, edCommunity.Text, edSNMPIP.Text, Response);
+  DisplayReply(R, Response);
+
+  if (R) then
+  begin
+    mmDesc.Lines.Add(Format('Call get ON/OFF status success, Logo = %s, On = %s, OID = %s', [cbLogo.Text, Response, OID]));
+
+    R := SNMPGet(OID, edCommunity.Text, edSNMPIP.Text, Response);
+    if (R) and ((Response = '0') or (Response = '1')) then
+      mmDesc.Lines.Add(Format('Logo ON/OFF status success, Logo = %s, status = %s, OID = %s', [cbLogo.Text, Response, OID]))
+    else
+      mmDesc.Lines.Add(Format('Logo ON/OFF status fail, Logo = %s, status = %s, OID = %s', [cbLogo.Text, Response, OID]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('Call get ON/OFF fail', []));
+  end;
+end;
+
+end.
+

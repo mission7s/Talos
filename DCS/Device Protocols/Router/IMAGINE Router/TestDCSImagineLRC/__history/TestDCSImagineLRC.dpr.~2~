@@ -1,0 +1,18 @@
+program TestDCSImagineLRC;
+
+uses
+  Vcl.Forms,
+  UnitTestDCSImagineLRC in 'UnitTestDCSImagineLRC.pas' {Form12},
+  UnitBaseSerial in '..\..\..\..\..\Common\UnitBaseSerial.pas',
+  UnitDCSDLL in '..\..\..\..\..\Common\UnitDCSDLL.pas',
+  UnitCommons in '..\..\..\..\..\Common\UnitCommons.pas',
+  UnitTypeConvert in '..\..\..\..\..\Common\UnitTypeConvert.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm12, Form12);
+  Application.Run;
+end.

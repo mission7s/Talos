@@ -1,0 +1,82 @@
+Notes:  
+	
+Installing and Running the Xitami Web Server
+(FTP Daemon), Console Version
+
+October 20, 1999
+
+This FTP Daemon (Installed in the user choosen
+directory) allows the SMS7000 MCPU to boot over 
+Ethernet or SLIP, from the Win95 or NT PC. 
+This is also used to load large files over the
+ethernet to the MCPU such as:
+sms
+fl.mot
+eMtrx.bin
+eMtrxA.bin
+eMtrxB.bin
+Mtrx.bin
+MtrxA.bin
+MtrxB.bin
+MtrxS.bin
+MtrxSA.bin
+MtrxSB.bin
+
+Example of its use is loading the SMS7500 
+AES router. Use the SMS7000 MCPU terminal
+interface to type the following command:
+
+> prog "PC:\MtrxS.bin" nc nmc
+
+(This will load both the MtrxSA.bin and 
+MtrxSB.bin files.)
+
+Installing:
+	
+When Installing the Xitami software please 
+follow these instructions:
+	Select the default install directory. 
+	Select the default Program Manager Group.
+	Select 'No, I'll start it when I need it'.
+	Leave the name and password blank.
+	Select 'Tiny - never block another task'.
+	Finally select 'Finish' (rather than 
+	"run it now").
+	
+Two FTPD configuration files are provided 
+(defaults.cfg and ftpusers.sms) located on the
+CD-ROM in /ftpd/config directory. 
+The Install program will copy these files into
+the Xitami web server directory for you if you
+select the 'Configure FTP Daemon' option after 
+installing the Xitami program.  
+If you are installing the web server on your own 
+(i.e., not within the SMS7000 Install Procedure) 
+you should copy these files there yourself.
+
+The PC's IP address is set to 192.0.2.1 as a 
+default. This can be changed by editing the file
+defaults.cfg and updating the IP address.
+
+
+Running:
+	
+You will probably only want to run the FTP Daemon 
+when you are booting the MCPU from the PC (i.e., 
+loading new MCPU code from the PC).
+	
+The FTP Daemon (Console version) can be launched 
+by Start->Programs->Internet Tools->Xitami Web 
+Server, or from Windows Explorer.
+	
+Be forewarned that you cannot type anything into 
+the console and that it	does not show any useful 
+information.
+	
+When done booting the MCPU, you can stop the FTP
+Daemon by hitting Ctrl-C in the Xitami console 
+window.
+
+
+
+

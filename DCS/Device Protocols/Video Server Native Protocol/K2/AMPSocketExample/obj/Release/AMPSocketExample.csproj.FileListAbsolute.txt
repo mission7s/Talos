@@ -1,0 +1,5 @@
+C:\dev\AMPSocketExample\bin\Release\AMPSocketExample.exe
+C:\dev\AMPSocketExample\bin\Release\AMPSocketExample.pdb
+C:\dev\AMPSocketExample\obj\Release\ResolveAssemblyReference.cache
+C:\dev\AMPSocketExample\obj\Release\AMPSocketExample.exe
+C:\dev\AMPSocketExample\obj\Release\AMPSocketExample.pdb

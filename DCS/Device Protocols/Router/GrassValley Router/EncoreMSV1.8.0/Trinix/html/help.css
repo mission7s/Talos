@@ -1,0 +1,11 @@
+H1 {
+    color: blue;
+    font-style: bold;
+    text-align: center;
+}
+TH {
+    color: black;
+    background-color: aqua;
+    text-align: center;
+    vertical-align: center;
+}

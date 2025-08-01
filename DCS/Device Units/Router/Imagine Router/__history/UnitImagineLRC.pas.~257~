@@ -1,0 +1,1269 @@
+unit UnitImagineLRC;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs, Generics.Collections,
+  UnitBaseSerial;
+
+const
+  IMG_LRC_SOH = '~';
+  IMG_LRC_EOT = '\';
+
+  IMG_ERR_WRONG_SYNTAX   = $01;
+  IMG_ERR_WRONG_COMMAND  = $02;
+  IMG_ERR_WRONG_OPERATOR = $03;
+
+  XPOINT_NAME_LEN = 20;
+
+type
+  TConnectionMode = (cmASCII, cmUTF8);
+
+  TOperationType = (
+    otNone = 0,
+    otChange = Ord(':'),
+    otNotify = Ord('!'),
+    otQuery = Ord('?'),
+    otResponse = Ord('%')
+    );
+
+  TValueType = (
+    vtNone = 0,
+    vtAscii = Ord('$'),
+    vtUtf8 = Ord('&'),
+    vtNumber = Ord('#')
+    );
+
+{  TXPoint = record
+    Lock: Boolean;
+    LockUser: Integer;
+
+    Protect: Boolean;
+    ProtectUser: Integer;
+
+    case TValueType of
+      vtAscii:
+      (
+        DstName: array [0..XPOINT_NAME_LEN] of AnsiChar;
+        DstLevelName: array [0..XPOINT_NAME_LEN] of AnsiChar;
+
+        SrcLevelName: array [0..XPOINT_NAME_LEN] of AnsiChar;
+        SrcName: array [0..XPOINT_NAME_LEN] of AnsiChar;
+      );
+      vtUtf8:
+      (
+        DstUtf8: array [0..XPOINT_NAME_LEN] of UTF8Char;
+        DstLevelUtf8: array [0..XPOINT_NAME_LEN] of UTF8Char;
+
+        SrcLevelUtf8: array [0..XPOINT_NAME_LEN] of UTF8Char;
+        SrcUtf8: array [0..XPOINT_NAME_LEN] of UTF8Char;
+      );
+      vtNumber:
+      (
+        DstIndex: Integer;
+        DstLevelIndex: Integer;
+
+        SrcIndex: Integer;
+        SrcLevelIndex: Integer;
+      );
+  end; }
+
+  TXPoint = record
+    DstIndex: Integer;
+    DstLevel: Integer;
+
+    SrcIndex: Integer;
+    SrcLevel: Integer;
+
+    Lock: Boolean;
+    LockUser: Integer;
+
+    Protect: Boolean;
+    ProtectUser: Integer;
+  end;
+
+  PXPoint = ^TXPoint;
+  TXPointList = TList<PXPoint>;
+
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+
+  TStatusThread = class;
+
+  TImagineLRC = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+
+    FXPointList: TXPointList;
+
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    procedure ParsingXPoint(AValue: AnsiString);
+    procedure ParsingLock(AValue: AnsiString);
+
+    function GetValueType(AValue: AnsiString): TValueType;
+
+    function GetDivisionString(AValue: AnsiString): AnsiString;
+
+//    function GetXPointInfo(AValue: AnsiString; var AName, ALevelName: AnsiString): Integer; overload;
+//    function GetXPointInfo(AValue: AnsiString; var AUtf8, ALevelUtf8: UTF8String): Integer; overload;
+    function GetXPointInfo(AValue: AnsiString; var AIndex, ALevelIndex: Integer): Integer; overload;
+
+//    function GetXPoint(ADstName, ADstLevelName: AnsiString): PXPoint; overload;
+//    function GetXPoint(ADstUtf8, ADstLevelUtf8: UTF8String): PXPoint; overload;
+    function GetXPoint(ADstIndex, ADstLevel: Integer): PXPoint; overload;
+
+    function SendCommand(ACMD: AnsiString; AOperationType: TOperationType; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    procedure ClearXPointList;
+
+    function TransmitCommand(ACMD: AnsiString; AOperationType: TOperationType; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+//    function GetXPoint(ADstName, ADstLevelName: AnsiString; var ASrcName, ASrcLevelName: AnsiString): Integer; overload;
+    function GetXPoint(ADstIndex, ADstLevelIndex: Integer; var ASrcIndex, ASrcLevel: Integer): Integer; overload;
+
+    function Connection(AMode: TConnectionMode): Integer;
+    function ProtocolName(var AName: AnsiString): Integer;
+    function ProtocolVersion(var AVersion: AnsiString): Integer;
+
+//    function ChangeXPoint(ASrcName, ADstName: AnsiString; ASrcLevelName: AnsiString = ''; ADstLevelName: AnsiString = ''): Integer; overload;
+    function ChangeXPoint(ADstIndex, ADstLevel, ASrcIndex, ASrcLevel: Integer): Integer; overload;
+
+//    function QueryXPoint(ADstName: AnsiString = ''; ADstLevelName: AnsiString = ''): Integer; overload;
+    function QueryXPoint: Integer; overload;
+    function QueryXPoint(ADstIndex, ADstLevel: Integer; var ASrcIndex, ASrcLevel: Integer): Integer; overload;
+
+//    function ChangeLock(ADstName, ADstLevelName: AnsiString; ALock: Boolean; ALockUser: Integer): Integer; overload;
+    function ChangeLock(ADstIndex, ADstLevel: Integer; ALock: Boolean; ALockUser: Integer): Integer; overload;
+
+//    function QueryLock(ADstName: AnsiString; ADstLevelName: AnsiString = ''): Integer; overload;
+    function QueryLock(ADstIndex, ADstLevel: Integer; var ALock: Boolean; var ALockUser: Integer): Integer; overload;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FImagineLRC: TImagineLRC;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AImagineLRC: TImagineLRC);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TImagineLRC }
+
+constructor TImagineLRC.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  FXPointList := TXPointList.Create;
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TImagineLRC.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FStatusThread.WaitFor;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if (FCriticalSection <> nil) then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  ClearXPointList;
+  FreeAndNil(FXPointList);
+
+  inherited Destroy;
+end;
+
+procedure TImagineLRC.ClearXPointList;
+var
+  I: Integer;
+  X: PXPoint;
+begin
+  for I := FXPointList.Count - 1 downto 0 do
+  begin
+    X := FXPointList[I];
+    Dispose(X);
+  end;
+
+  FXPointList.Clear;
+end;
+
+{procedure TImagineLRC.SetPortNumber(AValue: Integer);
+begin
+  if not (Abs(AValue) in [0..127]) then
+  begin
+    MessageDlg('Device ID must between 0 and 127 or between -127 and -1', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FPortNumber then FPortNumber := AValue;
+end; }
+
+procedure TImagineLRC.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TImagineLRC.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TImagineLRC.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Resume;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FStatusThread.WaitFor;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+function TImagineLRC.GetValueType(AValue: AnsiString): TValueType;
+var
+  ValPos: Integer;
+begin
+  Result := vtNone;
+
+  ValPos := Pos(AnsiChar(vtAscii), AValue);
+  if (ValPos > 0) then
+    Result := vtAscii
+  else
+  begin
+    ValPos := Pos(AnsiChar(vtUtf8), AValue);
+    if (ValPos > 0) then
+      Result := vtUtf8
+    else
+    begin
+      ValPos := Pos(AnsiChar(vtNumber), AValue);
+      if (ValPos > 0) then
+        Result := vtNumber;
+    end;
+  end;
+end;
+
+function TImagineLRC.GetDivisionString(AValue: AnsiString): AnsiString;
+var
+  SDivPos, EDivPos: Integer;
+begin
+  Result := '';
+
+  SDivPos := Pos('{', AValue);
+  EDivPos := Pos('}', AValue);
+
+  if (SDivPos > 0) and (EDivPos > 0) then
+    Result := Copy(AValue, SDivPos + 1, EDivPos - SDivPos - 1);
+end;
+{
+function TImagineLRC.GetXPointInfo(AValue: AnsiString; var AName, ALevelName: AnsiString): Integer;
+var
+  DivStr: AnsiString;
+  LevelPos: Integer;
+begin
+  Result := D_FALSE;
+
+  AName := '';
+  ALevelName := '';
+
+  DivStr := GetDivisionString(AValue);
+
+  LevelPos := Pos('.', DivStr);
+  if (LevelPos > 0) then
+  begin
+    AName := Copy(DivStr, 1, LevelPos - 1);
+    ALevelName := Copy(DivStr, LevelPos + 1, Length(DivStr));
+  end
+  else
+    AName := DivStr;
+
+  Result := D_OK;
+end;
+
+function TImagineLRC.GetXPointInfo(AValue: AnsiString; var AUtf8, ALevelUtf8: UTF8String): Integer;
+var
+  DivStr: AnsiString;
+  LevelPos: Integer;
+begin
+  Result := D_FALSE;
+
+  AUtf8 := '';
+  ALevelUtf8 := '';
+
+  DivStr := GetDivisionString(AValue);
+
+  LevelPos := Pos('.', DivStr);
+  if (LevelPos > 0) then
+  begin
+    AUtf8 := AnsiToUtf8(Copy(DivStr, 1, LevelPos - 1));
+    ALevelUtf8 := AnsiToUtf8(Copy(DivStr, LevelPos + 1, Length(DivStr)));
+  end
+  else
+    ALevelUtf8 := AnsiToUtf8(DivStr);
+
+  Result := D_OK;
+end;
+}
+function TImagineLRC.GetXPointInfo(AValue: AnsiString; var AIndex, ALevelIndex: Integer): Integer;
+var
+  DivStr: AnsiString;
+  LevelPos: Integer;
+begin
+  Result := D_FALSE;
+
+  AIndex := 0;
+  ALevelIndex := 0;
+
+  DivStr := GetDivisionString(AValue);
+
+  LevelPos := Pos('.', DivStr);
+  if (LevelPos > 0) then
+  begin
+    AIndex := StrToIntDef(Copy(DivStr, 1, LevelPos - 1), 0);
+    ALevelIndex := StrToIntDef(Copy(DivStr, LevelPos + 1, Length(DivStr)), 0);
+  end
+  else
+  begin
+    AIndex := StrToIntDef(DivStr, 0);
+    ALevelIndex := 0;
+  end;
+
+  Result := D_OK;
+end;
+{
+function TImagineLRC.GetXPoint(ADstName, ADstLevelName: AnsiString): PXPoint;
+var
+  I: Integer;
+  X: PXPoint;
+begin
+  Result := nil;
+
+  for I := 0 to FXPointList.Count - 1 do
+  begin
+    X := FXPointList[I];
+    if (AnsiString(X^.DstName) = ADstName) and (AnsiString(X^.DstLevelName) = ADstLevelName) then
+    begin
+      Result := X;
+      break;
+    end;
+  end;
+end;
+
+function TImagineLRC.GetXPoint(ADstUtf8, ADstLevelUtf8: UTF8String): PXPoint;
+var
+  I: Integer;
+  X: PXPoint;
+begin
+  Result := nil;
+
+  for I := 0 to FXPointList.Count - 1 do
+  begin
+    X := FXPointList[I];
+    if (AnsiToUtf8(X^.DstName) = ADstUtf8) and (AnsiToUtf8(X^.DstLevelName) = ADstLevelUtf8) then
+    begin
+      Result := X;
+      break;
+    end;
+  end;
+end;
+}
+function TImagineLRC.GetXPoint(ADstIndex, ADstLevel: Integer): PXPoint;
+var
+  I: Integer;
+  X: PXPoint;
+begin
+  Result := nil;
+
+  for I := 0 to FXPointList.Count - 1 do
+  begin
+    X := FXPointList[I];
+    if (X^.DstIndex = ADstIndex) and (X^.DstLevel = ADstLevel) then
+    begin
+      Result := X;
+      break;
+    end;
+  end;
+end;
+
+procedure TImagineLRC.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+procedure TImagineLRC.ParsingXPoint(AValue: AnsiString);
+var
+  DelimiterPos: Integer;
+  DstStr, SrcStr: AnsiString;
+
+  DstValueType: TValueType;
+
+  DstName, DstLevelName: AnsiString;
+  DstUtf8, DstLevelUtf8: UTF8String;
+  DstIndex, DstLevel: Integer;
+
+  SrcValueType: TValueType;
+
+  SrcName, SrcLevelName: AnsiString;
+  SrcUtf8, SrcLevelUtf8: UTF8String;
+  SrcIndex, SrcLevel: Integer;
+
+  X: PXPoint;
+begin
+  DelimiterPos := Pos(';', AValue);
+  if (DelimiterPos > 0) then
+  begin
+    DstStr := Copy(AValue, 1, DelimiterPos - 1);
+    SrcStr := Copy(AValue, DelimiterPos + 1, Length(AValue));
+
+    if (Length(DstStr) > 1) then
+    begin
+      if (DstStr[1] = 'D') then
+      begin
+        DstValueType := GetValueType(DstStr);
+        case DstValueType of
+//          vtAscii: GetXPointInfo(DstStr, DstName, DstLevelName);
+//          vtUtf8: GetXPointInfo(DstStr, DstUtf8, DstLevelUtf8);
+          vtNumber: GetXPointInfo(DstStr, DstIndex, DstLevel);
+        else
+          exit;
+        end;
+      end;
+    end;
+
+    case DstValueType of
+//      vtAscii: X := GetXPoint(DstName, DstLevelName);
+//      vtUtf8: X := GetXPoint(DstUtf8, DstLevelUtf8);
+      vtNumber: X := GetXPoint(DstIndex, DstLevel);
+    else
+      exit;
+    end;
+
+    if (X = nil) then
+    begin
+      X := New(PXPoint);
+      FillChar(X^, SizeOf(TXPoint), #0);
+
+      FXPointList.Add(X);
+    end;
+
+    case DstValueType of
+{      vtAscii:
+      begin
+        StrPCopy(X^.DstName, DstName);
+        StrPCopy(X^.DstLevelName, DstLevelName);
+      end;
+      vtUtf8:
+      begin
+        StrPCopy(X^.DstUtf8, DstUtf8);
+        StrPCopy(X^.DstLevelUtf8, DstLevelUtf8);
+      end; }
+      vtNumber:
+      begin
+        X^.DstIndex := DstIndex;
+        X^.DstLevel := DstLevel;
+      end;
+    else
+      exit;
+    end;
+
+    if (Length(SrcStr) > 1) then
+    begin
+      if (SrcStr[1] = 'S') then
+      begin
+        SrcValueType := GetValueType(SrcStr);
+        case SrcValueType of
+//          vtAscii: GetXPointInfo(SrcStr, SrcName, SrcLevelName);
+//          vtUtf8: GetXPointInfo(SrcStr, SrcUtf8, SrcLevelUtf8);
+          vtNumber: GetXPointInfo(SrcStr, SrcIndex, SrcLevel);
+        else
+          exit;
+        end;
+
+        if (X <> nil) then
+        begin
+          case SrcValueType of
+{            vtAscii:
+            begin
+              StrPCopy(X^.SrcName, SrcName);
+              StrPCopy(X^.SrcLevelName, SrcLevelName);
+            end;
+            vtUtf8:
+            begin
+              StrPCopy(X^.SrcUtf8, SrcUtf8);
+              StrPCopy(X^.SrcLevelUtf8, SrcLevelUtf8);
+            end; }
+            vtNumber:
+            begin
+              X^.SrcIndex := SrcIndex;
+              X^.SrcLevel := SrcLevel;
+            end;
+          else
+            exit;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TImagineLRC.ParsingLock(AValue: AnsiString);
+var
+  DelimiterPos: Integer;
+  DstStr, LockStr, UserStr: AnsiString;
+
+  DstValueType: TValueType;
+
+  DstName, DstLevelName: AnsiString;
+  DstUtf8, DstLevelUtf8: UTF8String;
+  DstIndex, DstLevel: Integer;
+
+  LockValueStr, UserValueStr: AnsiString;
+
+  SrcValueType: TValueType;
+
+  SrcName, SrcLevelName: AnsiString;
+  SrcUtf8, SrcLevelUtf8: UTF8String;
+  SrcIndex, SrcLevel: Integer;
+
+  X: PXPoint;
+begin
+  DelimiterPos := Pos(';', AValue);
+  if (DelimiterPos > 0) then
+  begin
+    DstStr := Copy(AValue, 1, DelimiterPos - 1);
+    LockStr := Copy(AValue, DelimiterPos + 1, Length(AValue));
+
+    DelimiterPos := Pos(';', LockStr);
+    if (DelimiterPos > 0) then
+    begin
+      LockStr := Copy(LockStr, 1, DelimiterPos - 1);
+      UserStr := Copy(LockStr, DelimiterPos + 1, Length(LockStr));
+
+      if (Length(DstStr) > 1) then
+      begin
+        if (DstStr[1] = 'D') then
+        begin
+          DstValueType := GetValueType(DstStr);
+          case DstValueType of
+//            vtAscii: GetXPointInfo(DstStr, DstName, DstLevelName);
+//            vtUtf8: GetXPointInfo(DstStr, DstUtf8, DstLevelUtf8);
+            vtNumber: GetXPointInfo(DstStr, DstIndex, DstLevel);
+          else
+            exit;
+          end;
+        end;
+      end;
+
+      case DstValueType of
+//        vtAscii: X := GetXPoint(DstName, DstLevelName);
+//        vtUtf8: X := GetXPoint(DstUtf8, DstLevelUtf8);
+        vtNumber: X := GetXPoint(DstIndex, DstLevel);
+      else
+        exit;
+      end;
+
+      if (X = nil) then
+      begin
+        X := New(PXPoint);
+        FillChar(X, SizeOf(TXPoint), #0);
+
+        FXPointList.Add(X);
+      end;
+
+      case DstValueType of
+{        vtAscii:
+        begin
+          StrPCopy(X^.DstName, DstName);
+          StrPCopy(X^.DstLevelName, DstLevelName);
+        end;
+        vtUtf8:
+        begin
+          StrPCopy(X^.DstUtf8, DstUtf8);
+          StrPCopy(X^.DstLevelUtf8, DstLevelUtf8);
+        end; }
+        vtNumber:
+        begin
+          X^.DstIndex := DstIndex;
+          X^.DstLevel := DstLevel;
+        end;
+      else
+        exit;
+      end;
+
+      if (Length(LockStr) > 1) then
+      begin
+        if (LockStr[1] = 'V') then
+        begin
+          LockValueStr := GetDivisionString(LockStr);
+        end;
+      end;
+
+      if (Length(UserStr) > 1) then
+      begin
+        if (LockStr[1] = 'U') then
+        begin
+          UserValueStr := GetDivisionString(UserStr);
+        end;
+      end;
+
+      if (X <> nil) then
+      begin
+        X^.Lock := (LockValueStr = 'ON');
+        X^.LockUser := StrToIntDef(UserValueStr, - 1);
+      end;
+    end;
+  end;
+end;
+
+function TImagineLRC.SendCommand(ACMD: AnsiString; AOperationType: TOperationType; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+//  Buffer: PByte;
+  Buffer: AnsiString;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+  Buffer := IMG_LRC_SOH + ACMD + Chr(Ord(AOperationType)) + ADataBuf + IMG_LRC_EOT;
+
+  ErrCnt := 0;
+  while ErrCnt < MAX_RETRY do
+  begin
+    if SendData(Pointer(Buffer), Length(ACMD) + ADataSize + 3) = D_FALSE then
+    begin
+      Inc(ErrCnt);
+      Continue;
+    end
+    else
+    begin
+      Result := D_OK;
+      break;
+    end;
+  end;
+
+
+{  Buffer := GetMemory(Length(ACMD) + ADataSize + 3);
+  try
+    Buffer[0] := Ord(IMG_LRC_SOH);
+
+    for I := 1 to Length(ACMD) do
+      Buffer[I] := Ord(ACMD[I]);
+
+    Buffer[Length(ACMD) + 1] := Byte(AOperationType);
+
+    for I := 1 to ADataSize do
+      Buffer[I + Length(ACMD) + 1] := Ord(ADataBuf[I]);
+
+    Buffer[Length(ACMD) + ADataSize + 2] := Ord(IMG_LRC_EOT);
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), Length(ACMD) + ADataSize + 3) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end; }
+end;
+
+function TImagineLRC.TransmitCommand(ACMD: AnsiString; AOperationType: TOperationType; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+//    if (AOperationType = otQuery) then
+    begin
+      if (ACMD = 'XPOINT') or
+         (ACMD = 'LOCK') or
+         (ACMD = 'PROTECT') or
+         (ACMD = 'CHANNELS') or
+         (ACMD = 'DEST') or
+         (ACMD = 'SRC') or
+         (ACMD = 'XSALVO') or
+         (ACMD = 'PROTOCOL') then
+      begin
+        FReceivedBuffer := '';
+        FReceivedData := '';
+      end;
+    end;
+
+    FCriticalSection.Enter;
+    try
+      Result := SendCommand(ACMD, AOperationType, ADataBuf, ADataSize);
+      if (Result = D_OK) then
+      begin
+//        if (AOperationType = otQuery) then
+        begin
+          if (ACMD = 'XPOINT') or
+             (ACMD = 'LOCK') or
+             (ACMD = 'PROTECT') or
+             (ACMD = 'CHANNELS') or
+             (ACMD = 'DEST') or
+             (ACMD = 'SRC') or
+             (ACMD = 'XSALVO') or
+             (ACMD = 'PROTOCOL') then
+          begin
+            ResetEvent(FSyncMsgEvent);
+            R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+            case R of
+              WAIT_OBJECT_0:
+              begin
+                Result := FLastResult;
+              end;
+            else
+              Result := E_TIMEOUT;
+            end;
+          end;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+
+{    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FCriticalSection.Enter;
+    try
+      if (SendCommand(ACMD, AOP, ADataBuf, ADataSize) = D_OK) then
+      begin
+        ResetEvent(FSyncMsgEvent);
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;  }
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+procedure TImagineLRC.DataEvent;
+var
+  SOHPos: Integer;
+  EOTPos: Integer;
+  OPPos: Integer;
+  CMD: AnsiString;
+
+  OP: AnsiChar;
+  ByteCount: Integer;
+label
+  ReParsing;
+begin
+  inherited;
+  if (Length(FReceivedBuffer) < 1) then exit;
+
+  ReParsing:
+
+  SOHPos := Pos(IMG_LRC_SOH, FReceivedBuffer);
+  if (SOHPos >= 0) then
+  begin
+    EOTPos := Pos(IMG_LRC_EOT, FReceivedBuffer);
+    if (EOTPos >= 0) then
+    begin
+      OPPos := Pos(AnsiChar(otNotify), FReceivedBuffer);
+      if (OPPos <= 0) then
+        OPPos := Pos(AnsiChar(otResponse), FReceivedBuffer);
+
+      if (OPPos >= 0) then
+      begin
+        CMD := Copy(FReceivedBuffer, 2, OPPos - 2);
+        FReceivedData := Copy(FReceivedBuffer, OPPos + 1, EOTPos - OPPos);
+
+        if (CMD = 'XPOINT') then ParsingXPoint(FReceivedData)
+        else if (CMD = 'LOCK') then ParsingLock(FReceivedData);
+{        else if (CMD = 'PROTOCOL') then
+        begin
+          FLastResult := D_OK;
+          SetEvent(FSyncMsgEvent);
+        end; }
+      end;
+
+      FReceivedBuffer := Copy(FReceivedBuffer, EOTPos + 1, Length(FReceivedBuffer));
+      if (Length(FReceivedBuffer) > 0) then
+        goto ReParsing
+      else
+      begin
+        if (CMD = 'XPOINT') or
+           (CMD = 'LOCK') or
+           (CMD = 'PROTECT') or
+           (CMD = 'CHANNELS') or
+           (CMD = 'DEST') or
+           (CMD = 'SRC') or
+           (CMD = 'XSALVO') or
+           (CMD = 'PROTOCOL') then
+        begin
+          FLastResult := D_OK;
+          SetEvent(FSyncMsgEvent);
+        end;
+      end;
+    end;
+  end;
+end;
+
+{function TImagineLRC.GetXPoint(ADstName, ADstLevelName: AnsiString; var ASrcName, ASrcLevelName: AnsiString): Integer;
+var
+  X: PXPoint;
+begin
+  Result := D_FALSE;
+
+  ASrcName := '';
+  ASrcLevelName := '';
+
+  X := GetXPoint(ADstName, ADstLevelName);
+  if (X <> nil) then
+  begin
+    ASrcName := AnsiString(X^.SrcName);
+    ASrcLevelName := AnsiString(X^.SrcLevelName);
+    Result := D_OK;
+  end;
+end;
+}
+function TImagineLRC.GetXPoint(ADstIndex, ADstLevelIndex: Integer; var ASrcIndex, ASrcLevel: Integer): Integer;
+var
+  X: PXPoint;
+begin
+  Result := D_FALSE;
+
+  ASrcIndex := 0;
+  ASrcLevel := 0;
+
+  X := GetXPoint(ADstIndex, ADstLevelIndex);
+  if (X <> nil) then
+  begin
+    ASrcIndex := X^.SrcIndex;
+    ASrcLevel := X^.SrcLevel;
+    Result := D_OK;
+  end;
+end;
+
+function TImagineLRC.Connection(AMode: TConnectionMode): Integer;
+const
+  ModeNames: array[TConnectionMode] of AnsiChar = (AnsiChar(vtAscii), AnsiChar(vtUtf8));
+var
+  Buffer: AnsiString;
+begin
+  Buffer := Format('MODE${%s}', [ModeNames[AMode]]);
+  Result := TransmitCommand('CONNECTION', otChange, Buffer, Length(Buffer));
+end;
+
+function TImagineLRC.ProtocolName(var AName: AnsiString): Integer;
+var
+  Buffer: AnsiString;
+  SPos, EPos: Integer;
+begin
+  AName := '';
+
+  Buffer := 'Q${NAME}';
+  Result := TransmitCommand('PROTOCOL', otQuery, Buffer, Length(Buffer));
+  if (Result = D_OK) then
+  begin
+    SPos := Pos('{', FReceivedData);
+    EPos := Pos('}', FReceivedData);
+    if (SPos > 0) and (EPos > 0) then
+      AName := Copy(FReceivedData, SPos + 1, EPos - SPos - 1);
+  end;
+end;
+
+function TImagineLRC.ProtocolVersion(var AVersion: AnsiString): Integer;
+var
+  Buffer: AnsiString;
+  SPos, EPos: Integer;
+begin
+  AVersion := '';
+
+  Buffer := 'Q${VERSION}';
+  Result := TransmitCommand('PROTOCOL', otQuery, Buffer, Length(Buffer));
+  if (Result = D_OK) then
+  begin
+    SPos := Pos('{', FReceivedData);
+    EPos := Pos('}', FReceivedData);
+    if (SPos > 0) and (EPos > 0) then
+      AVersion := Copy(FReceivedData, SPos + 1, EPos - SPos - 1);
+  end;
+end;
+
+//function TImagineLRC.ChangeXPoint(ASrcName, ADstName: AnsiString; ASrcLevelName: AnsiString; ADstLevelName: AnsiString): Integer;
+//var
+//  Buffer: AnsiString;
+//begin
+//  if (ASrcLevelName <> '') then
+//    Buffer := Format('S${%s.%s}', [ASrcName, ASrcLevelName])
+//  else
+//    Buffer := Format('S${%s}', [ASrcName]);
+//
+//  Buffer := Buffer + ';';
+//
+//  if (ADstLevelName <> '') then
+//    Buffer := Format('D${%s.%s}', [ADstName, ADstLevelName])
+//  else
+//    Buffer := Format('D${%s}', [ADstName]);
+//
+//  Result := TransmitCommand('XPOINT', otChange, Buffer, Length(Buffer));
+//end;
+
+function TImagineLRC.ChangeXPoint(ADstIndex, ADstLevel, ASrcIndex, ASrcLevel: Integer): Integer;
+var
+  Buffer: AnsiString;
+
+  X: PXPoint;
+begin
+  if (ASrcLevel > 0) then
+    Buffer := Format('S#{%d.%d}', [ASrcIndex, ASrcLevel])
+  else
+    Buffer := Format('S#{%d}', [ASrcIndex]);
+
+  Buffer := Buffer + ';';
+
+  if (ADstLevel > 0) then
+    Buffer := Buffer + Format('D#{%d.%d}', [ADstIndex, ADstLevel])
+  else
+    Buffer := Buffer + Format('D#{%d}', [ADstIndex]);
+
+  Result := TransmitCommand('XPOINT', otChange, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    Result := D_FALSE;
+
+    X := GetXPoint(ADstIndex, ADstLevel);
+    if (X <> nil) then
+    begin
+      if (X^.DstIndex = ADstIndex) and (X^.DstLevel = ADstLevel) and
+         (X^.SrcIndex = ASrcIndex) and (X^.SrcLevel = ASrcLevel) then
+        Result := D_OK;
+    end;
+  end;
+end;
+
+//function TImagineLRC.QueryXPoint(ADstName: AnsiString; ADstLevelName: AnsiString): Integer;
+//var
+//  Buffer: AnsiString;
+//begin
+//  if (ADstName <> '') and (ADstLevelName <> '') then
+//    Buffer := Format('D${%s.%s}', [ADstName, ADstLevelName])
+//  else if (ADstName <> '') then
+//    Buffer := Format('D${%s}', [ADstName])
+//  else
+//    Buffer := '';
+//
+//  Result := TransmitCommand('XPOINT', otQuery, Buffer, Length(Buffer));
+//end;
+
+function TImagineLRC.QueryXPoint: Integer;
+var
+  Buffer: AnsiString;
+begin
+  Buffer := '';
+
+  Result := TransmitCommand('XPOINT', otQuery, Buffer, Length(Buffer));
+end;
+
+function TImagineLRC.QueryXPoint(ADstIndex, ADstLevel: Integer; var ASrcIndex, ASrcLevel: Integer): Integer;
+var
+  Buffer: AnsiString;
+
+  X: PXPoint;
+begin
+  ASrcIndex := -1;
+  ASrcLevel := -1;
+
+  if (ADstLevel > 0) then
+    Buffer := Format('D#{%d.%d}', [ADstIndex, ADstLevel])
+  else if (ADstIndex > 0) then
+    Buffer := Format('D#{%d}', [ADstIndex]);
+
+  Result := TransmitCommand('XPOINT', otQuery, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    Result := D_FALSE;
+
+    X := GetXPoint(ADstIndex, ADstLevel);
+    if (X <> nil) then
+    begin
+      if (X^.DstIndex = ADstIndex) and (X^.DstLevel = ADstLevel) then
+      begin
+        ASrcIndex := X^.SrcIndex;
+        ASrcLevel := X^.SrcLevel;
+        Result := D_OK;
+      end;
+    end;
+  end;
+end;
+
+//function TImagineLRC.ChangeLock(ADstName, ADstLevelName: AnsiString; ALock: Boolean; ALockUser: Integer): Integer;
+//var
+//  Buffer: AnsiString;
+//begin
+//  if (ADstLevelName <> '') then
+//    Buffer := Format('D${%s.%s}', [ADstName, ADstLevelName])
+//  else
+//    Buffer := Format('D${%s}', [ADstName]);
+//
+//  if (ALock) then
+//    Buffer := Buffer + ';' + 'V${ON}'
+//  else
+//    Buffer := Buffer + ';' + 'V${OFF}';
+//
+//  Buffer := Buffer + ';' + Format('U#{%d}', [ALockUser]);
+//
+//  Result := TransmitCommand('LOCK', otChange, Buffer, Length(Buffer));
+//end;
+
+function TImagineLRC.ChangeLock(ADstIndex, ADstLevel: Integer; ALock: Boolean; ALockUser: Integer): Integer;
+var
+  Buffer: AnsiString;
+
+  X: PXPoint;
+begin
+  if (ADstLevel > 0) then
+    Buffer := Format('D#{%d.%d}', [ADstIndex, ADstLevel])
+  else
+    Buffer := Format('D#{%d}', [ADstIndex]);
+
+  if (ALock) then
+    Buffer := Buffer + ';' + 'V${ON}'
+  else
+    Buffer := Buffer + ';' + 'V${OFF}';
+
+  Buffer := Buffer + ';' + Format('U#{%d}', [ALockUser]);
+
+  Result := TransmitCommand('LOCK', otChange, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    Result := D_FALSE;
+
+    X := GetXPoint(ADstIndex, ADstLevel);
+    if (X <> nil) then
+    begin
+      if (X^.DstIndex = ADstIndex) and (X^.DstLevel = ADstLevel) and
+         (X^.Lock = ALock) and (X^.LockUser = ALockUser) then
+        Result := D_OK;
+    end;
+  end;
+end;
+
+//function TImagineLRC.QueryLock(ADstName: AnsiString; ADstLevelName: AnsiString = ''): Integer;
+//var
+//  Buffer: AnsiString;
+//begin
+//  if (ADstLevelName <> '') then
+//    Buffer := Format('D${%s.%s}', [ADstName, ADstLevelName])
+//  else
+//    Buffer := Format('D${%s}', [ADstName]);
+//
+//  Result := TransmitCommand('LOCK', otQuery, Buffer, Length(Buffer));
+//end;
+
+function TImagineLRC.QueryLock(ADstIndex, ADstLevel: Integer; var ALock: Boolean; var ALockUser: Integer): Integer;
+var
+  Buffer: AnsiString;
+
+  X: PXPoint;
+begin
+  ALock := False;
+  ALockUser := -1;
+
+  if (ADstLevel > 0) then
+    Buffer := Format('D#{%d.%d}', [ADstIndex, ADstLevel])
+  else
+    Buffer := Format('D#{%d}', [ADstIndex]);
+
+  Result := TransmitCommand('LOCK', otQuery, Buffer, Length(Buffer));
+
+  if (Result = D_OK) then
+  begin
+    Result := D_FALSE;
+
+    X := GetXPoint(ADstIndex, ADstLevel);
+    if (X <> nil) then
+    begin
+      if (X^.DstIndex = ADstIndex) and (X^.DstLevel = ADstLevel) then
+      begin
+        ALock := X^.Lock;
+        ALockUser := X^.LockUser;
+        Result := D_OK;
+      end;
+    end;
+  end;
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(AImagineLRC: TImagineLRC);
+begin
+  FImagineLRC := AImagineLRC;
+  FreeOnTerminate := False;
+
+  inherited Create(True);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+      FSaveConnected := FConnected;
+
+      if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+      begin
+        FConnected := False;
+        exit;
+      end;
+
+//      R := QueryXPoint('');
+      R := QueryXPoint();
+      if (R = D_OK) then
+        FConnected := True
+      else
+        FConnected := False;
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+    if Assigned(FOnConnectChanged) then
+      if (FSaveConnected <> FConnected) then
+        FOnConnectChanged(FImagineLRC, FConnected);
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if (WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0) then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FImagineLRC.FAutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

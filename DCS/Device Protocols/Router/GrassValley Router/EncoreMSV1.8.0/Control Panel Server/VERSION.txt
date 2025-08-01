@@ -1,0 +1,3 @@
+Encore Image
+V1.8.0
+$Win32-ix86

@@ -1,0 +1,1129 @@
+HLK20v01-MIB DEFINITIONS ::= BEGIN
+IMPORTS enterprises, IpAddress FROM RFC1155-SMI OBJECT-TYPE FROM RFC-1212;
+DisplayString ::= OCTET STRING
+
+k2e OBJECT IDENTIFIER ::= { enterprises 44462 }
+ctrl OBJECT IDENTIFIER ::= { k2e 1 }
+xslot OBJECT IDENTIFIER ::= { ctrl 0 }
+HLK20 OBJECT IDENTIFIER ::= { xslot 682800272 }
+v01 OBJECT IDENTIFIER ::= { HLK20 272891904 }
+
+cardTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF CARDENTRY
+	ACCESS not-accessible
+	STATUS mandatory
+	::= { v01 1 }
+
+cardEntry OBJECT-TYPE
+	SYNTAX CARDENTRY
+	ACCESS not-accessible
+	STATUS mandatory
+	INDEX { cardIndex }
+	::= { cardTable 1 }
+
+CARDENTRY::= SEQUENCE {
+	Slot INTEGER,
+	Name DisplayString,
+	Label DisplayString,
+	Desc DisplayString,
+	SWRev DisplayString,
+	HWRev DisplayString,
+	SerialNo DisplayString,
+	IPConfig INTEGER,
+	mIP IpAddress,
+	mNM IpAddress,
+	mGW IpAddress,
+	Reset INTEGER,
+	SwitchBack INTEGER,
+	CheckBlack INTEGER,
+	CheckCRC INTEGER,
+	CheckANC INTEGER,
+	CheckFreeze INTEGER,
+	OutputA INTEGER,
+	OutputB INTEGER,
+	KeyPGM1 INTEGER,
+	KeyPVW1 INTEGER,
+	LogoMode INTEGER,
+	LogoSpeed INTEGER,
+	LogoBEnable INTEGER,
+	Logo1XPos INTEGER,
+	Logo1YPos INTEGER,
+	Logo2XPos INTEGER,
+	Logo2YPos INTEGER,
+	Logo3XPos INTEGER,
+	Logo3YPos INTEGER,
+	Logo4XPos INTEGER,
+	Logo4YPos INTEGER,
+	Logo5XPos INTEGER,
+	Logo5YPos INTEGER,
+	Logo6XPos INTEGER,
+	Logo6YPos INTEGER,
+	Logo7XPos INTEGER,
+	Logo7YPos INTEGER,
+	Logo8XPos INTEGER,
+	Logo8YPos INTEGER,
+	Logo9XPos INTEGER,
+	Logo9YPos INTEGER,
+	Logo10XPos INTEGER,
+	Logo10YPos INTEGER,
+	Logo11XPos INTEGER,
+	Logo11YPos INTEGER,
+	Logo12XPos INTEGER,
+	Logo12YPos INTEGER,
+	Logo13XPos INTEGER,
+	Logo13YPos INTEGER,
+	Logo14XPos INTEGER,
+	Logo14YPos INTEGER,
+	Logo15XPos INTEGER,
+	Logo15YPos INTEGER,
+	Logo16XPos INTEGER,
+	Logo16YPos INTEGER,
+	Logo1Zorder INTEGER,
+	Logo1Sel INTEGER,
+	Logo1EnA INTEGER,
+	Logo1EnB INTEGER,
+	Logo2Zorder INTEGER,
+	Logo2Sel INTEGER,
+	Logo2EnA INTEGER,
+	Logo2EnB INTEGER,
+	Logo3Zorder INTEGER,
+	Logo3Sel INTEGER,
+	Logo3EnA INTEGER,
+	Logo3EnB INTEGER,
+	Logo4Zorder INTEGER,
+	Logo4Sel INTEGER,
+	Logo4EnA INTEGER,
+	Logo4EnB INTEGER,
+	LOGOPGM1GPI INTEGER,
+	LOGOPGM2GPI INTEGER,
+	LOGOPGM3GPI INTEGER,
+	LOGOPGM4GPI INTEGER,
+	LOGOPVW1GPI INTEGER,
+	LOGOPVW2GPI INTEGER,
+	LOGOPVW3GPI INTEGER,
+	LOGOPVW4GPI INTEGER,
+	DSKPGM1GPI INTEGER,
+	DSKPGM2GPI INTEGER,
+	DSKPVW1GPI INTEGER,
+	DSKPVW2GPI INTEGER,
+	StillEn INTEGER,
+	StillCtrl INTEGER,
+	StillFr'No INTEGER,
+	StillGpi INTEGER,
+	NTPAL INTEGER,
+	Reference INTEGER,
+	FSDelay INTEGER,
+	HDelay INTEGER,
+	SwitchDly INTEGER,
+	Genlock INTEGER,
+	Referencealm INTEGER,
+	DSK INTEGER,
+	Logo INTEGER,
+	Input INTEGER,
+	GPI INTEGER,
+	InputA INTEGER,
+	InputB INTEGER,
+	Input3 INTEGER,
+	Input4 INTEGER,
+	OutputAalm INTEGER,
+	OutputBalm INTEGER,
+	LogoKeyA INTEGER,
+	LogoKeyB INTEGER,
+	TD0 IpAddress,
+	TD1 IpAddress,
+	TD0EN INTEGER,
+	TD1EN INTEGER
+}
+
+Slot OBJECT-TYPE
+	SYNTAX INTEGER (0..18)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 1 }
+
+Name OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 2 }
+
+Label OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 3 }
+
+Desc OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 4 }
+
+SWRev OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 5 }
+
+HWRev OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 6 }
+
+SerialNo OBJECT-TYPE
+	SYNTAX DisplayString
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "About:"
+	::= { cardEntry 7 }
+
+IPConfig OBJECT-TYPE
+	SYNTAX INTEGER {
+		Static(0),
+		DHCP(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 8 }
+
+mIP OBJECT-TYPE
+	SYNTAX IpAddress
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 9 }
+
+mNM OBJECT-TYPE
+	SYNTAX IpAddress
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 10 }
+
+mGW OBJECT-TYPE
+	SYNTAX IpAddress
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 11 }
+
+Reset OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 12 }
+
+SwitchBack OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 13 }
+
+CheckBlack OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 14 }
+
+CheckCRC OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 15 }
+
+CheckANC OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 16 }
+
+CheckFreeze OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 17 }
+
+OutputA OBJECT-TYPE
+	SYNTAX INTEGER {
+		Auto(0),
+		InputA(1),
+		InputB(2)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 18 }
+
+OutputB OBJECT-TYPE
+	SYNTAX INTEGER {
+		OutputA(0),
+		InputA(1),
+		InputB(2)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 19 }
+
+KeyPGM1 OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Switch:"
+	::= { cardEntry 20 }
+
+KeyPVW1 OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Switch:"
+	::= { cardEntry 21 }
+
+LogoMode OBJECT-TYPE
+	SYNTAX INTEGER {
+		CUT(0),
+		MIX(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 22 }
+
+LogoSpeed OBJECT-TYPE
+	SYNTAX INTEGER (20..120)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 23 }
+
+LogoBEnable OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 24 }
+
+Logo1XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 25 }
+
+Logo1YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 26 }
+
+Logo2XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 27 }
+
+Logo2YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 28 }
+
+Logo3XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 29 }
+
+Logo3YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 30 }
+
+Logo4XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 31 }
+
+Logo4YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 32 }
+
+Logo5XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 33 }
+
+Logo5YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 34 }
+
+Logo6XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 35 }
+
+Logo6YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 36 }
+
+Logo7XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 37 }
+
+Logo7YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 38 }
+
+Logo8XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 39 }
+
+Logo8YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 40 }
+
+Logo9XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 41 }
+
+Logo9YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 42 }
+
+Logo10XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 43 }
+
+Logo10YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 44 }
+
+Logo11XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 45 }
+
+Logo11YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 46 }
+
+Logo12XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 47 }
+
+Logo12YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 48 }
+
+Logo13XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 49 }
+
+Logo13YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 50 }
+
+Logo14XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 51 }
+
+Logo14YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 52 }
+
+Logo15XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 53 }
+
+Logo15YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 54 }
+
+Logo16XPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1919)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 55 }
+
+Logo16YPos OBJECT-TYPE
+	SYNTAX INTEGER (0..1079)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 56 }
+
+Logo1Zorder OBJECT-TYPE
+	SYNTAX INTEGER (0..3)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 57 }
+
+Logo1Sel OBJECT-TYPE
+	SYNTAX INTEGER (0..15)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 58 }
+
+Logo1EnA OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 59 }
+
+Logo1EnB OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 60 }
+
+Logo2Zorder OBJECT-TYPE
+	SYNTAX INTEGER (0..3)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 61 }
+
+Logo2Sel OBJECT-TYPE
+	SYNTAX INTEGER (0..15)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 62 }
+
+Logo2EnA OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 63 }
+
+Logo2EnB OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 64 }
+
+Logo3Zorder OBJECT-TYPE
+	SYNTAX INTEGER (0..3)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 65 }
+
+Logo3Sel OBJECT-TYPE
+	SYNTAX INTEGER (0..15)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 66 }
+
+Logo3EnA OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 67 }
+
+Logo3EnB OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 68 }
+
+Logo4Zorder OBJECT-TYPE
+	SYNTAX INTEGER (0..3)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 69 }
+
+Logo4Sel OBJECT-TYPE
+	SYNTAX INTEGER (0..15)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 70 }
+
+Logo4EnA OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 71 }
+
+Logo4EnB OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 72 }
+
+LOGOPGM1GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 73 }
+
+LOGOPGM2GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 74 }
+
+LOGOPGM3GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 75 }
+
+LOGOPGM4GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 76 }
+
+LOGOPVW1GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 77 }
+
+LOGOPVW2GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 78 }
+
+LOGOPVW3GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 79 }
+
+LOGOPVW4GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 80 }
+
+DSKPGM1GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 81 }
+
+DSKPGM2GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 82 }
+
+DSKPVW1GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 83 }
+
+DSKPVW2GPI OBJECT-TYPE
+	SYNTAX INTEGER {
+		None(0),
+		GPI1(1),
+		GPI2(2),
+		GPI3(3),
+		GPI4(4),
+		GPI5(5),
+		GPI6(6),
+		GPI7(7)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 84 }
+
+StillEn OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 85 }
+
+StillCtrl OBJECT-TYPE
+	SYNTAX INTEGER {
+		Direct(0),
+		GPI(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 86 }
+
+StillFr'No OBJECT-TYPE
+	SYNTAX INTEGER (1..1500)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 87 }
+
+StillGpi OBJECT-TYPE
+	SYNTAX INTEGER {
+		GPI-3CH(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 88 }
+
+NTPAL OBJECT-TYPE
+	SYNTAX INTEGER {
+		NTSC(59.94)(0),
+		PAL(50.00)(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Video:"
+	::= { cardEntry 89 }
+
+Reference OBJECT-TYPE
+	SYNTAX INTEGER {
+		VideoA/B(0),
+		VideoA(1),
+		VideoB(2),
+		NTSC(3),
+		PAL(4),
+		B&B1(5),
+		B&B2(6)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Ref:"
+	::= { cardEntry 90 }
+
+FSDelay OBJECT-TYPE
+	SYNTAX INTEGER (-500..500)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Ref:"
+	::= { cardEntry 91 }
+
+HDelay OBJECT-TYPE
+	SYNTAX INTEGER (-100..100)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Ref:"
+	::= { cardEntry 92 }
+
+SwitchDly OBJECT-TYPE
+	SYNTAX INTEGER (20..100)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "NONE:"
+	::= { cardEntry 93 }
+
+Genlock OBJECT-TYPE
+	SYNTAX INTEGER {
+		Unlocked(0),
+		NTSC(1),
+		PAL(2)
+	}
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Status:"
+	::= { cardEntry 94 }
+
+Referencealm OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 95 }
+
+DSK OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 96 }
+
+Logo OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 97 }
+
+Input OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 98 }
+
+GPI OBJECT-TYPE
+	SYNTAX INTEGER (0..4)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "GPIO:"
+	::= { cardEntry 99 }
+
+InputA OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 100 }
+
+InputB OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 101 }
+
+Input3 OBJECT-TYPE
+	SYNTAX INTEGER {
+		N/A(0),
+		OK(1)
+	}
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 102 }
+
+Input4 OBJECT-TYPE
+	SYNTAX INTEGER {
+		N/A(0),
+		OK(1)
+	}
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 103 }
+
+OutputAalm OBJECT-TYPE
+	SYNTAX INTEGER {
+		InputA(0),
+		InputB(1)
+	}
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 104 }
+
+OutputBalm OBJECT-TYPE
+	SYNTAX INTEGER {
+		InputA(0),
+		InputB(1)
+	}
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Alarm:"
+	::= { cardEntry 105 }
+
+LogoKeyA OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 106 }
+
+LogoKeyB OBJECT-TYPE
+	SYNTAX INTEGER (0..255)
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION "Logo:"
+	::= { cardEntry 107 }
+
+TD0 OBJECT-TYPE
+	SYNTAX IpAddress
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 108 }
+
+TD1 OBJECT-TYPE
+	SYNTAX IpAddress
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 109 }
+
+TD0EN OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 110 }
+
+TD1EN OBJECT-TYPE
+	SYNTAX INTEGER {
+		Off(0),
+		On(1)
+	}
+	ACCESS read-write
+	STATUS mandatory
+	DESCRIPTION "System:"
+	::= { cardEntry 111 }
+
+END

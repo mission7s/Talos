@@ -1,0 +1,423 @@
+unit UnitTestVTS;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, System.Win.Registry,
+  UnitBaseSerial, UnitVideoTronSwitcher;
+
+const
+  TakeTypeNames: array[vtsTtTransition..vtsTtDropKey] of String =
+    (
+      'On-Air the Preset Channel and reports the Status Change',
+      'Drop the On-Air PGM and PST Over level',
+      'Drop the On-Air Key level'
+    );
+
+//  TransitionTypeNames: array[vtsTsCut..vtsTsDsk] of String =
+//    (
+//      'Cut-out and cut-in',
+//      'Dissolve or Mix',
+//      'Fade-out and Fade-in',
+//      'Fade-out and Cut-in',
+//      'Cut-out and Fade-in',
+//      'Wipe',
+//      'DSK channel is selected'
+//    );
+//
+//  TransitionRateNames: array[vtsTrCut..vtsTrSlow] of String =
+//    (
+//      'Cut',
+//      'Fast transition rate',
+//      'Middle transition rate',
+//      'Slow transition rate'
+//    );
+
+type
+  TForm1 = class(TForm)
+    Label2: TLabel;
+    cbComportNum: TComboBox;
+    edVideoChannel: TEdit;
+    Label3: TLabel;
+    edAudioChannel: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
+    cbTransitionType: TComboBox;
+    cbTransitionRate: TComboBox;
+    btnPreset: TButton;
+    btnConnect: TButton;
+    btnDisconnect: TButton;
+    btnTake: TButton;
+    Label1: TLabel;
+    cbKeyTransitionRate: TComboBox;
+    Label7: TLabel;
+    edKeyNumber: TEdit;
+    btnKeyIn: TButton;
+    btnKeyOut: TButton;
+    btnMachineStatus: TButton;
+    mmLog: TMemo;
+    Label8: TLabel;
+    cbTakeType: TComboBox;
+    btnDirectProgramChange: TButton;
+    btnOverDirectInOut: TButton;
+    cbOverInOut: TComboBox;
+    Label6: TLabel;
+    Label9: TLabel;
+    cbOverPstPgm: TComboBox;
+    Label10: TLabel;
+    Label11: TLabel;
+    edInOutChannel: TEdit;
+    procedure FormCreate(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnPresetClick(Sender: TObject);
+    procedure btnTakeClick(Sender: TObject);
+    procedure btnKeyInClick(Sender: TObject);
+    procedure btnKeyOutClick(Sender: TObject);
+    procedure btnMachineStatusClick(Sender: TObject);
+    procedure btnDirectProgramChangeClick(Sender: TObject);
+    procedure btnOverDirectInOutClick(Sender: TObject);
+  private
+    { Private declarations }
+    FVTS: TVideoTronSwitcher;
+
+    function PopulateComportNum: Integer;
+    function PopulateTransitionType: Integer;
+    function PopulateTransitionRate: Integer;
+    function PopulateTakeType: Integer;
+    function PopulateOverInOut: Integer;
+    function PopulateOverPStPgm: Integer;
+    function PopulateKeyTransitionRate: Integer;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.btnConnectClick(Sender: TObject);
+begin
+  FVTS.ControlType := ctSerial;
+  FVTS.ComPort := Integer(cbComportNum.Items.Objects[cbComportNum.ItemIndex]);
+
+  if (FVTS.Connect) then
+    mmLog.Lines.Add('Connect success.')
+  else
+    mmLog.Lines.Add('[Error] Connect Fail.');
+end;
+
+procedure TForm1.btnDirectProgramChangeClick(Sender: TObject);
+var
+  R: Integer;
+
+  VideoChannel: Byte;
+  AudioChannel: Byte;
+
+  TransitionType: TVtsTransitionType;
+  TransitionRate: TVtsTransitionRate;
+begin
+  VideoChannel := StrToIntDef(edVideoChannel.Text, 0);
+  AudioChannel := StrToIntDef(edAudioChannel.Text, 0);
+
+  R := FVTS.DirectProgramChange(VideoChannel, AudioChannel);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('DirectProgramChange success.');
+    mmLog.Lines.Add(Format('VideoChannel = %d', [VideoChannel]));
+    mmLog.Lines.Add(Format('AudioChannel = %d', [AudioChannel]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] DirectProgramChange Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnDisconnectClick(Sender: TObject);
+begin
+  if (FVTS.Disconnect) then
+    mmLog.Lines.Add('Disconnect success.')
+  else
+    mmLog.Lines.Add('[Error] Disconnect Fail.');
+end;
+
+procedure TForm1.btnKeyInClick(Sender: TObject);
+var
+  R: Integer;
+
+  KeyInOut: TVtsInOut;
+  KeyNumber: Byte;
+  KeyTransitionRate: TVtsTransitionRate;
+begin
+  KeyInOut := vtsIn;
+  KeyNumber := StrToIntDef(edKeyNumber.Text, 0);
+  KeyTransitionRate := TVtsTransitionRate(cbKeyTransitionRate.Items.Objects[cbKeyTransitionRate.ItemIndex]);
+
+  R := FVTS.KeyDirectInOut(KeyInOut, KeyNumber, KeyTransitionRate);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('KeyDirectInOut success.');
+    mmLog.Lines.Add(Format('KeyInOut = %s', [Char(KeyInOut)]));
+    mmLog.Lines.Add(Format('KeyNumber = %d', [KeyNumber]));
+    mmLog.Lines.Add(Format('KeyTransitionRate = %s', [Char(KeyTransitionRate)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] KeyDirectInOut Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnKeyOutClick(Sender: TObject);
+var
+  R: Integer;
+
+  KeyInOut: TVtsInOut;
+  KeyNumber: Byte;
+  KeyTransitionRate: TVtsTransitionRate;
+begin
+  KeyInOut := vtsOut;
+  KeyNumber := StrToIntDef(edKeyNumber.Text, 0);
+  KeyTransitionRate := TVtsTransitionRate(cbKeyTransitionRate.Items.Objects[cbKeyTransitionRate.ItemIndex]);
+
+  R := FVTS.KeyDirectInOut(KeyInOut, KeyNumber, KeyTransitionRate);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('KeyDirectInOut success.');
+    mmLog.Lines.Add(Format('KeyInOut = %s', [Char(KeyInOut)]));
+    mmLog.Lines.Add(Format('KeyNumber = %d', [KeyNumber]));
+    mmLog.Lines.Add(Format('KeyTransitionRate = %s', [Char(KeyTransitionRate)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] KeyDirectInOut Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnMachineStatusClick(Sender: TObject);
+var
+  R: Integer;
+
+  MachineStatus: TVtsMachineStatus;
+begin
+  FillChar(MachineStatus, SizeOf(TVtsMachineStatus), #0);
+
+  R := FVTS.GetMachineStatus(MachineStatus);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('GetMachineStatus success.');
+    with MachineStatus do
+    begin
+      mmLog.Lines.Add(Format('OnAirVideoChannel = %d', [OnAirVideoChannel]));
+      mmLog.Lines.Add(Format('OnAirAudioChannel = %d', [OnAirAudioChannel]));
+      mmLog.Lines.Add(Format('KeyChannelNumber = %d', [KeyChannelNumber]));
+      mmLog.Lines.Add(Format('AudioOverChannel = %d', [AudioOverChannel]));
+      mmLog.Lines.Add(Format('PresetVideoChannel = %d', [PresetVideoChannel]));
+      mmLog.Lines.Add(Format('PresetAudioChannel = %d', [PresetAudioChannel]));
+      mmLog.Lines.Add(Format('TransitionType = %s', [Char(TransitionType)]));
+      mmLog.Lines.Add(Format('TransitionRate = %s', [Char(TransitionRate)]));
+      mmLog.Lines.Add(Format('APCMode = %d', [APCMode]));
+    end;
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] GetMachineStatus Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnOverDirectInOutClick(Sender: TObject);
+var
+  R: Integer;
+
+  OverInOut: TVtsInOut;
+
+  OverChannel: Byte;
+
+  OverPstPgm: TVtsOverType;
+begin
+  OverInOut := TVtsInOut(cbOverInOut.Items.Objects[cbOverInOut.ItemIndex]);
+
+  OverChannel := StrToIntDef(edInOutChannel.Text, 0);
+
+  OverPstPgm := TVtsOverType(cbOverPstPgm.Items.Objects[cbOverPstPgm.ItemIndex]);
+
+  R := FVTS.OverDirectInOut(OverInOut, OverChannel, OverPstPgm);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('OverDirectInOut success.');
+    mmLog.Lines.Add(Format('OverInOut = %s', [Char(OverInOut)]));
+    mmLog.Lines.Add(Format('Channel = %d', [OverChannel]));
+    mmLog.Lines.Add(Format('OverPstPgm = %s', [Char(OverPstPgm)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] OverDirectInOut Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnPresetClick(Sender: TObject);
+var
+  R: Integer;
+
+  VideoChannel: Byte;
+  AudioChannel: Byte;
+
+  TransitionType: TVtsTransitionType;
+  TransitionRate: TVtsTransitionRate;
+begin
+  VideoChannel := StrToIntDef(edVideoChannel.Text, 0);
+  AudioChannel := StrToIntDef(edAudioChannel.Text, 0);
+
+  TransitionType := TVtsTransitionType(cbTransitionType.Items.Objects[cbTransitionType.ItemIndex]);
+  TransitionRate := TVtsTransitionRate(cbTransitionRate.Items.Objects[cbTransitionRate.ItemIndex]);
+
+  R := FVTS.Preset(VideoChannel, AudioChannel, TransitionType, TransitionRate);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('Preset success.');
+    mmLog.Lines.Add(Format('VideoChannel = %d', [VideoChannel]));
+    mmLog.Lines.Add(Format('AudioChannel = %d', [AudioChannel]));
+    mmLog.Lines.Add(Format('TransitionType = %s', [Char(TransitionType)]));
+    mmLog.Lines.Add(Format('TransitionRate = %s', [Char(TransitionRate)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] Preset Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.btnTakeClick(Sender: TObject);
+var
+  R: Integer;
+
+  TakeType: TVtsTakeType;
+begin
+  TakeType := TVtsTakeType(cbTakeType.Items.Objects[cbTakeType.ItemIndex]);
+
+  R := FVTS.Take(TakeType);
+  if (R = D_OK) then
+  begin
+    mmLog.Lines.Add('Take success.');
+    mmLog.Lines.Add(Format('TakeType = %s', [Char(TakeType)]));
+  end
+  else
+    mmLog.Lines.Add(Format('[Error] Take Fail. errorcode = %d', [R]));
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  PopulateComportNum;
+  PopulateTransitionType;
+  PopulateTransitionRate;
+  PopulateTakeType;
+  PopulateOverInOut;
+  PopulateOverPStPgm;
+  PopulateKeyTransitionRate;
+
+  cbComportNum.ItemIndex := cbComportNum.Items.IndexOfObject(TObject(3));
+  cbTransitionType.ItemIndex := cbTransitionType.Items.IndexOfObject(TObject(vtsTsFade));
+  cbTransitionRate.ItemIndex := cbTransitionRate.Items.IndexOfObject(TObject(vtsTrMiddle));
+  cbTakeType.ItemIndex := cbTakeType.Items.IndexOfObject(TObject(vtsTtTransition));
+  cbOverInOut.ItemIndex := cbOverInOut.Items.IndexOfObject(TObject(VtsIn));
+  cbOverPstPgm.ItemIndex := cbOverPstPgm.Items.IndexOfObject(TObject(vtsOtPST));
+  cbKeyTransitionRate.ItemIndex := cbKeyTransitionRate.Items.IndexOfObject(TObject(vtsTrCut));
+
+  FVTS := TVideoTronSwitcher.Create(nil);
+  FVTS.ComPortBaudRate := br38400;
+  FVTS.ComPortDataBits := db8BITS;
+  FVTS.ComPortStopBits := sb1Bits;
+  FVTS.ComPortParity := ptOdd;
+  FVTS.TimeOut := 2000;
+  FVTS.LogIsHexcode := True;
+  FVTS.LogPath := ExtractFilePath(Application.ExeName) + 'Log\';
+  FVTS.LogExt  := 'VTS.log';
+  FVTS.LogEnabled := True;
+end;
+
+function TForm1.PopulateComportNum: Integer;
+var
+  RegFile: TRegistry;
+  DeviceList: TStrings;
+  I: Integer;
+  CurrentPort: string;
+begin
+  Result := D_OK;
+  if cbComportNum.Items.Count > 0 then exit;
+
+  RegFile := TRegistry.Create;
+  try
+    RegFile.RootKey := HKEY_LOCAL_MACHINE;
+    RegFile.OpenKeyReadOnly('hardware\devicemap\serialcomm');
+    DeviceList := TStringList.Create;
+    try
+      RegFile.GetValueNames(DeviceList);
+      cbComportNum.Items.Clear;
+      for I := 0 to DeviceList.Count - 1 do
+      begin
+        CurrentPort := RegFile.ReadString(DeviceList.Strings[I]);
+        cbComportNum.Items.AddObject(CurrentPort, TObject(StrToInt(Copy(CurrentPort, 4, Length(CurrentPort)))));
+      end;
+    finally
+      FreeAndNil(DeviceList);
+    end;
+    RegFile.CloseKey;
+  finally
+    FreeAndNil(RegFile);
+  end;
+end;
+
+function TForm1.PopulateTransitionType: Integer;
+begin
+  Result := D_OK;
+  if cbTransitionType.Items.Count > 0 then exit;
+
+  cbTransitionType.Items.AddObject('Cut-out and cut-in', TObject(vtsTsCut));
+  cbTransitionType.Items.AddObject('Dissolve or Mix', TObject(vtsTsMix));
+  cbTransitionType.Items.AddObject('Fade-out and Fade-in', TObject(vtsTsFade));
+  cbTransitionType.Items.AddObject('Fade-out and Cut-in', TObject(vtsTsFadeCut));
+  cbTransitionType.Items.AddObject('Cut-out and Fade-in', TObject(vtsTsCutFade));
+  cbTransitionType.Items.AddObject('Wipe', TObject(vtsTsWipe));
+  cbTransitionType.Items.AddObject('DSK channel is selected', TObject(vtsTsDsk));
+end;
+
+function TForm1.PopulateTransitionRate: Integer;
+begin
+  Result := D_OK;
+  if cbTransitionRate.Items.Count > 0 then exit;
+
+  cbTransitionRate.Items.AddObject('Cut', TObject(vtsTrCut));
+  cbTransitionRate.Items.AddObject('Fast transition rate', TObject(vtsTrFast));
+  cbTransitionRate.Items.AddObject('Middle transition rate', TObject(vtsTrMiddle));
+  cbTransitionRate.Items.AddObject('Slow transition rate', TObject(vtsTrSlow));
+end;
+
+function TForm1.PopulateTakeType: Integer;
+var
+  I: TVtsTakeType;
+begin
+  Result := D_OK;
+  if cbTakeType.Items.Count > 0 then exit;
+
+  for I := vtsTtTransition to vtsTtDropKey do
+    cbTakeType.Items.AddObject(TakeTypeNames[I], TObject(I));
+end;
+
+function TForm1.PopulateOverInOut: Integer;
+begin
+  Result := D_OK;
+  if cbOverInOut.Items.Count > 0 then exit;
+
+  cbOverInOut.Items.AddObject('Over in', TObject(vtsIn));
+  cbOverInOut.Items.AddObject('Over out', TObject(vtsOut));
+end;
+
+function TForm1.PopulateOverPStPgm: Integer;
+begin
+  Result := D_OK;
+  if cbOverPstPgm.Items.Count > 0 then exit;
+
+  cbOverPstPgm.Items.AddObject('PST over', TObject(vtsOtPST));
+  cbOverPstPgm.Items.AddObject('PGM over', TObject(vtsOtPGM));
+end;
+
+function TForm1.PopulateKeyTransitionRate: Integer;
+begin
+  Result := D_OK;
+  if cbKeyTransitionRate.Items.Count > 0 then exit;
+
+  cbKeyTransitionRate.Items.AddObject('Cut In or Cut out', TObject(vtsTrCut));
+  cbKeyTransitionRate.Items.AddObject('Fast transition rate', TObject(vtsTrFast));
+end;
+
+end.

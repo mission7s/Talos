@@ -1,0 +1,53 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 730
+  ClientWidth = 1068
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object mmXml: TMemo
+    Left = 440
+    Top = 8
+    Width = 620
+    Height = 714
+    TabOrder = 0
+  end
+  object edLoadXmlFile: TEdit
+    Left = 8
+    Top = 24
+    Width = 329
+    Height = 21
+    TabOrder = 1
+  end
+  object edSaveXmlFile: TEdit
+    Left = 8
+    Top = 104
+    Width = 329
+    Height = 21
+    TabOrder = 2
+  end
+  object btnLoad: TButton
+    Left = 343
+    Top = 22
+    Width = 75
+    Height = 25
+    Caption = 'Load'
+    TabOrder = 3
+  end
+  object btnSave: TButton
+    Left = 343
+    Top = 102
+    Width = 75
+    Height = 25
+    Caption = 'Save'
+    TabOrder = 4
+  end
+end

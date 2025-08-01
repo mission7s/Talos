@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.940,=D:\User Data\Git\APC\DCS\Device Units\IP Protocol\TAPI\UnitTAPI.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.627,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.919,=D:\User Data\Git\APC\DCS\Device Units\CG\TAPI\UnitTAPI.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.339,D:\User Data\Git\APC\DCS\Device Protocols\CG Protocol\토네이도\TestTAPI\UnitTestTAPI.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.339,D:\User Data\Git\APC\DCS\Device Protocols\CG Protocol\토네이도\TestTAPI\UnitTestTAPI.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.163,D:\User Data\Git\APC\DCS\Device Protocols\CG Protocol\토네이도\TestTAPI\TestTAPI.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

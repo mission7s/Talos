@@ -1,0 +1,10 @@
+Loop
+t,TakeDestinationLevelIndex,0,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,1,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,2,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,3,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,4,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,5,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,6,0,,00:00:00,110,0
+t,TakeDestinationLevelIndex,7,0,,00:00:00,110,0
+EndLoop

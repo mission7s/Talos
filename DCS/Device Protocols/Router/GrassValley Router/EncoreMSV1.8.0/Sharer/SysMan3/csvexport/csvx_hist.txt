@@ -1,0 +1,23 @@
+Applet to Export CSV listing of System Manager Database.
+
+Version 3.61.00
+OmniBus Libraries 13.20
+Built with VC6
+Designed for use with System Manager 3.61
+
+Fixed incorrect formatting of output.
+
+Version 1.00.01
+OmniBus Libraries 13.17 BF_13_4
+Built with VC6
+Designed for use with System Manager 3.60
+
+1) Copy "csvx.exe" and "csvxprmpt" to a floppy disk. The floppy
+disk should be formatted for the native FS of the drive you will
+install from.
+2) Rename "csvx.exe" to "omn_ix86" for Intel System Manager or omnalpha for Alpha System Manager.
+3) Rename "csvxprmpt" to "omnprmpt".
+4) Do the equivalent of "dir /b a:\ > a:\omnlist" for your OS. RISCOS - use "EnumDir :0.$ :a0.$.omnlist"
+5) Put the floppy in the floppy drive of your OUI, the System Manager 3
+engine, or the Sharer.
+6) Select the relevent button from the System Manager 3 Install screen.

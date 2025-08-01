@@ -1,0 +1,464 @@
+{$MINENUMSIZE 4}
+
+unit UnitOmMediaDefs;
+
+interface
+
+type
+  // Video format.
+  // Do not change value of enumerators; add new enumerators at end of list.
+  TOmVideoFormat =
+  (
+    omVidFmtInvalid = $00,              // Invalid format.
+    omVidFmt525Line29_97Hz2_1 = $01,    // 525i29.97
+    omVidFmt625Line25Hz2_1 = $02,       // 625i25
+    omVidFmt1125Line29_97Hz2_1 = $03,   // 1080i29.97 (SMPTE 274M System 5)
+    omVidFmt1125Line25Hz2_1 = $04,      // 1080i25 (SMPTE 274M System 6)
+    omVidFmt750Line59_94Hz = $05,       // 720p59.94
+    omVidFmt750Line50Hz = $06,          // 720p50
+    omVidFmt1125Line50Hz = $07,         // 1080p50 (SMPTE 274M System 3)
+    omVidFmt1125Line59_94Hz = $08,      // 1080p59.94 (SMPTE 274M System 2)
+    omVidFmt525Line59_94Hz = $09,       // 525p59.94 (SMPTE 293M) (internal)
+    omVidFmt625Line50Hz = $0a,          // 625p50 (internal)
+    omVidFmt1125Line29_97HzPsf = $0b,   // 1080p29.97/psf (SMPTE 274M System B)
+    omVidFmt1125Line25HzPsf = $0c       // 1080p25/psf (SMPTE 274M System C)
+  );
+
+  // Video raster geometry.
+  TOmVideoScan =
+  (
+    omVidScanInvalid,               // Invalid value.
+    omVidScan1080Line1920Pixel,     // SMPTE 274M: 1080 active lines, 1920 active pixels.
+    omVidScan720Line1280Pixel,      // SMPTE 296M: 720 active lines, 1280 active pixels.
+    omVidScan480Line720Pixel,       // CCIR 601, 480 active lines, 720 active pixels.
+    omVidScan576Line720Pixel        // CCIR 601, 576 active lines, 720 active pixels.
+  );
+
+  // Video sequence coding.
+  TOmSequenceCodingType =
+  (
+    omSequenceIntraCoded,     // Most media types are always this.
+    omSequenceNonIntraCoded   // Only mpeg with P and/or B frames.
+  );
+
+  // Video frame structure.
+  TOmFrameStruct =
+  (
+    omFrmStructInvalid,     // Invalid frame structure.
+    omFrmStructInterlace,   // Interlaced frame.
+    omFrmStructProgressive  // Progressive frame.
+  );
+
+  // Video field rate.
+  TOmFieldRate =
+  (
+    omFldRateInvalid,   // Invalid, unsupported or unknown.
+    omFldRate24Hz,      // 24 fields per second.
+    omFldRate50Hz,      // 50 fields per second.
+    omFldRate59_94Hz,   // 59.94 fields per second.
+    omFldRate60Hz       // 60 fields per second.
+  );
+
+  // Video frame rates.
+  // This enumeration lists all the supported frame rates.
+  TOmFrameRate =
+  (
+    omFrmRateInvalid,   // Invalid, unsupported or unknown.
+    omFrmRate24Hz,      // 24Hz
+    omFrmRate25Hz,      // 25Hz
+    omFrmRate29_97Hz,   // 29.97Hz
+    omFrmRate30Hz,      // 30Hz
+    omFrmRate50Hz,      // 50Hz
+    omFrmRate59_94Hz,   // 59.94Hz
+    omFrmRate60Hz,      // 60Hz
+    omFrmRate23_976Hz   // 23.976Hz
+  );
+
+  // Field Id.
+  TOmFieldId = (
+    omFieldInvalid,                 // Invalid field.
+    omFieldAny = omFieldInvalid,    // Any field.
+    omField1,                       // Field 1.
+    omField2                        // Field 2.
+  );
+
+  // The basic type of media contained in a single track of a clip.
+  // Do not change these numbers... add new ones wherever there are unused numbers.
+  TOmMediaType =
+  (
+    omMediaUnknown      = 0,    // Unknown or invalid.
+    omMediaMpegVideo    = 1,    // Standard, IEC-13818 video.
+    omMediaMpegStdAudio = 2,    // MPEG layer 1,2,3 audio.
+    omMediaMpegAc3      = 3,    // Dolby AC3 audio in an MTS.
+    omMediaAacAudio     = 4,    // Advanced Audio Coding.
+    omMediaPcmAudio     = 5,    // PCM audio.
+    omMediaDvVideo      = 6,    // DV video.
+    omMediaDvAudio      = 7,    // DV audio.
+    omMediaRec601Video  = 8,    // Standard, SMPTE Rec 601 video.
+    omMediaHdcam        = 9,    // Sony HDCAM.
+    omMediaVbi          =10,    // Omneon proprietary VBI, not S436M.
+    omMediaJpeg2000     =11,    // Standard, IEC-15444-1 Annex A codestreams.
+    omMediaData         =12,
+    // unused           =13,
+    omMediaGxfAnc       =14,    // Standard, RDD14-2010 Ancillary Data.
+    omMediaTc           =15,    // Omneon Timecode. */
+    omMediaDnxhd        =16,    // Avid's DNxHD. */
+    omMediaProRes       =17,    // Apple's ProRes video compression
+    omMediaAvc          =18,    // Standard, IEC-14496-10 video.
+    omMediaAlawAudio    =19,    // Standard, ITU-T G.711 audio.
+    omMedia436mVbi      =20,    // Standard, S436M VBI.
+    omMedia436mAnc      =21,    // Standard, S436M ANC.
+    omMediaMpeg1System  =22,    // Standard, ISO/IEC-11172-1 MPEG-1 system stream.
+    omMediaDisplay      =23,    // Omneon output display control (BFC, monitor, etc).
+    omMediaSoftel       =24     // Softel Subtitle Insertion. */
+    // Update omMediaNumTypes when adding new types ...
+    // Warning, I think this is stored in a 6-bit int somewhere...
+  );
+
+const
+  // Number of types in OmMediaType (including unused ones):
+  omMediaNumTypes = 24;
+
+type
+  // Stream (wire) containers.  Note these are similar to OmMediaType, but
+  // OmStreamType reflects the top-level container on the wire, while OmMediaType
+  // represents individual data types.  Currently most media types appear
+  // on the wire as themselves, without containers.  We are moving towards
+  // wire containers (like MTS, Program Streams, MXF, etc), although the original
+  // ten mediatypes, now reflected here as stream types, will always remain.
+  TOmStreamType =
+  (
+    omStreamUnknown     = 0,
+    omStreamMpegVes     = 1,    // MPEG video elementary stream
+    // unused           = 2
+    // unused           = 3
+    omStreamAacAudio    = 4,    // AAC audio
+    omStreamPcmAudio    = 5,    // PCM audio
+    omStreamDv          = 6,    // DV-style dif blocks
+    // unused           = 7
+    omStreamRec601Video = 8,    // standard, SMPTE Rec 601 video
+    omStreamHdcam       = 9,
+    omStreamVbi         =10,    // VBI stream
+
+    omStreamMuxed       =11,    // multiplexed video/audio
+    omStreamData        =12,    // streamed (unknown) data
+    omStreamMpegTs      =13,    // MPEG transport stream
+    omStreamMxf         =14,    // MXF stream (future)
+    omStreamTc          =15,    // timecode
+    omStreamDnxhd       =16,    // Avid's DNxHD
+    omStreamMpeg4Ves    =17,    // standard, IEC-14496-2 video elementary stream
+    omStreamAvc         =18,    // standard, IEC-14496-10 video
+    omStreamAlawAudio   =19,    // standard, ITU-T G.711 audio
+    omStream436mVbi     =20,    // standard, S436M VBI/ANC as MXF KLVs
+    omStream436mAnc     =21,    // standard, S436M VBI/ANC as MXF KLVs
+    omStreamMpeg1System =22,    // standard, ISO/IEC-11172-1 MPEG-1 system stream
+    omStreamDisplay     =23     // Omneon output display control (BFC, monitor, etc)
+  );
+
+  TOmStreamPairType = array[0..1] of TOmStreamType;
+
+  // Media File Type constants.
+  // Define the file type for file readers and writers.
+  TOmMediaFileType =
+  (
+    omMediaFileTypeUnknown = 0, // Unknown, or not in a file by itself.
+
+    // containers
+    omMediaFileTypeDv,          // IEC-61834 DV video/audio.
+    omMediaFileTypeQt,          // QuickTime container file.
+    omMediaFileTypeMxf,         // MXF container file.
+    omMediaFileTypeMpegTs,      // MPEG transport stream.
+    omMediaFileTypeMpegPs,      // MPEG program stream.
+    omMediaFileTypeMpeg4,       // MPEG-4 container.
+
+    // single-track elementary files
+    omMediaFileTypeMpegV,       // MPEG video.
+    omMediaFileTypeMpegA1,      // MPEG-1 audio, layer 1.
+    omMediaFileTypeMpegA2,      // MPEG-1 audio, layer 2.
+    omMediaFileTypeMpegA3,      // MPEG-1 audio, layer 3.
+    omMediaFileTypeHdcam,       // Sony HDCAM video.
+    omMediaFileTypeRec601,      // Uncompressed ITU rec 601; aka CCIR 601.
+    omMediaFileTypeDnxhd,       // Avid's DNxHD video.
+    omMediaFileTypeAiff,        // Apple's AIFF audio.
+    omMediaFileTypeWave,        // Microsoft's WAVE audio.
+    omMediaFileTypeAc3,         // Dolby's AC3 audio.
+    omMediaFileTypeVbi,         // Omneon proprietary VBI.
+    omMediaFileTypeData,        // Omneon proprietary data stream.
+    omMediaFileTypeAes3Audio,   // Raw PCM audio data.
+    omMediaFileTypeNull,
+    omMediaFileTypeMpeg4V,      // MPEG-4 part 2 (IEC-14496-2).
+    omMediaFileTypeAvc,         // AVC (IEC-14496-10).
+    omMediaFileTypeMpeg1System, // MPEG-1 system stream.
+    omMediaFileTypeAac,         // AAC audio.
+
+    // add new enumerators here...
+
+    nOmMediaFileTypes           // must be last
+  );
+
+  // Media Containment constants.
+  // Specify how a container contains the essence.
+  TOmMediaContainment = (
+    omMediaContainmentUnspecified = 0,  // Unspecified or unknown.
+    omMediaContainmentReference,        // Referenced media.
+    omMediaContainmentEmbedded,         // Embedded media.
+    omMediaContainmentMixed             // A mix of referenced and embedded media.
+  );
+
+  // Video Sample Ratio constants.
+  // The pixel sample ratio among luma and chroma.
+  TOmVideoSampleRatio =
+  (
+    omVideoSampleNone,          // Non-video data.
+    omVideoSample420,           // 4:2:0 data.
+    omVideoSample411,           // 4:1:1 data.
+    omVideoSample422,           // 4:2:2 data.
+    omVideoSample444            // 4:4:4 data.
+  );
+
+  // Picture Aspect Ratio constants.
+  TOmVideoAspectRatio =
+  (
+    omVideoAspectNone,          // Non-video data.
+    omVideoAspect4to3,          // 4:3 picture aspect ratio.
+    omVideoAspect16to9,         // 16:9 picture aspect ratio.
+    omVideoAspectOther
+  );
+
+  // SMPTE 2016-1, table 1; Active format descriptor
+  // the macro afdHd() and afdSd() encapsulate the values from table 1 in
+  // an eight bit value as described in table 4.
+  TOmActiveFmtDesc =
+  (
+    // AFD values common to 4:3 and 16:9
+    // Legend:
+    //   - Ac:  alternative center
+    //   - Afd: active format descriptor
+    //   - Alt: alternaive
+    //   - Dup: duplicate
+    //   - Ff:  full frame
+    //   - Hc:  horizontally centered
+    //   - Hd:  high def, i.e. a 16:9 coded frame
+    //   - Ip:  image areas protected
+    //   - Lb:  letterbox
+    //   - Pb:  pillarbox
+    //   - Sd:  standard def, i.e. a 4:3 coded frame
+    //   - Vc:  vertically centered
+    //   - 43:  4:3 image
+    //   - 169: 16:9 iamge
+    //   - 149: 14:9 iamge
+    omAfdUnknown        = 0,
+    omAfdSdReserved1    = (1 shl 3),
+    omAfdHdReserved1    = ((1 shl 3) or $04),
+    omAfdSdReserved5    = (5 shl 3),
+    omAfdHdReserved5    = ((5 shl 3) or $04),
+    omAfdSdReserved6    = (6 shl 3),
+    omAfdHdReserved6    = ((6 shl 3) or $04),
+    omAfdSdReserved7    = (7 shl 3),
+    omAfdHdReserved7    = ((7 shl 3) or $04),
+    omAfdSdReserved12   = (12 shl 3),
+    omAfdHdReserved12   = ((12 shl 3) or $04),
+
+    // AFD codes in a 4:3 coded frame, hence 'omAfdSd'
+    omAfdSdLb169        = (2 shl 3),  // Letterbox 16:9 image, at top of the coded
+                                      // frame (see note 1)
+    omAfdSdLb149        = (3 shl 3),  // Letterbox 14:9 image, at top of the coded
+                                      // frame (see note 1)
+    omAfdSdLb169Vc      = (4 shl 3),  // Letterbox image with an aspect ratio greater
+                                      // than 16:9, vertically centered in the coded
+                                      // frame (see note 1)
+    omAfdSdFf43         = (8 shl 3),  // Full frame 4:3 image, the same as the
+                                      // coded frame
+    omAfdSdFf43Dup      = (9 shl 3),  // Full frame 4:3 image, the same as the coded
+                                      // frame (see note 4)
+    omAfdSdLb169VcIp    = (10 shl 3), // Letterbox 16:9 image, vertically centered in
+                                      // the coded frame with all image areas protected
+    omAfdSdLb149Vc      = (11 shl 3), // Letterbox 14:9 image, vertically centered in
+                                      // the coded frame
+    omAfdSdFf43Alt149   = (13 shl 3), // Full frame 4:3 image, with alternative 14:9
+                                      // center (see note 6)
+    omAfdSdLb169Alt149  = (14 shl 3), // Letterbox 16:9 image, with alternative 14:9
+                                      // center (see note 6)
+    omAfdSdLb169Alt43   = (15 shl 3), // Letterbox 16:9 image, with alternative 4:3
+                                      // center (see note 6)
+
+    // AFD codes in a 16:9 coded frame, hence 'omAfdHd'
+    omAfdHdFf169        = ((2 shl 3) or $04), // Full frame 16:9 image, the same as the coded
+                                              // frame (see notes 1 and 2)
+    omAfdHdPb149HcDup   = ((3 shl 3) or $04), // Pillarbox 14:9 image, horizontally centered in the
+                                              // coded frame (see notes 1 and 3)
+    omAfdHdLb169Vc      = ((4 shl 3) or $04), // Letterbox image with an aspect ratio greater
+                                              // than 16:9, vertically centered in the coded
+                                              // frame (see note 1)
+    omAfdHdFf169Dup     = ((8 shl 3) or $04), // Full frame 16:9 image, the same as the coded
+                                              // frame
+    omAfdHdPb43Hc       = ((9 shl 3) or $04), // Pillarbox 4:3 image, horizontally centered
+                                              // in the coded frame
+    omAfdHdFf169Ip      = ((10 shl 3) or $04),// Full frame 16:9 image, with all image areas
+                                              // protected (see note 5)
+    omAfdHdPb149Hc      = ((11 shl 3) or $04),// Pillarbox 14:9 image, horizontally centered
+                                              // in the coded frame
+    omAfdHdPb43Atl149   = ((13 shl 3) or $04),// Pillarbox 4:3 image, with alternative 14:9
+                                              // center (see note 6)
+    omAfdHdFf169Alt149  = ((14 shl 3) or $04),// Full frame 16:9 image, with alternative 14:9
+                                              // center (see note 6)
+    omAfdHdFF169Alt43   = ((15 shl 3) or $04) // Full frame 16:9 image, with alternative 4:3
+                                              // center (see note 6)
+  );
+
+  // Audio format
+  TOmAudioFormat =
+  (
+    omAudioFormatUnknown = 0,
+    omAudioFormatPcm = 1,       // Pulse-code modulation
+    omAudioFormatRaw = 2,       // Uncompressed audio
+    omAudioFormatAC3 = 3,       // Dolby's AC3
+    omAudioFormatAlaw = 4,      // A-Law compression (ITU-T G.711)
+    omAudioFormatAac = 5        // AAC compression
+  );
+
+
+  // A structure that summarizes all the interesting attributes of a video or
+  // audio track
+  TOmMediaSummary = record
+    MediaType: TOmMediaType;         // as defined above
+    Vsr: TOmVideoSampleRatio;        // as defined above
+    Aspect: TOmVideoAspectRatio;     // as defined above
+    Bitrate: Cardinal;               // bitrate for the track; 0 if its embedded audio
+    BitsPerUnit: Cardinal;           // 16 or 24 for audio (unit is a sample);
+                                     // 8 or 10 for 601 video (unit is a pixel);
+                                     // otherwise 0
+    SampleRate: Cardinal;            // media sample rate * 100; e.g. NTSC video is 2997
+                                     // 48khz audio is 4800000.
+    Channels: Cardinal;              // 1 for video; N for audio
+
+    // Specific
+    case Integer of
+      0: // Mpeg
+      (
+        GopLength: Cardinal;     // length of the gop structure; usually 15 for
+                                 // MPEG video, but is one for everything else
+        SubGopLength: Cardinal;  // length of the sub-gop; usually 3 for IBBPBBP...
+                                 // MPEG video; one for everything else
+      );
+      1: // Audio
+      (
+        Format: TOmAudioFormat;
+        BigEndian: Byte;
+        SampleStride: Byte;
+      );
+      2: // Vbi
+      (
+        LineMask: Cardinal;
+      );
+  end;
+
+  // A new version of OmMediaSummary, adds width, height
+  TOmMediaSummary1 = record
+    MediaType: TOmMediaType;          // as defined above
+    Vsr: TOmVideoSampleRatio;        // as defined above
+    Aspect: TOmVideoAspectRatio;     // as defined above
+    Bitrate: Cardinal;               // bitrate for the track; 0 if its embedded audio
+    BitsPerUnit: Cardinal;           // 16 or 24 for audio (unit is a sample);
+                                     // 8 or 10 for 601 video (unit is a pixel);
+                                     // otherwise 0
+    SampleRate: Cardinal;            // media sample rate * 100; e.g. NTSC video is 2997
+                                     // 48khz audio is 4800000.
+    Channels: Cardinal;              // 1 for video; N for audio
+
+    // Set from previous version of struct
+    procedure SetFrom(X: TOmMediaSummary);
+
+    // Set previous version of struct
+    procedure SetTo(var X: TOmMediaSummary);
+
+    function IsVideoType: Boolean;
+    function IsAudioType: Boolean;
+    function IsDataType: Boolean;
+
+    // Specific
+    case Integer of
+      0: // Video
+      (
+        GopLength: Cardinal;     // length of the gop structure; usually 15 for
+                                 // MPEG video, but is one for everything else
+        SubGopLength: Cardinal;  // length of the sub-gop; usually 3 for IBBPBBP...
+                                 // MPEG video; one for everything else
+        Width: Word;
+        Height: Word;
+      );
+      1: // Audio
+      (
+        Format: TOmAudioFormat;
+        BigEndian: Byte;
+        SampleStride: Byte;
+      );
+      2: // Vbi
+      (
+        LineMask: Cardinal;
+      );
+  end;
+
+implementation
+
+// Set from previous version of struct
+procedure TOmMediaSummary1.SetFrom(X: TOmMediaSummary);
+begin
+  MediaType     := X.MediaType;
+  Vsr           := X.Vsr;
+  Aspect        := X.Aspect;
+  Bitrate       := X.Bitrate;
+  BitsPerUnit   := X.BitsPerUnit;
+  SampleRate    := X.SampleRate;
+  Channels      := X.Channels;
+  GopLength     := X.GopLength;
+  SubGopLength  := X.SubGopLength;
+  Width         := 0;
+  Height        := 0;
+end;
+
+// Set previous version of struct
+procedure TOmMediaSummary1.SetTo(var X: TOmMediaSummary);
+begin
+  X.MediaType     := MediaType;
+  X.Vsr           := Vsr;
+  X.Aspect        := Aspect;
+  X.Bitrate       := Bitrate;
+  X.BitsPerUnit   := BitsPerUnit;
+  X.SampleRate    := SampleRate;
+  X.Channels      := Channels;
+  X.GopLength     := GopLength;
+  X.SubGopLength  := SubGopLength;
+end;
+
+function TOmMediaSummary1.IsVideoType: Boolean;
+begin
+  Result := MediaType in [omMediaMpegVideo,
+                          omMediaDvVideo,
+                          omMediaAvc,
+                          omMediaRec601Video,
+                          omMediaHdcam,
+                          omMediaDnxhd,
+                          omMediaProRes,
+                          omMediaJpeg2000];
+end;
+
+function TOmMediaSummary1.IsAudioType: Boolean;
+begin
+  Result := MediaType in [omMediaPcmAudio,
+                          omMediaDvAudio,
+                          omMediaMpegAc3,
+                          omMediaMpegStdAudio,
+                          omMediaAlawAudio];
+end;
+
+function TOmMediaSummary1.IsDataType: Boolean;
+begin
+  Result := MediaType in [omMediaVbi,
+                          omMediaTc,
+                          omMedia436mVbi,
+                          omMedia436mAnc,
+                          omMediaGxfAnc];
+end;
+
+end.

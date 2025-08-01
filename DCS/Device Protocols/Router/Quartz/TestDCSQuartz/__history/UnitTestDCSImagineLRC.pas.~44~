@@ -1,0 +1,147 @@
+unit UnitTestDCSImagineLRC;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  UnitDCSDLL;
+
+type
+  TForm12 = class(TForm)
+    mmDesc: TMemo;
+    edtSrcIndex: TEdit;
+    Label3: TLabel;
+    Label4: TLabel;
+    edtDstIndex: TEdit;
+    Label5: TLabel;
+    edtLvlIndex: TEdit;
+    btnSetRoute: TButton;
+    btnGetRoute: TButton;
+    Label1: TLabel;
+    edtDCSID: TEdit;
+    Label2: TLabel;
+    edtSourceName: TEdit;
+    btnDeviceOpen: TButton;
+    btnDeviceClose: TButton;
+    Label6: TLabel;
+    edtDCSIP: TEdit;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnSetRouteClick(Sender: TObject);
+    procedure btnGetRouteClick(Sender: TObject);
+    procedure btnDeviceOpenClick(Sender: TObject);
+    procedure btnDeviceCloseClick(Sender: TObject);
+  private
+    { Private declarations }
+    FSourceHandle: TDeviceHandle;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form12: TForm12;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm12.btnSetRouteClick(Sender: TObject);
+var
+  R: Integer;
+  DCSID: Word;
+  SrcIndex, DstIndex, LvlIndex: Integer;
+begin
+  DCSID := StrToIntDef(edtDCSID.Text, 0);
+
+  SrcIndex := StrToIntDef(edtSrcIndex.Text, 0);
+  DstIndex := StrToIntDef(edtDstIndex.Text, 0);
+  LvlIndex := StrToIntDef(edtLvlIndex.Text, 0);
+
+  R := DCSSetRoute(DCSID, FSourceHandle, DstIndex, SrcIndex, LvlIndex);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('DCSSetRoute Success, Dst = %d, Src = %d, Lvl = %d', [DstIndex, SrcIndex, LvlIndex]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('DCSSetRoute Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.btnDeviceCloseClick(Sender: TObject);
+var
+  R: Integer;
+  DCSID: Word;
+  DeviceName: String;
+begin
+  DCSID := StrToIntDef(edtDCSID.Text, 0);
+  DeviceName := edtSourceName.Text;
+
+  R := DCSClose(DCSID, FSourceHandle);
+  if (R = D_OK) then
+    mmDesc.Lines.Add(Format('Device successfully closed. [DCS=%d, Name=%s, Handle=%d]', [DCSID, DeviceName, FSourceHandle]))
+  else
+    mmDesc.Lines.Add(Format('Failed to close device. [Errorcode=%d, DCS=%d, Name=%s, Handle=%d]', [R, DCSID, DeviceName, FSourceHandle]));
+end;
+
+procedure TForm12.btnDeviceOpenClick(Sender: TObject);
+var
+  R: Integer;
+  DCSID: Word;
+  DCSIP: String;
+  DeviceName: String;
+begin
+  DCSID := StrToIntDef(edtDCSID.Text, 0);
+  DCSIP := edtDCSIP.Text;
+  DeviceName := edtSourceName.Text;
+
+  R := DCSOpen(DCSID, PChar(DCSIP), PChar(DeviceName), FSourceHandle);
+  if (R = D_OK) then
+    mmDesc.Lines.Add(Format('Device successfully opened. [DCS=%d, Name=%s, Handle=%d]', [DCSID, DeviceName, FSourceHandle]))
+  else
+    mmDesc.Lines.Add(Format('Failed to open device. [Errorcode=%d, DCS=%d, Name=%s]', [R, DCSID, DeviceName]));
+end;
+
+procedure TForm12.btnGetRouteClick(Sender: TObject);
+var
+  R: Integer;
+  DCSID: Word;
+  SrcIndex, DstIndex, LvlIndex: Integer;
+begin
+  DCSID := StrToIntDef(edtDCSID.Text, 0);
+
+  DstIndex := StrToIntDef(edtDstIndex.Text, 0);
+
+  R := DCSGetRoute(DCSID, FSourceHandle, DstIndex, SrcIndex, LvlIndex);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('DCSGetRoute Success, Dst = %d, Src = %d, Lvl = %d', [DstIndex, SrcIndex, LvlIndex]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('DCSGetRoute Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.FormCreate(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := DCSInitialize(8000, 8002, 8001);
+  if (R <> D_OK) then
+    mmDesc.Lines.Add(Format('DCS connection initialization failed. [Errorcode=%d, Notify port=%d, In port=%d, Out port=%d]', [R, 8000, 8002, 8001]));
+end;
+
+procedure TForm12.FormDestroy(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := DCSFinalize;
+  if (R <> D_OK) then
+    mmDesc.Lines.Add(Format('DCS connection finalization failed. [Errorcode=%d]', [R]));
+end;
+
+end.

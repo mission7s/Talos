@@ -1,0 +1,1815 @@
+{$MINENUMSIZE 4}
+
+unit UnitOmPlrClnt;
+
+interface
+
+uses UnitOmPlrDefs, UnitOmClipFileDefs, UnitOmMediaDefs, UnitOmTcData;
+
+const
+  omplrlib = 'omplrlib.dll';
+{$IFDEF UNICODE}
+  AWSuffix = 'W';
+{$ELSE}
+  AWSuffix = 'A';
+{$ENDIF}
+
+type
+{$IFDEF UNICODE}
+  TOmPlrChar = PChar;
+{$ELSE}
+  TOmPlrChar = PAnsiChar;
+{$ENDIF}
+
+// Convert a player error to a string
+function OmPlrGetErrorStringW(error: TOmPlrError): PChar; cdecl; external omplrlib name 'OmPlrGetErrorStringW';
+function OmPlrGetErrorStringA(error: TOmPlrError): PAnsiChar; cdecl; external omplrlib name 'OmPlrGetErrorStringA';
+function OmPlrGetErrorString(error: TOmPlrError): TOmPlrChar;
+
+// **************************************************************************
+// Clip functions. These functions operate on clips. The name of the functions
+// all start with OmPlrClip
+
+// Copy part or all of a clip into another clip. The copy is an
+// asynchronous deep copy (the media is copied). A copy handle is returned
+// in pCcHandle. This handle must be freed with OmPlrClipCopyFree().
+// A srcStartFrame of ~0 means start at the first frame in the clip.
+// A copyLength of ~0 means a length of start to the last frame in the clip.
+// A clip being recorded can be copied while it is recording. The copy
+// process will follow behind the record point and not exceed it. The copy
+// will terminate when the source clip stops growing.
+// Use srcStartFrame = ~0, copyLength = ~0, and dstStartFrame = ~0 to make an
+// exact copy.
+// Use srcStartFrame = ~0, copyLength = ~0, and dstStartFrame = 0 to copy
+// entire clip to 0 offset into dst clip.
+// ** NOTE ** copyUserData is ignored(user data is always copied)
+function OmPlrClipCopyW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pSrcClipName: PChar;            // name of clip to copy
+    pDstClipName: PChar;            // name of destination clip
+    srcStartFrame: Cardinal;        // first frame of source clip to copy
+    copyLength: Cardinal;           // length (in frames) to copy
+    dstStartFrame: Cardinal;        // position of first copied frame in dst clip
+    copyUserData: Boolean;          // true to copy clip user data
+    out pCcHandle: TOmPlrClipCopyHandle // clip copy handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyW';
+
+function OmPlrClipCopyA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pSrcClipName: PAnsiChar;        // name of clip to copy
+    pDstClipName: PAnsiChar;        // name of destination clip
+    srcStartFrame: Cardinal;        // first frame of source clip to copy
+    copyLength: Cardinal;           // length (in frames) to copy
+    dstStartFrame: Cardinal;        // position of first copied frame in dst clip
+    copyUserData: Boolean;          // true to copy clip user data
+    out pCcHandle: TOmPlrClipCopyHandle // clip copy handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyA';
+
+function OmPlrClipCopy(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pSrcClipName: TOmPlrChar;       // name of clip to copy
+    pDstClipName: TOmPlrChar;       // name of destination clip
+    srcStartFrame: Cardinal;        // first frame of source clip to copy
+    copyLength: Cardinal;           // length (in frames) to copy
+    dstStartFrame: Cardinal;        // position of first copied frame in dst clip
+    copyUserData: Boolean;          // true to copy clip user data
+    out pCcHandle: TOmPlrClipCopyHandle // clip copy handle
+    ): TOmPlrError;
+
+// Abort a clip copy. This does NOT free the copy handle.
+function OmPlrClipCopyAbort(        // handle returned from OmPlrOpen()
+    plrHandle: TOmPlrHandle;        // clip copy handle
+    ccHandle: TOmPlrClipCopyHandle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyAbort';
+
+// Enumerate clip copy handles.
+function OmPlrClipCopyEnumerate(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: array of TOmPlrClipCopyHandle;  // returned array of clip copy handles
+    numHandles: Cardinal;           // size (number of handles) of above buffer
+    out pNumRetHandles: Cardinal    // returned number of handles
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyEnumerate';
+
+// Free a clip copy handle. Returns an error if copy is in progress.
+function OmPlrClipCopyFree(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle  // clip copy handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyFree';
+
+// Get a clip copy setup parameters.
+function OmPlrClipCopyGetParamsW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle; // clip copy handle
+    pSrcClipName: PChar;            // returned name of clip being copied
+    srcClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    pDstClipName: PChar;            // returned name of clip being copied to
+    dstClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    out pSrcStartFrame: Cardinal;   // returned source clip copy start frame
+    out pCopyLength: Cardinal;      // returned copy length (in frames)
+    out pDstStartFrame: Cardinal;   // returned dst clip copy start frame
+    out pCopyUserData: Boolean      // returned true if copy user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyGetParamsW';
+
+function OmPlrClipCopyGetParamsA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle; // clip copy handle
+    pSrcClipName: PAnsiChar;        // returned name of clip being copied
+    srcClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    pDstClipName: PAnsiChar;        // returned name of clip being copied to
+    dstClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    out pSrcStartFrame: Cardinal;   // returned source clip copy start frame
+    out pCopyLength: Cardinal;      // returned copy length (in frames)
+    out pDstStartFrame: Cardinal;   // returned dst clip copy start frame
+    out pCopyUserData: Boolean      // returned true if copy user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyGetParamsA';
+
+function OmPlrClipCopyGetParams(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle; // clip copy handle
+    pSrcClipName: TOmPlrChar;       // returned name of clip being copied
+    srcClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    pDstClipName: TOmPlrChar;       // returned name of clip being copied to
+    dstClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    out pSrcStartFrame: Cardinal;   // returned source clip copy start frame
+    out pCopyLength: Cardinal;      // returned copy length (in frames)
+    out pDstStartFrame: Cardinal;   // returned dst clip copy start frame
+    out pCopyUserData: Boolean      // returned true if copy user data
+    ): TOmPlrError;
+
+// Get a clip copy status.
+function OmPlrClipCopyGetStatus(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle; // clip copy handle
+    out pNumFramesCopied: Cardinal; // returned number of frames copied
+    out pCopyLength: Cardinal;      // returned total number of frames in copy
+    out pDone: Boolean;             // returned true when done
+    out pDoneStatus: TOmPlrError    // returned error code(valid when done)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipCopyGetStatus';
+
+// Delete a clip.
+function OmPlrClipDeleteW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PChar                // name of clip to delete (in current clip dir)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipDeleteW';
+
+function OmPlrClipDeleteA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar            // name of clip to delete (in current clip dir)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipDeleteA';
+
+function OmPlrClipDelete(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar           // name of clip to delete (in current clip dir)
+    ): TOmPlrError; cdecl;
+
+// Get the current clip directory name. The clip directory is an attribute
+// of the connection to the Director, not an attribute of the player.
+// Clip names specified in other functions are relative to this directory.
+// Set clipDirSize to the size in characters (not bytes) including the
+// terminating 0 of clipDir buffer
+function OmPlrClipGetDirectoryW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipDir: PChar;                // buffer to store the returned directory name
+    clipDirSize: Cardinal           // buffer to store the returned directory name
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetDirectoryW';
+
+function OmPlrClipGetDirectoryA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipDir: PAnsiChar;            // buffer to store the returned directory name
+    clipDirSize: Cardinal           // buffer to store the returned directory name
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetDirectoryA';
+
+function OmPlrClipGetDirectory(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipDir: TOmPlrChar;           // buffer to store the returned directory name
+    clipDirSize: Cardinal           // buffer to store the returned directory name
+    ): TOmPlrError;
+
+// Get clip extension list for this network connection. The extension list is a
+// concatenated list of filename extensions that are used as clip identifiers.
+// For example: for quicktime files and dv files the list would look like
+// ".mov.dv"
+// This clip extension list is an attribute of the network connection to the
+// MediaServer, not an attribute of the player.
+// Clip names specified in other functions use this list of extensions.
+// Set extListSize to the size in characters (not bytes) including the
+// terminating 0 of pExtList buffer
+function OmPlrClipGetExtListW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pExtList: PChar;                // buffer to store the returned extension list
+    extListSize: Cardinal           // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetExtListW';
+
+function OmPlrClipGetExtListA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pExtList: PAnsiChar;            // buffer to store the returned extension list
+    extListSize: Cardinal           // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetExtListA';
+
+function OmPlrClipGetExtList(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pExtList: TOmPlrChar;          // buffer to store the returned extension list
+    extListSize: Cardinal           // size of the above buffer
+    ): TOmPlrError;
+
+// Returns file system total and free space (in bytes).
+// The total space is all bytes allocated plus unallocated.
+// The free space is the amount unallocated.
+function OmPlrClipGetFsSpace(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    out pTotalBytes: UInt64;        // size of the file system in bytes
+    out pFreeBytes: UInt64          // available size of the file system in bytes
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetFsSpace';
+
+// Check for clip existence.
+function OmPlrClipExistsW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PChar;               // name of the clip
+    out pClipExists: Boolean        // returned true if clip exists
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipExistsW';
+
+function OmPlrClipExistsA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;           // name of the clip
+    out pClipExists: Boolean        // returned true if clip exists
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipExistsA';
+
+function OmPlrClipExists(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;         // name of the clip
+    out pClipExists: Boolean        // returned true if clip exists
+    ): TOmPlrError;
+
+// Extract data from a clip, for example closed caption data.
+// Extract data of type dataType from clip pClipName. Start at frame
+// startFrame. Extract numFrames frames. Extract data into buffer pData.
+// Set pDataSize to the size of the pData buffer. Upon successful return,
+// pDataSize returns the amount of data extracted.
+function OmPlrClipExtractDataW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PChar;               // name of the clip
+    startFrame: Cardinal;           // frame number to start extraction
+    numFrames: Cardinal;            // number of frames to extract
+    dataType: TOmPlrClipDataType;   // type of data to extract
+    pData: PChar;                   // buffer to receive extracted data
+    out pDataSize: Cardinal         // size of buffer or data (in bytes)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipExtractDataW';
+
+function OmPlrClipExtractDataA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;           // name of the clip
+    startFrame: Cardinal;           // frame number to start extraction
+    numFrames: Cardinal;            // number of frames to extract
+    dataType: TOmPlrClipDataType;   // type of data to extract
+    pData: PChar;                   // buffer to receive extracted data
+    out pDataSize: Cardinal         // size of buffer or data (in bytes)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipExtractDataA';
+
+function OmPlrClipExtractData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;         // name of the clip
+    startFrame: Cardinal;           // frame number to start extraction
+    numFrames: Cardinal;            // number of frames to extract
+    dataType: TOmPlrClipDataType;   // type of data to extract
+    pData: PChar;                   // buffer to receive extracted data
+    out pDataSize: Cardinal         // size of buffer or data (in bytes)
+    ): TOmPlrError;
+
+// Get the first clip in the clip list.
+// Set clipNameSize to the size in characters (not bytes) including the
+// terminating 0 of clipName buffer.
+// The clips are sorted in ascending creation order.
+function OmPlrClipGetFirstW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PChar;               // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetFirstW';
+
+function OmPlrClipGetFirstA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;           // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetFirstA';
+
+function OmPlrClipGetFirst(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;          // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError;
+
+// Get clip information. Old version.
+function OmPlrClipGetInfoW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    out pClipInfo: TOmPlrClipInfo   // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetInfoW';
+
+function OmPlrClipGetInfoA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    out pClipInfo: TOmPlrClipInfo   // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetInfoA';
+
+function OmPlrClipGetInfo(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    out pClipInfo: TOmPlrClipInfo   // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError;
+
+// Get clip information.
+function OmPlrClipGetInfo1W(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    out pClipInfo: TOmPlrClipInfo1  // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetInfo1W';
+
+function OmPlrClipGetInfo1A(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    out pClipInfo: TOmPlrClipInfo1  // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetInfo1A';
+
+function OmPlrClipGetInfo1(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    out pClipInfo: TOmPlrClipInfo1  // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError;
+
+// Get a full filename for a clip or a track within a clip.
+// The tracks are numbered as follows. Track 0 is for the movie file.
+// Tracks 1 to N are for the N video tracks. Tracks N+1 to N+M are for
+// the M audio tracks. Use OmPlrClipGetInfo() to find the number of video
+// and audio tracks. Each track may have more than one media file.
+// These are accessed via the fileNum parameter. The first fileNum is 0.
+// Set mediaNameSize to the size in characters (not bytes) including the
+// terminating 0 of pMediaName buffer.
+// This function returns omPlrEndOfList if the trackNum or fileNum are
+// past the limits within the clip.
+function OmPlrClipGetMediaNameW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    trackNum: Cardinal;             // track selection
+    fileNum: Cardinal;              // file selection, a track may have many files
+    pMediaName: PChar;              // buffer to store returned media names
+    mediaNameSize: Cardinal         // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetMediaNameW';
+
+function OmPlrClipGetMediaNameA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    trackNum: Cardinal;             // track selection
+    fileNum: Cardinal;              // file selection, a track may have many files
+    pMediaName: PChar;              // buffer to store returned media names
+    mediaNameSize: Cardinal         // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetMediaNameA';
+
+function OmPlrClipGetMediaName(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    trackNum: Cardinal;             // track selection
+    fileNum: Cardinal;              // file selection, a track may have many files
+    pMediaName: PChar;              // buffer to store returned media names
+    mediaNameSize: Cardinal         // size of the above buffer
+    ): TOmPlrError;
+
+// Get the next clip in the clip list.
+// Set clipNameSize to the size in characters (not bytes) including the
+// terminating 0 of clipName buffer.
+// The clips are sorted in ascending creation order.
+function OmPlrClipGetNextW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetNextW';
+
+function OmPlrClipGetNextA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetNextA';
+
+function OmPlrClipGetNext(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError;
+
+// Get the start timecode from a clip.
+function OmPlrClipGetStartTimecodeW(
+    plrHandle: TOmPlrHandle;
+    const pClipName: PChar;
+    startTc: TOmTcData
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetStartTimecodeW';
+
+function OmPlrClipGetStartTimecodeA(
+    plrHandle: TOmPlrHandle;
+    const pClipName: PAnsiChar;
+    startTc: TOmTcData
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetStartTimecodeA';
+
+function OmPlrClipGetStartTimecode(
+    plrHandle: TOmPlrHandle;
+    const pClipName: TOmPlrChar;
+    startTc: TOmTcData
+    ): TOmPlrError;
+
+// Get track clip user data. Return the user data stored under pKey.
+// Track 0 is for the movie file. Tracks 1 to N are for the N video tracks.
+// Tracks N+1 to N+M are for the M audio tracks. Use OmPlrClipGetInfo()
+// to find the number of video and audio tracks.
+// Note, the returned data in *pData is not null terminated. *pRetDataSize
+// is set to the size of the returned data in *pData.
+function OmPlrClipGetTrackUserDataW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    trackNum: Integer;              // track number
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetTrackUserDataW';
+
+function OmPlrClipGetTrackUserDataA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    trackNum: Integer;              // track number
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetTrackUserDataA';
+
+function OmPlrClipGetTrackUserData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    trackNum: Integer;              // track number
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError;
+
+// Get track clip user data by index. Return the n'th user data/key pair.
+// Track 0 is for the movie file. Tracks 1 to N are for the N video tracks.
+// Tracks N+1 to N+M are for the M audio tracks. Use OmPlrClipGetInfo()
+// to find the number of video and audio tracks.
+// Note, the returned data in *data is not null terminated. *retDataSize
+// is set to the size of the returned data in *data.
+function OmPlrClipGetTrackUserDataAndKeyW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    trackNum: Integer;              // track number
+    dataIdex: Cardinal;             // n (for n'th key/data pair) (0 - n-1)
+    pKey: PAnsiChar;                // name of user data key
+    keySize: Cardinal;              // size (in bytes) of the above buffer
+    data: PAnsiChar;                // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out retDataSize: Cardinal       // returned user data size
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetTrackUserDataAndKeyW';
+
+function OmPlrClipGetTrackUserDataAndKeyA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    trackNum: Integer;              // track number
+    dataIdex: Cardinal;             // n (for n'th key/data pair) (0 - n-1)
+    pKey: PAnsiChar;                // name of user data key
+    keySize: Cardinal;              // size (in bytes) of the above buffer
+    data: PAnsiChar;                // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out retDataSize: Cardinal       // returned user data size
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetTrackUserDataAndKeyA';
+
+function OmPlrClipGetTrackUserDataAndKey(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;     // name of the clip
+    trackNum: Integer;              // track number
+    dataIdex: Cardinal;             // n (for n'th key/data pair) (0 - n-1)
+    pKey: PAnsiChar;                // name of user data key
+    keySize: Cardinal;              // size (in bytes) of the above buffer
+    data: PAnsiChar;                // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out retDataSize: Cardinal       // returned user data size
+    ): TOmPlrError;
+
+// Get clip user data. Return the user data stored under pKey.
+// Note, the returned data in *pData is not null terminated. *pRetDataSize
+// is set to the size of the returned data in *pData.
+function OmPlrClipGetUserDataW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetUserDataW';
+
+function OmPlrClipGetUserDataA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipGetUserDataA';
+
+function OmPlrClipGetUserData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError;
+
+
+//--- Need add more functions
+//--- OmPlrClipGetUserDataAndKey ~ OmPlrClipWhereRecording
+
+
+// ***************************************************************************
+// Player functions
+
+// Attach a clip to the timeline. If the clip does not exist, it is created.
+// If an empty clip is later detached (before recording into it), it is
+// deleted. Returns a handle to the attached clip.
+function OmPlrAttachW(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttachW';
+
+function OmPlrAttachA(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttachW';
+
+function OmPlrAttach(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+
+// Another version of OmPlrAttch. This one adds a modified track match string.
+// The string must start with "audioM:" followed by a track match string
+// described below. An example string is "audioM:token1/token2,token3,token4".
+//
+// A track match string is used when attaching a clip. It is compared against
+// user data in the clip to select which tracks from the clip to map to player
+// channels.
+// The string has the following format:
+//   token1/token2/token3,token4/token5
+// Matching occurs between a token and clip track user data value for key
+// "ovn_trackmatch". See OmPlrClipGetTrackUserData() and
+// OmPlrClipSetTrackUserData(). For the above track match string, the system
+// first tries to find a clip track labeled  token1, token2 or token3 in that
+// order. The first match will be used. Then it will look for a clip track
+// labeled token4 or token5. Again, the first match will be used.
+// There are some special token names.
+// The special name silenceX where X is a number will cause X channels of
+// silence to be used. For example: a match string such as "english/silence2"
+// will first look for a clip track labeled "english" and failing that will
+// use 2 channels of silence.
+// The special name tracknumX where X is a number will always match clip
+// track number X.
+// The special name tracknolX where X is a number will match clip track
+// number X if the track has no label.
+//
+// A token may be a compound token which is a series of tokens separated by
+// '&'. For example token1 above may be replaced by tokenA&tokenB. The '&'
+// notation means both tokens must be present. The string tokenA&tokenB/token2
+// would first look for both tokenA and tokenB. If either one is not present
+// then move on looking for token2. If all tokens are found then all matching
+// tracks are mapped.
+//
+// A token may have a modifier suffix of the form :XoY where X and Y are
+// digits (the suffix is four characters long). If X is not zero and does not
+// match the number of channels then the token is ignored. A zero X matches
+// any number of channels. Y is the number of channels this token represents.
+// Y must be a multiple of the number of channels or be 0. A zero Y represents
+// the number of channels. As an example, ENG:2o4 matches a 2-channel track
+// labeled ENG and represents four channels (the track is used twice).
+//
+// The track match string pointer may be 0 or the track match string may
+// be zero length.
+function OmPlrAttach1W(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach1W';
+
+function OmPlrAttach1A(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach1A';
+
+function OmPlrAttach1(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+
+// Yet another version of OmPlrAttach. This one starts with OmPlrAttach1 and
+// adds a OmPlrVideoFrameConvert parameter for up/down video conversion.
+// This conversion mode applies only to the attached clip and overrides
+// the default conversion mode specified on the player.
+// The conversion mode only applies to players with appropriate media ports.
+// Use omPlrVfcUnknown to not override the current value.
+function OmPlrAttach2W(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach2W';
+
+function OmPlrAttach2A(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach2A';
+
+function OmPlrAttach2(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+
+// Yet another version of OmPlrAttach. This one starts with OmPlrAttach2 and
+// adds an AFD and secondary audio mix select. These values apply only to the
+// attached clip. The AFD overrides any other AFD associated with the clip.
+// Use 0 for AFD to not override the current value.
+// The secondary audio mix select specifies an index used to look up an audio
+// mix mode to convert the main audio to the secondary audio output. Use 0
+// to not override the current value.
+function OmPlrAttach3W(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach3W';
+
+function OmPlrAttach3A(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach3A';
+
+function OmPlrAttach3(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+
+// Yet another version of OmPlrAttach. This one starts with OmPlrAttach3 and
+// adds the list of caption or subtitle files to insert during playback.
+// This list overrides any other caption or subtitle files associated with
+// the clip. The list of files is given as a single string formatted as a
+// JSON array, for example:
+// "[{\"file\":\"cap_eng.scc\"},{\"file\":\"cap_spa.scc\"}]"
+// Filenames can be absolute or relative. If relative then the configured
+// subtitle directory is used as a base location. Use an empty string to not
+// override the associations set in the player configuration.
+function OmPlrAttach4W(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PChar;         // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    const pSubtitleFileList: PChar; // optional caption/subtitle file list
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach4W';
+
+function OmPlrAttach4A(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: PAnsiChar;     // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    const pSubtitleFileList: PAnsiChar; // optional caption/subtitle file list
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrAttach4A';
+
+function OmPlrAttach4(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    const pSubtitleFileList: TOmPlrChar; // optional caption/subtitle file list
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+
+// Close a connection to a remote player.
+function OmPlrClose(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClose';
+
+// Readies the player for playing. OmPlrCuePlay() blocks until the player has
+// prefetched enough data to play at the given rate without freeze framing.
+function OmPlrCuePlay(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    playRate: Double                // initial play rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrCuePlay';
+
+// Readies the player for recording. CueRecord blocks until the player is
+// ready to record.
+function OmPlrCueRecord(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrCueRecord';
+
+// Another version of OmPlrCueRecord that takes an option argument.
+// See OmPlrRecordOptions in omplrdefs.h
+function OmPlrCueRecord1(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    recordOptions: Cardinal      // record options
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrCueRecord1';
+
+// Remove a clip from the timeline.
+function OmPlrDetach(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    clipHandle: TOmPlrClipHandle;   // handle of clip to remove
+    shiftMode: TOmPlrShiftMode      // shift existing clips in this manner
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrDetach';
+
+// Remove all clips from the timeline.
+function OmPlrDetachAllClips(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrDetachAllClips';
+
+
+//--- Need add more functions
+//--- OmPlrEnable ~ OmPlrGetAppClipExtList
+
+
+// Returns the clip handle of the num'th clip on the timeline.
+// Returns 0 if no num'th clips. The first clip is clip 0.
+function OmPlrGetClipAtNum(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    num: Integer;                 // which clip (first is 0)
+    out pClipHandle: TOmPlrClipHandle // returned clip handle of num'th clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetClipAtNum';
+
+// Returns the handle of the clip located at the given timeline position.
+// Returns 0 if no clip at position.
+function OmPlrGetClipAtPos(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pos: Integer;                 // timeline position
+    out pClipHandle: TOmPlrClipHandle;// returned clip handle at specified
+                                      // timeline pos
+    out pClipStartPos: Integer        // returned timeline pos of the start of the clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetClipAtPos';
+
+
+// Sets the maximum player position. The player position will not
+// move to a point at or after this timeline position.
+function OmPlrSetMaxPos(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    maxPos: Integer              // maximum player position (exclusive)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetMaxPos';
+
+// Sets the maximum player position to the last frame of the last clip on
+// the timeline. This setting will limit the player from moving past the
+// last frame of the last clip on the timeline.
+function OmPlrSetMaxPosMax(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetMaxPosMax';
+
+// Sets the min and max player positions to the specified clip. The min
+// and max positions will be set to limit the player from moving outside
+// the specified clip on the timeline.
+function OmPlrSetMinMaxPosToClip(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    clipHandle: TOmPlrClipHandle // clip handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetMinMaxPosToClip';
+
+// Sets the minimum player position. The player position will not
+// move to a point before this timeline position.
+function OmPlrSetMinPos(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    minPos: Integer              // minimum player position (inclusive)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetMinPos';
+
+// Sets the minimum player position to the first frame of the first clip.
+// This setting will limit the player from moving before the first frame
+// of the first clip on the timeline.
+function OmPlrSetMinPosMin(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetMinPosMin';
+
+
+
+
+
+// Open a connection to a player on a Director.
+// The player dll is thread safe. However, usage of a player handle is not
+// thread safe. Multiple threads must either have their own player handle or
+// serialze the usage of the player handle.
+function OmPlrOpenW(
+    const pDirName: PChar;          // name of the Director (or dotted ip address)
+    const pPlrName: PChar;          // name of the player on the director
+    out pPlrHandle: TOmPlrHandle    // returned player handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrOpenW';
+
+function OmPlrOpenA(
+    const pDirName: PAnsiChar;      // name of the Director (or dotted ip address)
+    const pPlrName: PAnsiChar;      // name of the player on the director
+    out pPlrHandle: TOmPlrHandle    // returned player handle
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrOpenA';
+
+function OmPlrOpen(
+    const pDirName: TOmPlrChar;     // name of the Director (or dotted ip address)
+    const pPlrName: TOmPlrChar;     // name of the player on the director
+    out pPlrHandle: TOmPlrHandle    // returned player handle
+    ): TOmPlrError;
+
+// Open a connection to a player on a Director.
+// The connectCallback routine is called when a network connection to the
+// Director is established or reestablished.
+function OmPlrOpen1W(
+    const pDirName: PChar;          // name of the Director (or dotted ip address)
+    const pPlrName: PChar;          // name of the player on the director
+    out pPlrHandle: TOmPlrHandle;   // returned player handle
+    pConnectCallback: Pointer       // connect callback
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrOpen1W';
+
+function OmPlrOpen1A(
+    const pDirName: PAnsiChar;      // name of the Director (or dotted ip address)
+    const pPlrName: PAnsiChar;      // name of the player on the director
+    out pPlrHandle: TOmPlrHandle;   // returned player handle
+    pConnectCallback: Pointer       // connect callback
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrOpen1A';
+
+function OmPlrOpen1(
+    const pDirName: TOmPlrChar;     // name of the Director (or dotted ip address)
+    const pPlrName: TOmPlrChar;     // name of the player on the director
+    out pPlrHandle: TOmPlrHandle;   // returned player handle
+    pConnectCallback: Pointer       // connect callback
+    ): TOmPlrError;
+
+// Sets the player in motion playing at the given rate. The rate is in
+// frames per frame. For example, 1.0 is normal, 0.5 is 1/2, and -2.0
+// is reverse 2x.
+// Play starts as soon as possible and the first frame shows up on the
+// output some "play latency" frames later. The play latency depends
+// on the type of mediaPort. Play latency is currently about 3 to 12
+// frames. Play latency is deterministic and repeatable given a set of
+// hardware and software versions.
+function OmPlrPlay(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    playRate: Double                // play rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrPlay';
+
+// Sets the player in motion playing at the given rate, at sysFrame time.
+// The current system frame time (sysFrame) is obtained with OmPlrGetTime().
+// Frame accurate dubbing between two mediaPorts is possible by using
+// OmPlrPlayAt X to the source player and OmPlrRecordAt X to the record player.
+// X must be a sytem frame time in the future.
+function OmPlrPlayAt(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    sysFrame: Cardinal;             // system frame time to start play
+    playRate: Double = 1.0          // play rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrPlayAt';
+
+// Exactly like OmPlrPlayAt() but does not clear the queue of pending "At"
+// operations.  Using this API several PlayAt operations can be stacked
+// up without waiting for each one to take effect before sending the next.
+function OmPlrPlayAtQueue(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    sysFrame: Cardinal;             // system frame time to start play
+    playRate: Double = 1.0          // play rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrPlayAtQueue';
+
+
+
+// Sets the player position. This will jump the player position to the
+// specified position. The player may temporarily freeze frame if this
+// command is executed while the player is in motion. To guarantee against
+// freeze frames, issue this command, issue a OmPlrCuePlay() command,
+// followed by a OmPlrPlay(). The call to OmPlrCuePlay() will block
+// untill the player has prefetched enough data to play.
+function OmPlrSetPos(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pos: Integer                    // new player position
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetPos';
+
+function OmPlrSetPosD(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pos: Double                     // new player position
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetPosD';
+
+// Enable automatic reconnect when connection to the Director is lost.
+// By default this is on.
+function OmPlrSetRetryOpen(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    retry: Boolean                  // set true to enable retry
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrSetRetryOpen';
+
+// Step the player position. Positive step moves the position forward
+// "step" frames. Negative step moves the position backwards "step" frames.
+// This function operates only in play.
+function OmPlrStep(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    step: Integer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrStep';
+
+function OmPlrStepD(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    step: double
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrStepD';
+
+// Stop the player. If recording, the last frame captured is the current frame.
+function OmPlrStop(
+    plrHandle: TOmPlrHandle      // handle returned from OmPlrOpen()
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrStop';
+
+
+
+
+
+// Get the first of the list of players.
+// Set playerNameSize to the size in characters (not bytes) including the
+// terminating 0 of playerName buffer
+function OmPlrGetFirstPlayerW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: PChar;          // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetFirstPlayerW';
+
+function OmPlrGetFirstPlayerA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: PAnsiChar;      // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetFirstPlayerA';
+
+function OmPlrGetFirstPlayer(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: TOmPlrChar;     // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError;
+
+// Returns the player frame rate. Player frame rate does not need to
+// match the reference frame rate.
+function OmPlrGetFrameRate(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pFrameRate: TOmFrameRate // returned frame rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetFrameRate';
+
+// Get the next of the list of players.
+// Set playerNameSize to the size in characters (not bytes) including the
+// terminating 0 of playerName buffer.
+function OmPlrGetNextPlayerW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: PChar;          // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetNextPlayerW';
+
+function OmPlrGetNextPlayerA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: PAnsiChar;      // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetNextPlayerA';
+
+function OmPlrGetNextPlayer(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: TOmPlrChar;     // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError;
+
+// Get player status information.
+function OmPlrGetPlayerStatusW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pPlrStatus: TOmPlrStatusW // pointer to user supplied OmPlrStatus struct
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetPlayerStatusW';
+
+function OmPlrGetPlayerStatusA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pPlrStatus: TOmPlrStatusA // pointer to user supplied OmPlrStatus struct
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetPlayerStatusA';
+
+function OmPlrGetPlayerStatus(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pPlrStatus: TOmPlrStatus // pointer to user supplied OmPlrStatus struct
+    ): TOmPlrError;
+
+// Returns the player timeline motion rate. 1.0 is normal rate. 0 is still.
+function OmPlrGetRate(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pRate: double            // returned player rate
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetRate';
+
+// Returns the player position, system frame number, system fractional frame
+// number, reference VITC data, timecode generator timecode, and video
+// stream timecode.
+// The system frame number is a 32-bit number that counts in frames
+// starting a zero at power on. The fractional part is a 32-bit number
+// representing the fractional part of the system frame count. A value of
+// 0xC0000000 is 3/4 a frame.
+// A timecode value is set to all ones if the timecode data is missing or
+// invalid.
+function OmPlrGetTime(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    out pPos: Integer;            // returned player position
+    out pSysFrame: Cardinal;      // returned system frame count
+    out pSysFrameFrac: Cardinal;  // returned system fractional frame
+    out pRefVitc: TOmTcData;      // returned reference VITC data
+    out pTcg: TOmTcData;          // returned timecode generator timecode
+    out pVideoTc: TOmTcData       // returned video stream timecode
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetTime';
+
+function OmPlrGetTime1(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    out pPos: Integer;            // returned player position
+    out pSysFrame: Cardinal;      // returned system frame count
+    out pSysFrameFrac: Cardinal;  // returned system fractional frame
+    out pRefVitc: TOmTcData;      // returned reference VITC data
+    out pTcg: TOmTcData;          // returned timecode generator timecode
+    out pVideoTc: TOmTcData;      // returned video stream timecode
+    out seconds: Cardinal;        // Director time in seconds
+    out milliseconds: Cardinal    // Director time milliseconds portion
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrGetTime1';
+
+// Set clip directory for this network connection. This directory
+// is used for loading, listing, and deleting clips.
+function OmPlrClipSetDirectoryW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipDir: PChar              // name of clip director (include leading /)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetDirectoryW';
+
+function OmPlrClipSetDirectoryA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipDir: PAnsiChar          // name of clip director (include leading /)
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetDirectoryA';
+
+function OmPlrClipSetDirectory(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipDir: TOmPlrChar         // name of clip director (include leading /)
+    ): TOmPlrError;
+
+// Set clip extension list for this network connection. The extension list is a
+// concatenated list of filename extensions that are used as clip identifiers.
+// For example: for quicktime files and dv files the list would look like
+// ".mov.dv"
+// This clip extension list is an attribute of the network connection to the
+// MediaServer, not an attribute of the player.
+// Clip names specified in other functions use this list of extensions.
+function OmPlrClipSetExtListW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipExtList: PChar):        // clip extension list ex. ".mov.dv"
+    TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetExtListW';
+
+function OmPlrClipSetExtListA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipExtList: PAnsiChar):    // clip extension list ex. ".mov.dv"
+    TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetExtListA';
+
+function OmPlrClipSetExtList(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipExtList: TOmPlrChar):   // clip extension list ex. ".mov.dv"
+    TOmPlrError;
+
+// Set clip protection. A protected clip cannot be deleted. Use
+// OmPlrClipGetInfo() to determine if a clip is protected.
+function OmPlrClipSetProtectionW(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipName: PChar;            // name of clip
+    out clipProtection: Boolean  // set true to protect the clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetProtectionW';
+
+function OmPlrClipSetProtectionA(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;        // name of clip
+    out clipProtection: Boolean  // set true to protect the clip
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetProtectionA';
+
+function OmPlrClipSetProtection(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;       // name of clip
+    out clipProtection: Boolean  // set true to protect the clip
+    ): TOmPlrError;
+
+// Set the start timecode from a clip.
+function OmPlrClipSetStartTimecodeW(
+    plrHandle: TOmPlrHandle;
+    pClipName: PChar;
+    OmTcData: TOmTcData): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetStartTimecodeW';
+
+function OmPlrClipSetStartTimecodeA(
+    plrHandle: TOmPlrHandle;
+    pClipName: PAnsiChar;
+    OmTcData: TOmTcData): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetStartTimecodeA';
+
+function OmPlrClipSetStartTimecode(
+    plrHandle: TOmPlrHandle;
+    pClipName: TOmPlrChar;
+    OmTcData: TOmTcData): TOmPlrError;
+
+// Set track clip user data. The pData is stored under the pKey. Omneon
+// recommends using key strings that start with something unique to your
+// company to avoid key collision.  Specify zero length data to delete a
+// user data key. Note that pData must not be NULL even if dataSize is 0,
+// or the call will fail.
+// Tracks 1 to N are for the N video tracks. Tracks N+1 to N+M are for
+// the M audio tracks. Use OmPlrClipGetInfo() to find the number of video
+// and audio tracks.
+function OmPlrClipSetTrackUserDataW(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PChar;             // name of clip
+    trackNum: Integer;            // track number (0..n-1)
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetTrackUserDataW';
+
+function OmPlrClipSetTrackUserDataA(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;         // name of clip
+    trackNum: Integer;            // track number (0..n-1)
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetTrackUserDataA';
+
+function OmPlrClipSetTrackUserData(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of clip
+    trackNum: Integer;            // track number (0..n-1)
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError;
+
+// Set clip user data. The pData is stored under the pKey. Omneon recommends
+// using key strings that start with something unique to your company to avoid
+// key collision.  Specify zero length data to delete a user data key. Note
+// that pData must not be NULL even if dataSize is 0, or the call will fail.
+function OmPlrClipSetUserDataW(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PChar;             // name of clip
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetUserDataW';
+
+function OmPlrClipSetUserDataA(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;         // name of clip
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipSetUserDataA';
+
+function OmPlrClipSetUserData(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of clip
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError;
+
+// Returns the serial number of the server recording the specified clip. The
+// clip may not yet be actually recording even when reported as recording as
+// it may only be queued up for recording. Further, the clip may never be
+// recorded if the player is stopped before the record begins.
+// Returns a zero length string if not recording.
+function OmPlrClipWhereRecordingW(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PChar;             // name of the clip
+    pSerialNumber: PAnsiChar;     // buffer to store returned serial number
+    serialNumberSize: Cardinal    // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipWhereRecordingW';
+
+function OmPlrClipWhereRecordingA(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: PAnsiChar;         // name of the clip
+    pSerialNumber: PAnsiChar;     // buffer to store returned serial number
+    serialNumberSize: Cardinal    // size of the above buffer
+    ): TOmPlrError; cdecl; external omplrlib name 'OmPlrClipWhereRecordingA';
+
+function OmPlrClipWhereRecording(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of the clip
+    pSerialNumber: PAnsiChar;     // buffer to store returned serial number
+    serialNumberSize: Cardinal    // size of the above buffer
+    ): TOmPlrError;
+
+implementation
+
+function OmPlrGetErrorString(error: TOmPlrError): TOmPlrChar;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrGetErrorStringW(error);
+{$ELSE}
+  Result := OmPlrGetErrorStringA(error);
+{$ENDIF}
+end;
+
+function OmPlrClipCopy(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pSrcClipName: TOmPlrChar;       // name of clip to copy
+    pDstClipName: TOmPlrChar;       // name of destination clip
+    srcStartFrame: Cardinal;        // first frame of source clip to copy
+    copyLength: Cardinal;           // length (in frames) to copy
+    dstStartFrame: Cardinal;        // position of first copied frame in dst clip
+    copyUserData: Boolean;          // true to copy clip user data
+    out pCcHandle: TOmPlrClipCopyHandle // clip copy handle
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipCopyW(plrHandle, pSrcClipName, pDstClipName, srcStartFrame, copyLength, dstStartFrame, copyUserData, pCcHandle);
+{$ELSE}
+  Result := OmPlrClipCopyA(plrHandle, pSrcClipName, pDstClipName, srcStartFrame, copyLength, dstStartFrame, copyUserData, pCcHandle);
+{$ENDIF}
+end;
+
+function OmPlrClipCopyGetParams(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    ccHandle: TOmPlrClipCopyHandle; // clip copy handle
+    pSrcClipName: TOmPlrChar;       // returned name of clip being copied
+    srcClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    pDstClipName: TOmPlrChar;       // returned name of clip being copied to
+    dstClipNameSize: Cardinal;      // size of above buffer in characters
+                                    // including terminating 0 (not in bytes)
+    out pSrcStartFrame: Cardinal;   // returned source clip copy start frame
+    out pCopyLength: Cardinal;      // returned copy length (in frames)
+    out pDstStartFrame: Cardinal;   // returned dst clip copy start frame
+    out pCopyUserData: Boolean      // returned true if copy user data
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipCopyGetParamsW(plrHandle, ccHandle, pSrcClipName, srcClipNameSize, pDstClipName, dstClipNameSize,
+                                    pSrcStartFrame, pCopyLength, pDstStartFrame, pCopyUserData);
+{$ELSE}
+  Result := OmPlrClipCopyGetParamsA(plrHandle, ccHandle, pSrcClipName, srcClipNameSize, pDstClipName, dstClipNameSize,
+                                    pSrcStartFrame, pCopyLength, pDstStartFrame, pCopyUserData);
+{$ENDIF}
+end;
+
+function OmPlrClipDelete(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar           // name of clip to delete (in current clip dir)
+    ): TOmPlrError; cdecl;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipDeleteW(plrHandle, pClipName);
+{$ELSE}
+  Result := OmPlrClipDeleteA(plrHandle, pClipName);
+{$ENDIF}
+end;
+
+function OmPlrClipGetDirectory(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipDir: TOmPlrChar;           // buffer to store the returned directory name
+    clipDirSize: Cardinal           // buffer to store the returned directory name
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetDirectoryW(plrHandle, pClipDir, clipDirSize);
+{$ELSE}
+  Result := OmPlrClipGetDirectoryA(plrHandle, pClipDir, clipDirSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetExtList(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pExtList: TOmPlrChar;          // buffer to store the returned extension list
+    extListSize: Cardinal           // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetExtListW(plrHandle, pExtList, extListSize);
+{$ELSE}
+  Result := OmPlrClipGetExtListA(plrHandle, pExtList, extListSize);
+{$ENDIF}
+end;
+
+function OmPlrClipExists(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;          // name of the clip
+    out pClipExists: Boolean        // returned true if clip exists
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipExistsW(plrHandle, pClipName, pClipExists);
+{$ELSE}
+  Result := OmPlrClipExistsA(plrHandle, pClipName, pClipExists);
+{$ENDIF}
+end;
+
+function OmPlrClipExtractData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;         // name of the clip
+    startFrame: Cardinal;           // frame number to start extraction
+    numFrames: Cardinal;            // number of frames to extract
+    dataType: TOmPlrClipDataType;   // type of data to extract
+    pData: PChar;                   // buffer to receive extracted data
+    out pDataSize: Cardinal         // size of buffer or data (in bytes)
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipExtractDataW(plrHandle, pClipName, startFrame, numFrames, dataType, pData, pDataSize);
+{$ELSE}
+  Result := OmPlrClipExtractDataA(plrHandle, pClipName, startFrame, numFrames, dataType, pData, pDataSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetFirst(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;          // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetFirstW(plrHandle, pClipName, clipNameSize);
+{$ELSE}
+  Result := OmPlrClipGetFirstA(plrHandle, pClipName, clipNameSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetInfo(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    out pClipInfo: TOmPlrClipInfo   // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetInfoW(plrHandle, pClipName, pClipInfo);
+{$ELSE}
+  Result := OmPlrClipGetInfoA(plrHandle, pClipName, pClipInfo);
+{$ENDIF}
+end;
+
+function OmPlrClipGetInfo1(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    out pClipInfo: TOmPlrClipInfo1  // pointer to a user supplied clipInfo structure
+                                    // clipInfo.maxMsTracks and clipInfo.ms MUST
+                                    // be initialized before calling.
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetInfo1W(plrHandle, pClipName, pClipInfo);
+{$ELSE}
+  Result := OmPlrClipGetInfo1A(plrHandle, pClipName, pClipInfo);
+{$ENDIF}
+end;
+
+function OmPlrClipGetMediaName(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    trackNum: Cardinal;             // track selection
+    fileNum: Cardinal;              // file selection, a track may have many files
+    pMediaName: PChar;              // buffer to store returned media names
+    mediaNameSize: Cardinal         // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetMediaNameW(plrHandle, pClipName, trackNum, fileNum, pMediaName, mediaNameSize);
+{$ELSE}
+  Result := OmPlrClipGetMediaNameA(plrHandle, pClipName, trackNum, fileNum, pMediaName, mediaNameSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetNext(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipNameSize: Cardinal          // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetNextW(plrHandle, pClipName, clipNameSize);
+{$ELSE}
+  Result := OmPlrClipGetNextA(plrHandle, pClipName, clipNameSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetStartTimecode(
+    plrHandle: TOmPlrHandle;
+    const pClipName: TOmPlrChar;
+    startTc: TOmTcData
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetStartTimecodeW(plrHandle, pClipName, startTc);
+{$ELSE}
+  Result := OmPlrClipGetStartTimecodeA(plrHandle, pClipName, startTc);
+{$ENDIF}
+end;
+
+function OmPlrClipGetTrackUserData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    trackNum: Integer;              // track number
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetTrackUserDataW(plrHandle, pClipName, trackNum, pKey, pData, dataSize, pRetDataSize);
+{$ELSE}
+  Result := OmPlrClipGetTrackUserDataA(plrHandle, pClipName, trackNum, pKey, pData, dataSize, pRetDataSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetTrackUserDataAndKey(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;     // name of the clip
+    trackNum: Integer;              // track number
+    dataIdex: Cardinal;             // n (for n'th key/data pair) (0 - n-1)
+    pKey: PAnsiChar;                // name of user data key
+    keySize: Cardinal;              // size (in bytes) of the above buffer
+    data: PAnsiChar;                // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out retDataSize: Cardinal       // returned user data size
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetTrackUserDataAndKeyW(plrHandle, pClipName, trackNum, dataIdex, pKey, keySize, data, dataSize, retDataSize);
+{$ELSE}
+  Result := OmPlrClipGetTrackUserDataAndKeyA(plrHandle, pClipName, trackNum, dataIdex, pKey, keySize, data, dataSize, retDataSize);
+{$ENDIF}
+end;
+
+function OmPlrClipGetUserData(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    const pKey: PAnsiChar;          // name of user data key
+    pData: PAnsiChar;               // returned user data
+    dataSize: Cardinal;             // size (in bytes) of the above buffer
+    out pRetDataSize: Cardinal      // size (in bytes) of the returned user data
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipGetUserDataW(plrHandle, pClipName, pKey, pData, dataSize, pRetDataSize);
+{$ELSE}
+  Result := OmPlrClipGetUserDataA(plrHandle, pClipName, pKey, pData, dataSize, pRetDataSize);
+{$ENDIF}
+end;
+
+
+// ***************************************************************************
+// Player functions
+
+function OmPlrAttach(
+    plrHandle: TOmPlrHandle;            // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;        // name of the clip
+    clipIn: Cardinal;                   // clip in point (inclusive)
+    clipOut: Cardinal;                  // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;         // shift existing clips in this manner
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrAttachW(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pClipHandle);
+{$ELSE}
+  Result := OmPlrAttachA(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pClipHandle);
+{$ENDIF}
+end;
+
+function OmPlrAttach1(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;   // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrAttach1W(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, pClipHandle);
+{$ELSE}
+  Result := OmPlrAttach1A(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, pClipHandle);
+{$ENDIF}
+end;
+
+function OmPlrAttach2(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrAttach2W(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, pClipHandle);
+{$ELSE}
+  Result := OmPlrAttach2A(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, pClipHandle);
+{$ENDIF}
+end;
+
+function OmPlrAttach3(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrAttach3W(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, afd, secAudMixSel, pClipHandle);
+{$ELSE}
+  Result := OmPlrAttach3A(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, afd, secAudMixSel, pClipHandle);
+{$ENDIF}
+end;
+
+function OmPlrAttach4(
+    plrHandle: TOmPlrHandle;        // handle returned from OmPlrOpen()
+    const pClipName: TOmPlrChar;    // name of the clip
+    clipIn: Cardinal;               // clip in point (inclusive)
+    clipOut: Cardinal;              // clip out point (exclusive)
+    beforeClipHandle: TOmPlrClipHandle; // attach the clip before this clip
+    shiftMode: TOmPlrShiftMode;     // shift existing clips in this manner
+    const pTrackMatch: PAnsiChar;   // optional track match string
+    vfc: TOmPlrVideoFrameConvert;   // video frame conversion mode
+    afd: Cardinal;                  // afd, coded as in section 9 of SMPTE 2016-1
+    secAudMixSel: Cardinal;         // secondary audio mix select
+    const pSubtitleFileList: TOmPlrChar; // optional caption/subtitle file list
+    out pClipHandle: TOmPlrClipHandle   // returned handle to attached clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrAttach4W(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, afd, secAudMixSel, pSubtitleFileList, pClipHandle);
+{$ELSE}
+  Result := OmPlrAttach4A(plrHandle, pClipName, clipIn, clipOut, beforeClipHandle, shiftMode, pTrackMatch, vfc, afd, secAudMixSel, pSubtitleFileList, pClipHandle);
+{$ENDIF}
+end;
+
+
+function OmPlrOpen(
+    const pDirName: TOmPlrChar;     // name of the Director (or dotted ip address)
+    const pPlrName: TOmPlrChar;     // name of the player on the director
+    out pPlrHandle: TOmPlrHandle    // returned player handle
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrOpenW(pDirName, pPlrName, pPlrHandle);
+{$ELSE}
+  Result := OmPlrOpenA(pDirName, pPlrName, pPlrHandle);
+{$ENDIF}
+end;
+
+function OmPlrOpen1(
+    const pDirName: TOmPlrChar;     // name of the Director (or dotted ip address)
+    const pPlrName: TOmPlrChar;     // name of the player on the director
+    out pPlrHandle: TOmPlrHandle;   // returned player handle
+    pConnectCallback: Pointer       // connect callback
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrOpen1W(pDirName, pPlrName, pPlrHandle, pConnectCallback);
+{$ELSE}
+  Result := OmPlrOpen1A(pDirName, pPlrName, pPlrHandle, pConnectCallback);
+{$ENDIF}
+end;
+
+function OmPlrGetFirstPlayer(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: TOmPlrChar;     // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrGetFirstPlayerW(plrHandle, pPlayerName, playerNameSize);
+{$ELSE}
+  Result := OmPlrGetFirstPlayerA(plrHandle, pPlayerName, playerNameSize);
+{$ENDIF}
+end;
+
+function OmPlrGetNextPlayer(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pPlayerName: TOmPlrChar;     // buffer to store the returned name of a player
+    playerNameSize: Cardinal     // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrGetNextPlayerW(plrHandle, pPlayerName, playerNameSize);
+{$ELSE}
+  Result := OmPlrGetNextPlayerA(plrHandle, pPlayerName, playerNameSize);
+{$ENDIF}
+end;
+
+function OmPlrGetPlayerStatus(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    out pPlrStatus: TOmPlrStatus // pointer to user supplied OmPlrStatus struct
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrGetPlayerStatusW(plrHandle, pPlrStatus);
+{$ELSE}
+  Result := OmPlrGetPlayerStatusA(plrHandle, pPlrStatus);
+{$ENDIF}
+end;
+
+function OmPlrClipSetDirectory(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipDir: TOmPlrChar         // name of clip director (include leading /)
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetDirectoryW(plrHandle, pClipDir);
+{$ELSE}
+  Result := OmPlrClipSetDirectoryA(plrHandle, pClipDir);
+{$ENDIF}
+end;
+
+function OmPlrClipSetExtList(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipExtList: TOmPlrChar):   // clip extension list ex. ".mov.dv"
+    TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetExtListW(plrHandle, pClipExtList);
+{$ELSE}
+  Result := OmPlrClipSetExtListA(plrHandle, pClipExtList);
+{$ENDIF}
+end;
+
+function OmPlrClipSetProtection(
+    plrHandle: TOmPlrHandle;     // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;       // name of clip
+    out clipProtection: Boolean  // set true to protect the clip
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetProtectionW(plrHandle, pClipName, clipProtection);
+{$ELSE}
+  Result := OmPlrClipSetProtectionA(plrHandle, pClipName, clipProtection);
+{$ENDIF}
+end;
+
+function OmPlrClipSetStartTimecode(
+    plrHandle: TOmPlrHandle;
+    pClipName: TOmPlrChar;
+    OmTcData: TOmTcData): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetStartTimecodeW(plrHandle, pClipName, OmTcData);
+{$ELSE}
+  Result := OmPlrClipSetStartTimecodeA(plrHandle, pClipName, OmTcData);
+{$ENDIF}
+end;
+
+function OmPlrClipSetTrackUserData(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of clip
+    trackNum: Integer;            // track number (0..n-1)
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetTrackUserDataW(plrHandle, pClipName, trackNum, pKey, pData, datasize);
+{$ELSE}
+  Result := OmPlrClipSetTrackUserDataA(plrHandle, pClipName, trackNum, pKey, pData, datasize);
+{$ENDIF}
+end;
+
+function OmPlrClipSetUserData(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of clip
+    pKey: PAnsiChar;              // name of user data key
+    pData: PByte;                 // user data
+    datasize: Cardinal            // size (in bytes) of user data
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipSetUserDataW(plrHandle, pClipName, pKey, pData, datasize);
+{$ELSE}
+  Result := OmPlrClipSetUserDataA(plrHandle, pClipName, pKey, pData, datasize);
+{$ENDIF}
+end;
+
+function OmPlrClipWhereRecording(
+    plrHandle: TOmPlrHandle;      // handle returned from OmPlrOpen()
+    pClipName: TOmPlrChar;        // name of the clip
+    pSerialNumber: PAnsiChar;     // buffer to store returned serial number
+    serialNumberSize: Cardinal    // size of the above buffer
+    ): TOmPlrError;
+begin
+{$IFDEF UNICODE}
+  Result := OmPlrClipWhereRecordingW(plrHandle, pClipName, pSerialNumber, serialNumberSize);
+{$ELSE}
+  Result := OmPlrClipWhereRecordingA(plrHandle, pClipName, pSerialNumber, serialNumberSize);
+{$ENDIF}
+end;
+
+end.

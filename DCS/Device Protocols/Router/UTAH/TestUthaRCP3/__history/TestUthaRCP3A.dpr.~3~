@@ -1,0 +1,16 @@
+program TestUthaRCP3A;
+
+uses
+  Vcl.Forms,
+  UnitTestUthaRCP3A in 'UnitTestUthaRCP3A.pas' {Form12},
+  UnitBaseSerial in '..\..\..\..\..\Common\UnitBaseSerial.pas',
+  UnitUthaRCP3A in '..\..\..\..\Device Units\Router\UTHA\UnitUthaRCP3A.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm12, Form12);
+  Application.Run;
+end.

@@ -1,0 +1,585 @@
+unit UnitUthaRCP3A;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs, Generics.Collections,
+  UnitBaseSerial;
+
+const
+  INTERFACE_PING = $03;
+  INTERFACE_COMMON = $12;
+
+  // Communication Error, Error Bit
+  UTHA_ERROR_RESPONSE = $01;
+  UTHA_ERROR_CHECKSUM = $02;
+  UTHA_ERROR_DATA = $04;
+  UTHA_ERROR_COUNTER = $08;
+
+  MAX_LEVEL = 32;
+
+var
+  UthaRCP3A_LEVELS: array of AnsiChar =
+  ['V', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
+   'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+
+type
+  TLevelArray = array[0..MAX_LEVEL - 1] of Boolean;
+
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+
+  TStatusThread = class;
+
+  TUthaRCP3A = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+
+    FIF: Byte;
+    FCMD: Byte;
+
+    FMztrix: array[0..31, 0..MAXWORD - 1] of Word;
+
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    function GetLevelBitmap(ALevels: TLevelArray): DWORD;
+
+    function SendCommand(AIF, ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    function CheckSum(AValue: AnsiString): Boolean;
+    function TransmitCommand(AIF, ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+    function Ping: Integer; overload;
+    function Take(ASource, ADestination: Word; ALevels: TLevelArray): Integer; overload;
+    function DistinationDisconnect(ADestination: Word; ALevels: TLevelArray): Integer; overload;
+    function GetMatrix(AStartDest, NumDest: Word): Integer; overload;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FImagineLRC: TUthaRCP3A;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AImagineLRC: TUthaRCP3A);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+uses System.Math;
+
+{ TUthaRCP3A }
+
+constructor TUthaRCP3A.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  FIF  := $00;
+  FCMD := $00;
+
+  FillChar(FMztrix, SizeOf(FMztrix), #0);
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TUthaRCP3A.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FStatusThread.WaitFor;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if (FCriticalSection <> nil) then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  inherited Destroy;
+end;
+
+procedure TUthaRCP3A.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TUthaRCP3A.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TUthaRCP3A.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Resume;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FStatusThread.WaitFor;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+procedure TUthaRCP3A.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+function TUthaRCP3A.GetLevelBitmap(ALevels: TLevelArray): DWORD;
+var
+  I: Integer;
+begin
+  Result := 0;
+
+  for I := 0 to MAX_LEVEL - 1 do
+  begin
+    if (ALevels[I]) then
+      Result := Result or (1 shl I);
+  end;
+end;
+
+function TUthaRCP3A.SendCommand(AIF, ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+//  Buffer: PByte;
+  Buffer: AnsiString;
+  CheckSum: Byte;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+  CheckSum := $00;
+  for I := 1 to ADataSize do
+    CheckSum := CheckSum + Ord(ADataBuf[I]);
+
+  Buffer := AnsiChar(AIF) + AnsiChar(ACMD) + AnsiChar(CheckSum) + AnsiChar($00) + WordToAnsiStringR(ADataSize) + ADataBuf;
+
+  ErrCnt := 0;
+  while ErrCnt < MAX_RETRY do
+  begin
+    if SendData(Pointer(Buffer), ADataSize + 6) = D_FALSE then
+    begin
+      Inc(ErrCnt);
+      Continue;
+    end
+    else
+    begin
+      Result := D_OK;
+      break;
+    end;
+  end;
+
+
+{  Buffer := GetMemory(Length(ACMD) + ADataSize + 2);
+  try
+    Buffer[0] := Ord(UthaRCP3A_SOH);
+
+    for I := 1 to Length(ACMD) do
+      Buffer[I] := Ord(ACMD[I]);
+
+    for I := 1 to ADataSize do
+      Buffer[I + Length(ACMD)] := Ord(ADataBuf[I]);
+
+    Buffer[Length(ACMD) + ADataSize + 1] := Ord(UthaRCP3A_EOT);
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), Length(ACMD) + ADataSize + 2) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end;  }
+end;
+
+function TUthaRCP3A.CheckSum(AValue: AnsiString): Boolean;
+var
+  I, Len: Integer;
+  CRC: Byte;
+begin
+  Result := False;
+
+  Len := Length(AValue);
+  CRC := 0;
+
+  if (Len >= 7) then
+    for I := 7 to Len do
+      CRC := CRC + Ord(AValue[I]);
+
+  if (Len >= 3) then
+    Result := (CRC = Ord(AValue[3]));
+end;
+
+function TUthaRCP3A.TransmitCommand(AIF, ACMD: Byte; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FIF  := AIF;
+    FCMD := ACMD;
+
+    FCriticalSection.Enter;
+    try
+      ResetEvent(FSyncMsgEvent);
+      if (SendCommand(AIF, ACMD, ADataBuf, ADataSize) = D_OK) then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+procedure TUthaRCP3A.DataEvent;
+var
+  CIF, StatusType: Byte;
+  ByteCount: Integer;
+  TempBuffer: AnsiString;
+
+  Buf: AnsiString;
+label
+  ReParsing;
+begin
+  inherited;
+
+ReParsing:
+  if (Length(FReceivedBuffer) < 6) then exit;
+
+  ByteCount := PAnsiCharToWordR(@FReceivedBuffer[5]);
+
+  if (Length(FReceivedBuffer) >= ByteCount + 6) then
+  begin
+    TempBuffer := FReceivedBuffer;
+    FReceivedBuffer := Copy(TempBuffer, 1, ByteCount + 6);
+
+    if (CheckSum(FReceivedBuffer)) then
+    begin
+      CIF := Ord(FReceivedBuffer[1]);
+      StatusType := Ord(FReceivedBuffer[2]);
+
+      if (CIF = FIF) then
+      begin
+
+
+  Buf := Format('IF = %0.2x, StatusType = %0.2x', [CIF, StatusType]);
+  WriteLog(lkTest, PAnsiChar(Buf), Length(Buf), False);
+
+        case FCMD of
+          $FE: // Ping
+          begin
+            Buf := '601';
+            WriteLog(lkTest, PAnsiChar(Buf), Length(Buf), False);
+            if (StatusType = $FD) then
+            begin
+              Buf := '602';
+              WriteLog(lkTest, PAnsiChar(Buf), Length(Buf), False);
+              FLastResult := D_OK;
+            end
+            else
+            begin
+              Buf := '603';
+              WriteLog(lkTest, PAnsiChar(Buf), Length(Buf), False);
+              FLastResult := UTHA_ERROR_RESPONSE;
+            end;
+          end;
+          $00: // Take
+          begin
+            if (StatusType = $01) then
+              FLastResult := D_OK
+            else
+              FLastResult := UTHA_ERROR_RESPONSE;
+          end;
+          $06: // Desination Disconnect
+          begin
+            if (StatusType = $07) then
+              FLastResult := D_OK
+            else
+              FLastResult := UTHA_ERROR_RESPONSE;
+          end
+          else
+          begin
+            FLastResult := UTHA_ERROR_DATA;
+          end;
+        end;
+      end
+      else
+      begin
+        FLastResult := UTHA_ERROR_RESPONSE;
+      end;
+
+      if (ByteCount > 0) then
+        FReceivedData := System.Copy(FReceivedBuffer, 7, ByteCount)
+      else
+        FReceivedData := '';
+    end
+    else
+    begin
+      FLastResult := UTHA_ERROR_CHECKSUM;
+      FReceivedData := '';
+    end;
+
+    if (Length(TempBuffer) > ByteCount + 6) then
+    begin
+      FReceivedBuffer := Copy(TempBuffer, ByteCount + 6, Length(TempBuffer));
+      goto ReParsing;
+    end;
+
+    SetEvent(FSyncMsgEvent);
+    FReceivedBuffer := '';
+  end;
+end;
+
+function TUthaRCP3A.Ping: Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+
+  Buffer := '';
+
+  if (TransmitCommand(INTERFACE_PING, $FE, Buffer, Length(Buffer)) = D_OK) then
+  begin
+    if (Length(FReceivedData) < 1) then exit;
+
+    if (Ord(FReceivedData[1]) = $07) then
+    begin
+      Result := D_OK;
+    end;
+  end;
+end;
+
+function TUthaRCP3A.Take(ASource, ADestination: Word; ALevels: TLevelArray): Integer;
+var
+  Buffer: AnsiString;
+  LevelBitmap: DWORD;
+begin
+  Result := D_FALSE;
+
+  LevelBitmap := GetLevelBitmap(ALevels);
+  Buffer := WordToAnsiStringR(ASource) + WordToAnsiStringR(ADestination) + DWordToAnsiStringR(LevelBitmap);
+
+  if (TransmitCommand(INTERFACE_COMMON, $00, Buffer, Length(Buffer)) = D_OK) then
+  begin
+    if (Length(FReceivedData) < 8) then exit;
+
+    if (PAnsiCharToWordR(@FReceivedData[1]) = ASource) and
+       (PAnsiCharToWordR(@FReceivedData[3]) = ADestination) and
+       (PAnsiCharToIntR(@FReceivedData[5]) = LevelBitmap) then
+      Result := D_OK;
+  end;
+end;
+
+function TUthaRCP3A.DistinationDisconnect(ADestination: Word; ALevels: TLevelArray): Integer;
+var
+  Buffer: AnsiString;
+  LevelBitmap: DWORD;
+begin
+  Result := D_FALSE;
+
+  LevelBitmap := GetLevelBitmap(ALevels);
+  Buffer := WordToAnsiStringR(ADestination) + DWordToAnsiStringR(LevelBitmap);
+
+  if (TransmitCommand(INTERFACE_COMMON, $06, Buffer, Length(Buffer)) = D_OK) then
+  begin
+    if (Length(FReceivedData) < 6) then exit;
+
+    if (PAnsiCharToWordR(@FReceivedData[1]) = ADestination) and
+       (PAnsiCharToIntR(@FReceivedData[3]) = LevelBitmap) then
+      Result := D_OK;
+  end;
+end;
+
+function TUthaRCP3A.GetMatrix(AStartDest, NumDest: Word): Integer;
+var
+  Buffer: AnsiString;
+begin
+{  Result := D_FALSE;
+
+  Buffer := WordToAnsiString(ASource) + WordToAnsiString(ADestination) + DWordToAnsiString(ALevel);
+
+  if (TransmitCommand(INTERFACE_COMMON, $16, Buffer, Length(Buffer)) = D_OK) then
+  begin
+    if (Length(FReceivedData) < 8) then exit;
+
+    if (PAnsiCharToWord(@FReceivedData[1]) = ASource) and
+       (PAnsiCharToWord(@FReceivedData[3]) = ADestination) and
+       (PAnsiCharToDWord(@FReceivedData[5]) = ALevel) then
+      Result := D_OK;
+  end; }
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(AImagineLRC: TUthaRCP3A);
+begin
+  FImagineLRC := AImagineLRC;
+  FreeOnTerminate := False;
+
+  inherited Create(True);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+  Conn: Boolean;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+      FSaveConnected := FConnected;
+
+      if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+      begin
+        FConnected := False;
+        exit;
+      end;
+
+      R := Ping;
+      if (R = D_OK) then
+        FConnected := True
+      else
+        FConnected := False;
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+    if Assigned(FOnConnectChanged) then
+      if (FSaveConnected <> FConnected) then
+        FOnConnectChanged(FImagineLRC, FConnected);
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if (WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0) then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FImagineLRC.FAutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

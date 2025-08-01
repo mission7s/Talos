@@ -1,0 +1,935 @@
+unit UnitOmPlrDefs;
+
+interface
+
+uses UnitOmMediaDefs, UnitOmTcData, UnitOmClipFileDefs;
+
+type
+  // Note: this struct does not exist
+  // The typedef is done this way to strengthen type checking
+
+//  _OmPlrHandle = record
+//  end;
+//  TOmPlrHandle = ^_OmPlrHandle;
+  TOmPlrHandle = Pointer;
+  TOmPlrClipHandle = Cardinal;
+  TOmPlrClipCopyHandle = Cardinal;
+
+const
+  // maximum lengths for strings includes the trailing null
+  omPlrMaxClipDirLen = 512;               // max clip director name length
+  omPlrMaxClipExtListLen = 128;           // max clip extension list length
+  omPlrMaxClipNameLen = 64;               // max clip name length
+  omPlrMaxDirectorNameLen = 64;           // max length of director name
+  omPlrMaxPlayerNameLen = 32;             // max length player name
+  omPlrMaxPlayerUserDataLen = 16 * 1024;  // max length of player user data
+  omPlrMaxTrackMatchLen = 1024;           // max track match string length
+  omPlrMaxUserDataKeyLen = 64;            // max user data key size
+  omPlrMaxUserDataDataLen = 16 * 1024;    // max user data data size
+  omPlrMaxVancFilterEntries = 32;         // max number of VANC filter entries
+
+  // clip extension list rules:
+  // 1. This list is an ASCII string of ordered filename extensions including
+  //    the '.'. For example:
+  //    use ".mov" for Quicktime clips
+  //    use ".mxf" for MXF clips
+  //    use ".mov.mxf" for Quicktime or MXF with preference to Quicktime
+
+
+  // Low resolution proxy clips may be created at the same time a clip is
+  // recorded. In this case the clip will contain user data containing the
+  // name of the proxy clip. The user data key is "ovn_proxy_path" and the
+  // user data value is the path of the proxy relative to the path of the clip.
+  PROXY_NAME_USER_DATA_KEY = 'ovn_proxy_path';
+
+
+  // use this special name for a black/empty clip
+  PLAYER_BLACK_CLIP_NAME = 'OmneonEmptyBlackClip';
+
+
+  // use this special name prefix to retrieve known keys from clips
+  // For instance to retrieve the known key "clipProps" use a key name of
+  // "ovn_clip_property_clipProps"
+  OMN_KNOWN_KEY_PREFIX = 'ovn_clip_property_';
+  OMN_KNOWN_KEY_PREFIX_LEN = 18;
+
+
+  // use these magic values to specify "special" clip handles
+  omPlrNullClip = TOmPlrClipHandle(0);
+  omPlrFirstClip = TOmPlrClipHandle(1);   // first clip on timeline
+  omPlrLastClip = TOmPlrClipHandle(2);    // last clip on timeline
+  omPlrActiveClip = TOmPlrClipHandle(3);  // clip currently playing
+
+type
+  // Player types (e.g. SDI, compressed stream, etc.)
+  TOmPlrType =
+  (
+    omPlrTypeUnknown = 0,      // unknown/error
+    omPlrTypeSdi,              // physical SDI interface (default)
+    omPlrTypeCompressedStream, // compressed network stream
+
+    omPlrNumTypes
+  );
+
+  // Encode sources
+  TOmPlrEncodeSource =
+  (
+      omPlrEncSrcUnknown = 0,
+      omPlrEncSrcDefault,
+      omPlrEncSrcCompressedStream,
+      omPlrEncSrcSdi,
+      omPlrEncSrc2022_6,
+
+      omPlrNumEncSrc
+  );
+
+const
+  // use these magic values to specify "special" in/out points
+  omPlrClipDefaultIn = $FFFFFFFF;
+  omPlrClipDefaultOut = $FFFFFFFF;
+  omPlrClipDefaultLen = ($FFFFFFFF shl 1) + 1;
+
+type
+  // Clip file types
+  TOmPlrClipFileType =
+  (
+    omPlrClipFileUnknown,
+    omPlrClipFileRef,         // referenced quicktime, *.mov
+    omPlrClipFileSelf         // self contained quicktime, *.mov
+  );
+
+  // Record style types
+  TOmPlrRecordStyle =
+  (
+    omPlrRecordStyleGeneric,        // generic style
+    omPlrRecordStyleAs02_2009,      // Legacy MXF AS-02 format (AS-02 2009)
+    omPlrRecordStyleAs02 = omPlrRecordStyleAs02_2009, // MXF AS-02 format (defaults to AS-02 2009)
+    omPlrRecordStyleLowLatency,     // low latency for xfer while record
+    omPlrRecordStyleEvtr,           // Sony eVTR (MXF OP1A)
+    omPlrRecordStyleEvtrLowLatency, // low latency version of above
+    omPlrRecordStyleRdd9,           // Sony Rdd-9 low latency w/377-1 complaint package durations
+    omPlrRecordStyleRdd9Legacy,     // Sony Rdd-9 low latency w/sony style package durations
+    omPlrRecordStyleArdZdfHdf01,    // IRT ARD_ZDF_HDF01(a/b)
+    omPlrRecordStyleArdZdfHdf02_03  // IRT ARD_ZDF_HDF(02/03)(a/b)
+  );
+
+  // Timecode generator modes
+  TOmPlrTcgMode =
+  (
+    omPlrTcgModeHold,           // holds at constant value
+    omPlrTcgModeFreeRun,        // always counts up
+    omPlrTcgModeLockedTimeline, // value based on timeline position
+    omPlrTcgModeLockedClip,     // value based on timeline position within clip
+    omPlrTcgModeLockedClipTc,   // value starts at clip start TC, then counts
+    omPlrTcgModeLockedRefVitc   // value based on reference VITC input
+  );
+
+
+  // Use these magic values for VITC line 1, 2 to select other
+  // sources of timecode.
+  // Ex: OmPlrSetIfDevTc(..., omPlrTcLine1Special, omPlrTcLine2Ltc, ...)
+  TOmPlrIfDevTcLine1Special =
+  (
+    omPlrTcLine1Special = 0
+  );
+
+  TOmPlrIfDevTcLine2Special =
+  (
+    omPlrTcLine2Ltc = 0,
+    omPlrTcLine2RefVitc = 1
+  );
+
+  // Mpeg subtypes
+  TOmPlrMpegSubtype =
+  (
+    omPlrMpegSubtypeStd,
+    omPlrMpegSubtypeImx,
+    omPlrMpegSubtypeXdcamHd,
+    omPlrMpegSubtypePanasonicAvci,
+    omPlrMpegSubtypeRP2027,
+    omPlrMpegSubtypeXAVC,
+    omPlrMpegSubtypeAvcUltra
+  );
+
+  // EE modes
+  TOmPlrEeMode =
+  (
+    omPlrEeModeNormal,
+    omPlrEeModeNever,
+    omPlrEeModeRecord
+  );
+
+  // Record options
+  TOmPlrRecordOptions =
+  (
+    omPlrRecordNoOptions = 0,
+    omPlrRecordStopAtMaxPos = 1
+  );
+
+  // AVC various classes
+  // This is similar to previous coding of OmPlrCalcVideoIsoBpc(..., avciRate, ...),
+  // except that it did not distinguish among 720p, 1080i and 1080p for the
+  // same class. This argument to OmPlrCalcVideoIsoBpc2() plus the frame
+  // rate does that correctly.
+
+  TOmPlrAvcClass =
+  (
+    OmPlrAvcClassUnknown        = 0,
+    OmPlrAvcClass50_720Line     = 51,
+    OmPlrAvcClass50_1080Line    = 50,
+    OmPlrAvcClass100_720Line    = 101,
+    OmPlrAvcClass100_1080Line   = 100,
+    OmPlrAvcClass200_720Line    = 201,
+    OmPlrAvcClass200_1080Line   = 200,
+    OmPlrAvcClass300_2160Line   = 211,  // Sony XAVC
+    OmPlrAvcClass400_2160Line   = 213   // Panasonic AVCU
+  );
+
+  // Audio I/O formats
+  TOmPlrAudioIo =
+  (
+    omPlrAudioIoUnknown,
+    omPlrAudioIoAes,         // use AES
+    omPlrAudioIoEmbedded,    // use 601 embedded
+    omPlrAudioIoEmbLimited   // use 601 embedded, only 1 group, 20 bits
+  );
+
+  // Player application modes
+  TOmPlrApp =
+  (
+    omPlrAppNone,
+    omPlrAppLouth,
+    omPlrAppOmnibus,
+    omPlrAppBvw,
+    omPlrAppOmneonPeDC  // Omneon Playout Engine Delay Channel
+  );
+
+  // Player application options
+  TOmPlrAppOptions =
+  (
+    omPlrAppOptNone         = $00,  // no options
+    omPlrAppOptMediaFetch   = $01,  // media fetch licensed
+    omPlrAppOptScheduleTool = $02   // ScheduleTool licensed
+  );
+
+  // Video frame conversion mode
+  TOmPlrVideoFrameConvert =
+  (
+    omPlrVfcUnknown,    // unspecified conversion
+    omPlrVfcNone,       // no conversion
+    omPlrVfcExternal0,  // external converter, 0 frame delay
+    omPlrVfcExternal1,  // external converter, 1 frame delay
+    omPlrVfcExternal2,  // external converter, 2 frame delay
+    omPlrVfcExternal3,  // external converter, 3 frame delay
+    omPlrVfcExternal4,  // external converter, 4 frame delay
+    omPlrVfcPillar,     // 4x3 => 16x9 (black on sides)
+    omPlrVfcCrop,       // 4x3 => 16x9 (chop top and bottom, some black sides)
+                        // 16x9 => 4x3 (chop sides, some black top/bottom)
+    omPlrVfcLetter,     // 16x9 => 4x3 (black top/bottom)
+    omPlrVfcFull,       // 16x9 => 4x3 (chop sides, no black top/bottom)
+                        // 4x3 => 16x9 (chop top/bottom, no black sides)
+    omPlrVfcAnamorphic, // 4x3 => 16x9 (stretch)
+                        // 16x9 => 4x3 (squeeze)
+    omPlrVfcNonLinear   // 4x3 => 16x9 (non-linear stretch, aka 'Turner Stretch')
+  );
+
+  // Player states, a player is always in one of these states.
+  TOmPlrState =
+  (
+    omPlrStateStopped,
+    omPlrStateCuePlay,
+    omPlrStatePlay,
+    omPlrStateCueRecord,
+    omPlrStateRecord
+  );
+
+  // Clip shift modes, how the timeline clips are shifted when the timeline
+  // is modified
+  TOmPlrShiftMode =
+  (
+    omPlrShiftModeAfter, // shift clips after the modified clip
+    omPlrShiftModeBefore,// shift clips before the modified clip
+    omPlrShiftModeAuto,  //shift as necessary to avoid changing the current pos
+    omPlrShiftModeOthers // shift all other clips, not this one
+  );
+
+  // This is the per frame header used for the 436Vbi, 436Vanc and EmbVanc
+  // data types
+  TOmVancFrameHeader = record
+    // frame header size (this header)
+    // headerSize:4, frame header size (this header)
+    // dataType:4, always 1 or 2
+    Data: Byte;
+
+    function HeaderSize: Byte;
+    function DataType: Byte;
+
+    function GetDataType: Cardinal;
+    function GetHeaderSize: Cardinal;
+    function GetLength: Cardinal;
+    function GetMaxLength: Cardinal;
+
+    case Integer of
+      0:  // DataType 1
+      (
+        FrameSize1: array[0..2] of Byte;
+      );
+      1:  // DataType 2
+      (
+        Data2: Byte;
+        FrameSize2: array[0..1] of Byte;
+        MaxFrameSize2: array[0..1] of Byte;
+      );
+  end;
+
+  // This is the per line or per packet header used for the 436Vbi, 436Vanc
+  // and EmbVanc data types
+  // Note: coding type should always be 1, indicates VBI is 8-bit luma only, VANC
+  // is 8-bit data
+  TOmVancPacketHeader = record
+    LineNumUpper: Byte;
+
+    // codingType:4
+    // lineNumLower:4
+    Data: Byte;
+    Len: array[0..1] of Byte;       // length of packet including this header
+
+    function CodingType: Byte;
+    function LineNumLower: Byte;
+
+    function GetCodingType: Cardinal;
+    function GetHeaderSize: Cardinal;
+    function GetLength: Cardinal;
+    function GetLineNum: Cardinal;
+  end;
+
+  // player status
+  TOmPlrStatusW = record
+    // temporary, older code had version instead of size
+    case Integer of
+      0: (Size: Cardinal);
+      1: (Version: Cardinal;
+        State: TOmPlrState;           // player state
+        Pos: Integer;                 // player position
+        Resv1: Integer;
+        Rate: Double;                 // player rate
+        MinPos: Integer;              // player minimum position
+        MaxPos: Integer;              // player maximum position
+        NumClips: Cardinal;           // number of clips on the timeline
+        ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+        CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+        CurrClipStartPos: Integer;    // timeline pos of start of current clip
+        CurrClipIn: Cardinal;         // in point of current clip
+        CurrClipOut: Cardinal;        // out point of current clip
+        CurrClipLen: Cardinal;        // length (out - in) of current clip
+        CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+        CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+        CurrClipName: array [0..(omPlrMaxClipNameLen div 2) - 1] of Char; // name of current clip
+        FirstClipStartPos: Integer;   // timeline pos of start of first clip
+        FastClipEndPos: Integer;      // timeline pos of end of last clip
+        LoopMin: Integer;             // minimum loop position
+        LoopMax: Integer;             // maximum loop position
+        PlayEnabled: Boolean;         // true if player is enabled for play
+        RecordEnabled: Boolean;       // true if player is enabled for record
+        Resv2: array [0..1] of Boolean;
+        FrameRate: TOmFrameRate;      // player frame rate
+      );
+  end;
+
+  TOmPlrStatusA = record
+    // temporary, older code had version instead of size
+    case Integer of
+      0: (Size: Cardinal);
+      1: (Version: Cardinal;
+        State: TOmPlrState;           // player state
+        Pos: Integer;                 // player position
+        Resv1: Integer;
+        Rate: Double;                 // player rate
+        MinPos: Integer;              // player minimum position
+        MaxPos: Integer;              // player maximum position
+        NumClips: Cardinal;           // number of clips on the timeline
+        ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+        CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+        CurrClipStartPos: Integer;    // timeline pos of start of current clip
+        CurrClipIn: Cardinal;         // in point of current clip
+        CurrClipOut: Cardinal;        // out point of current clip
+        CurrClipLen: Cardinal;        // length (out - in) of current clip
+        CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+        CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+        CurrClipName: array [0..omPlrMaxClipNameLen - 1] of AnsiChar; // name of current clip
+        FirstClipStartPos: Integer;   // timeline pos of start of first clip
+        FastClipEndPos: Integer;      // timeline pos of end of last clip
+        LoopMin: Integer;             // minimum loop position
+        LoopMax: Integer;             // maximum loop position
+        PlayEnabled: Boolean;         // true if player is enabled for play
+        RecordEnabled: Boolean;       // true if player is enabled for record
+        Resv2: array [0..1] of Boolean;
+        FrameRate: TOmFrameRate;      // player frame rate
+      );
+  end;
+
+{$IFDEF UNICODE}
+  TOmPlrStatus = TOmPlrStatusW;
+{$ELSE}
+  TOmPlrStatus = TOmPlrStatusA;
+{$ENDIF}
+
+  // player status version 2
+  TOmPlrStatus1W = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of Char; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+  end;
+
+  TOmPlrStatus1A = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of AnsiChar; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+  end;
+
+{$IFDEF UNICODE}
+  TOmPlrStatus1 = TOmPlrStatus1W;
+{$ELSE}
+  TOmPlrStatus1 = TOmPlrStatus1A;
+{$ENDIF}
+
+  // player status version 3
+  TOmPlrStatus2W = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of Char; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+  end;
+
+  TOmPlrStatus2A = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of AnsiChar; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+  end;
+
+{$IFDEF UNICODE}
+  TOmPlrStatus2 = TOmPlrStatus2W;
+{$ELSE}
+  TOmPlrStatus2 = TOmPlrStatus2A;
+{$ENDIF}
+
+  // player status version 4
+  // adds refLocked and recBlackCount
+  TOmPlrStatus3W = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of Char; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+    RefLocked: Boolean;           // true when locked to reference input
+    RecBlackCount: Cardinal;      // number of black video frames recorded, reset
+                                  // to zero on cueRecord.
+  end;
+
+  TOmPlrStatus3A = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of AnsiChar; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+    RefLocked: Boolean;           // true when locked to reference input
+    RecBlackCount: Cardinal;      // number of black video frames recorded, reset
+                                  // to zero on cueRecord.
+  end;
+
+{$IFDEF UNICODE}
+  TOmPlrStatus3 = TOmPlrStatus3W;
+{$ELSE}
+  TOmPlrStatus3 = TOmPlrStatus3A;
+{$ENDIF}
+
+  // player status version 5
+  // adds type
+  TOmPlrStatus4W = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of Char; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+    RefLocked: Boolean;           // true when locked to reference input
+    RecBlackCount: Cardinal;      // number of black video frames recorded, reset
+                                  // to zero on cueRecord.
+    ptype: TOmPlrType;            // what type of player this is (e.g. SDI,
+                                  // compressed stream, etc.)
+  end;
+
+  TOmPlrStatus4A = record
+    Version: Cardinal;            // internal use only
+    State: TOmPlrState;           // player state
+    Rate: Double;                 // player rate
+    Pos: Integer;                 // player position
+    MinPos: Integer;              // player minimum position
+    MaxPos: Integer;              // player maximum position
+    NumClips: Cardinal;           // number of clips on the timeline
+    ClipListVersion: Cardinal;    // version number of the timeline, increments on every timeline change
+    CurrClipHandle: TOmPlrClipHandle; // handle to current clip
+    CurrClipNum: Cardinal;        // current clip number (first clip on the timeline is 0)
+    CurrClipStartPos: Integer;    // timeline pos of start of current clip
+    CurrClipIn: Cardinal;         // in point of current clip
+    CurrClipOut: Cardinal;        // out point of current clip
+    CurrClipLen: Cardinal;        // length (out - in) of current clip
+    CurrClipFirstFrame: Cardinal; // first recorded frame of current clip
+    CurrClipLastFrame: Cardinal;  // last recorded frame of current clip
+    CurrClipFrameRate: TOmFrameRate; // frame rate of current clip
+    CurrClipStartTimecode: TOmTcData; // start timecode of current clip
+    CurrClipName: array [0..omPlrMaxClipNameLen- 1] of AnsiChar; // name of current clip
+    FirstClipStartPos: Integer;   // timeline pos of start of first clip
+    FastClipEndPos: Integer;      // timeline pos of end of last clip
+    LoopMin: Integer;             // minimum loop position
+    LoopMax: Integer;             // maximum loop position
+    PlayEnabled: Boolean;         // true if player is enabled for play
+    RecordEnabled: Boolean;       // true if player is enabled for record
+    DropFrame: Boolean;           // true if player set to drop frame mode
+    TcgPlayInsert: Boolean;       // true if tcg inserting on play
+    TcgRecordInsert: Boolean;     // true if tcg inserting on record
+    TcgMode: TOmPlrTcgMode;       // tcg mode
+    FrameRate: TOmFrameRate;      // player frame rate
+    PortDown: Boolean;            // true when I/O port is down
+    RefLocked: Boolean;           // true when locked to reference input
+    RecBlackCount: Cardinal;      // number of black video frames recorded, reset
+                                  // to zero on cueRecord.
+    ptype: TOmPlrType;            // what type of player this is (e.g. SDI,
+                                  // compressed stream, etc.)
+  end;
+
+{$IFDEF UNICODE}
+  TOmPlrStatus4 = TOmPlrStatus4W;
+{$ELSE}
+  TOmPlrStatus4 = TOmPlrStatus4A;
+{$ENDIF}
+
+  // clip info structure
+  TOmPlrClipInfo = record
+    // temporary, older code had version instead of size
+    case Integer of
+      0:
+      (
+        Size: Cardinal;   // size of this structure, MUST be initialized
+        Version: Cardinal;
+      );
+      1:
+      (
+        FirstFrame: Cardinal;    // first recorded frame
+        LastFrame: Cardinal;     // last recorded frame
+        DefaultIn: Cardinal;     // default in point (inclusive, first frame to play)
+        DefaultOut: Cardinal;    // default out point (exclusive, last frame to play)
+        NumVideo: Cardinal;      // number of video tracks
+        NumAudio: Cardinal;      // number of audio tracks
+        FrameRate: TOmFrameRate; // clip frame rate
+        Protection: Boolean;     // true if protected (cannot delete if protected)
+        NotOpenForWrite: Boolean;// true if not open for write
+        NotReadyToPlay: Boolean; // true if not ready to play
+        Res1: Boolean;           // reserved
+        CreationTime: Cardinal;  // creation time, seconds from Jan 1, 1970
+        MaxMsTracks: Cardinal;   // size of following ms array, MUST be initialized
+        Ms: ^TOmMediaSummary;    // pointer to array of OmMediaSummay
+      );
+  end;
+
+  // newer version on OmPlrClipInfo
+  // adds fileType, modificationTime
+  TOmPlrClipInfo1 = record
+    Rslt: Cardinal;                         // internal use only
+    FileType: TOmMediaFileType;             // movie file type, ex mxf, quicktime
+    MediaContainment: TOmMediaContainment;
+    FirstFrame: Cardinal;                   // first recorded frame
+    LastFrame: Cardinal;                    // last recorded frame
+    DefaultIn: Cardinal;                    // default in point (inclusive, first frame to play)
+    DefaultOut: Cardinal;                   // default out point (exclusive, last frame to play)
+    NumVideo: Cardinal;                     // number of video tracks
+    NumAudio: Cardinal;                     // number of audio tracks
+    FrameRate: TOmFrameRate;                // clip frame rate
+    Protection: Boolean;                    // true if protected (cannot delete if protected)
+    NotOpenForWrite: Boolean;               // true if not open for write
+    NotReadyToPlay: Boolean;                // true if not ready to play
+    Res1: Boolean;                          // reserved
+    CreationTime: Cardinal;                 // creation time, seconds from Jan 1, 1970
+    ModificationTime: Cardinal;             // last modification time, seconds from Jan 1, 1970
+    MaxMsTracks: Cardinal;                  // size of following ms array, MUST be initialized
+    Ms: ^TOmMediaSummary;                   // pointer to array of OmMediaSummay
+  end;
+
+const
+  // error codes
+  PLAYER_ERROR_BASE = $9000;
+
+type
+  TOmPlrError = (
+    omPlrOk = 0,
+    omPlrBadBusNum = PLAYER_ERROR_BASE, //0x9000
+    omPlrBadIsoIndex,           // 0x9001
+    omPlrBadIsoChannel,         // 0x9002
+    omPlrBadMediaType,          // 0x9003
+    omPlrBadBytesPerCycle,      // 0x9004
+    omPlrBadSpeed,              // 0x9005
+    omPlrBadTrackType,          // 0x9006
+    omPlrBadVideoFormat,        // 0x9007
+    omPlrBadReferenceNum,       // 0x9008
+    omPlrNotWhileRecording,     // 0x9009
+    omPlrCannotAccessClip,      // 0x900a
+    omPlrCannotCreateClipFile,  // 0x900b
+    omPlrCannotAttachClip,      // 0x900c
+    omPlrCannotRecordHere,      // 0x900d
+    omPlrWrongState,            // 0x900e
+    omPlrBadRate,               // 0x900f
+    omPlrTrackDriverFailure,    // 0x9010
+    omPlrBadClipHandle,         // 0x9011
+    omPlrCliplistNotEmpty,      // 0x9012
+    omPlrRecordDisabled,        // 0x9013
+    omPlrPlaybackDisabled,      // 0x9014
+    omPlrNoMemory,              // 0x9015
+    omPlrCannotConnect,         // 0x9016
+    omPlrBadHandle,             // 0x9017
+    omPlrNameExists,            // 0x9018
+    omPlrNameNotExist,          // 0x9019
+    omPlrNameTooLong,           // 0x901a
+    omPlrBadRemoteHandle,       // 0x901b
+    omPlrBadPlayerHandle,       // 0x901c
+    omPlrBadPlayerEnumHandle,   // 0x901d
+    omPlrBadClipEnumHandle,     // 0x901e
+    omPlrEndOfList,             // 0x901f
+    omPlrInvalidClip,           // 0x9020
+    omPlrNetworkError,          // 0x9021
+    omPlrNetworkBadVersion,     // 0x9022
+    omPlrFailure,               // 0x9023
+    omPlrBadIfIndex,            // 0x9024
+    omPlrBadNumIfDev,           // 0x9025
+    omPlrNotWhileEnabled,       // 0x9026
+    omPlrBadNumAudio,           // 0x9027
+    omPlrBadAudioConfig,        // 0x9028
+    omPlr1394ResourceFailure,   // 0x9029
+    omPlr1394IsoChanUnavailable,// 0x902a
+    omPlr1394IsoBwUnavailable,  // 0x902b
+    omPlrFailedToAllocateIop,   // 0x902c
+    omPlrMissingRecordData,     // 0x902d
+    omPlrIncorrectRecordData,   // 0x902e
+    omPlrNullPointer,           // 0x902f
+    omPlrTooManyAudioScrub,     // 0x9030
+    omPlrSaveConfigFailed,      // 0x9031
+    omPlrMissingClipDir,        // 0x9032
+    omPlrFailedToCreateMediaDir,// 0x9033
+    omPlrMediaDirIsAFile,       // 0x9034
+    omPlrBadFrameRate,          // 0x9035
+    omPlrClipProtected,         // 0x9036
+    omPlrClipTooLong,           // 0x9037
+    omPlrBufferTooSmall,        // 0x9038
+    omPlrInvalidUserDataKey,    // 0x9039
+    omPlrUserDataTooLarge,      // 0x903a
+    omPlrUserDataNotExist,      // 0x903b
+    omPlrClipCopyBadHandle,     // 0x903c
+    omPlrClipCopyTooManyCopies, // 0x903d
+    omPlrClipCopyDone,          // 0x903e
+    omPlrClipCopyAborted,       // 0x903f
+    omPlrRescheduleTooLate,     // 0x9040
+    omPlrCmdWhileBusy,          // 0x9041
+    omPlrClipCopyRangeError,    // 0x9042
+    omPlrBadBitsPerSample,      // 0x9043
+    omPlrBadChansPerFile,       // 0x9044
+    omPlrBadAudioFileType,      // 0x9045
+    omPlrNetworkTimedOut,       // 0x9046
+    omPlrBadClipFileType,       // 0x9047
+    omPlrTooManyFrames,         // 0x9048
+    omPlrBadStartFrame,         // 0x9049
+    omPlrBadDataType,           // 0x904A
+    omPlrClipExtListTooLong,    // 0x904B
+    omPlrBadClipExtList,        // 0x904C
+    omPlrTrackMatchStringTooLong,// 0x904D
+    omPlrBadTrackMatchString,   // 0x904E
+    omPlrBadString,             // 0x904F
+    omPlrBadRecordStyle,        // 0x9050
+    omPlrBadSetPos,             // 0x9051
+    omPlrNoLicense,             // 0x9052
+    omPlrWrongType,             // 0x9053
+    omPlrBadType,               // 0x9054
+    omPlrBadLocalInterface,     // 0x9055
+    omPlrBadSourceAddress,      // 0x9056
+    omPlrBadMulticastAddress,   // 0x9057
+    omPlrBadPortNum,            // 0x9058
+    omPlrBadProgramNum          // 0x9059
+  );
+
+  // New (post-5.0) version number returned as a struct
+  TOmPlrSwVersion = record
+    MajorNum: Cardinal;               // Major number
+    MinorNum: Cardinal;               // Minor number
+    ServiceNum: Cardinal;             // Service number
+    HotfixNum: Cardinal;              // Hotfix number
+    Alpha: array[0..7] of Byte;       // Eng/pre-release build?
+    BuildNum: array[0..15] of Byte;   // Build number (yymmddhh)
+    BranchName: array[0..63] of Byte; // Branch (if specified)
+  end;
+
+  // Network stream settings:
+  TOmPlrNetworkStream = record
+    localInterface: array[0..255] of Byte;    // IP address of local network interface
+    sourceAddress: array[0..255] of Byte;     // IP address of network stream source
+    multicastAddress: array[0..255] of Byte;  // IP address of multicast group
+    portNum: Cardinal;                        // network port number
+    programNum: Cardinal;                     // transport stream program_number (from PAT/PMT, not PID)
+  end;
+
+implementation
+
+{ TOmVancFrameHeader }
+
+function TOmVancFrameHeader.HeaderSize: Byte;
+begin
+  Result := GetHeaderSize;
+end;
+
+function TOmVancFrameHeader.DataType: Byte;
+begin
+  Result := GetDataType;
+end;
+
+function TOmVancFrameHeader.GetDataType: Cardinal;
+begin
+  Result := (Data and $0F);
+end;
+
+function TOmVancFrameHeader.GetHeaderSize: Cardinal;
+begin
+  Result := ((Data and $F0) shr 4);
+end;
+
+function TOmVancFrameHeader.GetLength: Cardinal;
+begin
+  if (DataType = 1) then
+    Result := (FrameSize1[0] * 4096) + (FrameSize1[1] * 256) + FrameSize1[2]
+  else
+    Result := (FrameSize2[0] * 256) + FrameSize2[1];
+end;
+
+function TOmVancFrameHeader.GetMaxLength: Cardinal;
+begin
+  if (DataType = 1) then
+    Result := 0                    // not supported in this version
+  else
+    Result := (MaxFrameSize2[0] * 256) + MaxFrameSize2[1];
+end;
+
+{ TOmVancPacketHeader }
+
+function TOmVancPacketHeader.CodingType: Byte;
+begin
+  Result := GetCodingType;
+end;
+
+function TOmVancPacketHeader.LineNumLower: Byte;
+begin
+  Result := (Data and $0F);
+end;
+
+function TOmVancPacketHeader.GetCodingType: Cardinal;
+begin
+  Result := ((Data and $F0) shr 4);
+end;
+
+function TOmVancPacketHeader.GetHeaderSize: Cardinal;
+begin
+  Result := 4;
+end;
+
+function TOmVancPacketHeader.GetLength: Cardinal;
+begin
+  Result := Len[0] * 256 + Len[1];
+end;
+
+function TOmVancPacketHeader.GetLineNum: Cardinal;
+begin
+  Result := (LineNumUpper shr 4) + LineNumLower;
+end;
+
+end.

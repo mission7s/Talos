@@ -1,0 +1,466 @@
+System Manager 3.70
+
+History file
+
+------------------------------------------------------------------
+Release 3.70, build 9 02-11-2009   Mahendran (Celstream)
+Libraries version:
+New Libraries RELEASE_17_8_MULTI_44.
+Routing Libraries ROUTELIB3_0_BUILD8_7.
+Cue Service Libraries v29.10.Deferred.14.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+CR 92912 - ( {REQ-020} System Manager replace 'Modify' with 'Save' and 'Save' with 'Save As'
+in all screens.)
+------------------------------------------------------------------
+Release 3.70, build 8 31-07-2007   Nigel Tout
+Libraries version:
+New Libraries RELEASE_17_8_MULTI_41.
+Routing Libraries ROUTELIB3_0_BUILD8_3.
+Cue Service Libraries v29.10.Deferred.14.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+OS023139 - Crashes with PC Router Gateway 2.02b30, so rebuilt with later Routing Libraries,
+and modified to set processor affinity to the first processor, to prevent any hyper-threading problems.
+
+------------------------------------------------------------------
+
+Internal - Altered list window code for tape types to allow future extensions
+to tape types without erroring and preventing the list window from not being displayed.
+
+------------------------------------------------------------------
+Release 3.70, build 7 11-06-2003   Peter Gosden
+Libraries version:
+New Libraries v17.8.CategoryLoading.1.
+Routing Libraries v2.10.
+Cue Service Libraries v29.10.Deferred.14.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+OS006358 - Resetting GPI and Logo flags in Media Configuration object 
+correctly updates the clip types file.
+
+------------------------------------------------------------------
+Release 3.70, build 6 31-01-2003   Peter Gosden
+Libraries version:
+New Libraries v17.8.CategoryLoading.1.
+Routing Libraries v2.10.
+Cue Service Libraries v29.10.Deferred.14.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+OS004290 - New users are really given the correct user 'ref' in their DATA files.
+
+------------------------------------------------------------------
+Release 3.70, build 5 30-09-2002   Peter Gosden
+Libraries version:
+New Libraries v17.8.CategoryLoading.1.
+Routing Libraries v2.10.
+Cue Service Libraries v29.10.Deferred.14.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+WO1354 - Added support for 'Active Region' and 'Source Format' to clip types.
+Internal - Added version resource and icon.
+OS004546 - Incorrect spelling of 'publicly' corrected.
+OS004290 - New users are given the correct user 'ref' in their DATA files.
+
+------------------------------------------------------------------
+Release 3.70, build 4 20-05-2002   Peter Gosden
+Libraries version:
+New Libraries v17.8.CategoryLoading.1.
+Routing Libraries v2.10.
+Cue Service Libraries v29.10.Deferred.11.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+OS003072 - Recompiled with new routing libraries to prevent random crash.
+Internal - Fix to Object screen "Copy from..." to prevent random freezes and crashes.
+PDC Support for Object Database.
+
+------------------------------------------------------------------
+Release 3.70, build 3 11-09-2001   Peter Gosden
+Libraries version:
+New Libraries v17.8.2.
+Routing Libraries v2.8.
+Cue Service Libraries v29.10.12.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+OS000516 - Recompiled with new libraries: network rx error prevented 
+the system from being set up from scratch.
+
+------------------------------------------------------------------
+Release 3.70, build 2 19-03-2000   Peter Gosden
+Libraries version:
+New Libraries v17.6.14.
+Routing Libraries v2.8.
+Cue Service Libraries v29.9.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+TVNZ-0033-PG - "Last updated" times display in System and Filing screens show
+correct time when outside GMT.
+QA - Renaming system data no longer causes errors.
+QA - 'Poll for engines' button on Engines screen renamed 'Poll for new apps'.
+
+------------------------------------------------------------------
+Release 3.70, build 1 05-03-2000   Peter Gosden
+Libraries version:
+New Libraries v17.6.6.
+Routing Libraries v2.6.1.
+Cue Service Libraries v29.8.4.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+Bugfix for version reporting of beta releases.
+
+------------------------------------------------------------------
+Release 3.70, build 0 Beta 12-10-2000   Peter Gosden
+Libraries version:
+New Libraries v17.5.
+Routing Libraries v2.06.
+Cue Service Libraries v29.7
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+Object Editor support incorporated here.
+New version protocol supported.
+
+------------------------------------------------------------------
+Release 3.61, build 1  07-08-2000   Peter Gosden
+Libraries version:
+New Libraries v13.21 RELEASE_13_21_BUGFIX_2 .
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.6x
+
+TV2-0031-EH;VTM-0049-EH: Fixed issue where listing Engines or OUIs by name returned 1 
+less entry than listing by IP address.
+
+------------------------------------------------------------------
+Release 3.61           01-06-2000   Peter Gosden
+Libraries version:
+New Libraries v13.18.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.61
+
+Added application 'display name' to allow the OUI to display
+different names on the taskbar for different instances of applications.
+
+------------------------------------------------------------------
+Release 3.60, build 3  28-01-2000   Peter Gosden
+Libraries version:
+New Libraries v13.17 BF_13_4.
+Built with VC6.
+
+Minimum sharer version:
+Sharer 3.6x
+
+Libraries maintenance release
+
+------------------------------------------------------------------
+Release 3.60, build 2  11-11-1999   Peter Gosden
+Libraries version:
+New Libraries v13.17 with fix to ext_snprntf module.
+
+Minimum sharer version:
+Sharer 3.6x
+
+Crash while deleting categories fixed.
+Fix to internationalisation code implemented.
+Debugging information set to COFF and PDB, to get symbol information.
+
+------------------------------------------------------------------
+Release 3.60, build 1  14-09-1999   Peter Gosden
+Libraries version:
+New Libraries v13.17
+
+Minimum sharer version:
+Sharer 3.6x
+
+Code reworked to allow Filing Assistant to re-use more code.
+
+OUI's may be 'published' for multi-domain (as engines may be). This is
+necessary for the multi-domain filer-fax to work with the Sharer's new
+filing link restrictions (Sharer 3.60).
+
+'Escape' key now exits program, rather than spacebar.
+
+Password security added. Only the user themselves, SYS, or a user with
+Super User privileges (level 20) can alter passwords.
+
+Popup lists of data now automatically select current items where applicable.
+
+Poll and Add functionality has been included.
+Rename of Areas, Groups, Users, Applications, Engine and OUI IP addresses
+has been implemented.
+
+Public ID removed - NRT now works on engine name.
+Engine names are non-unique, and should mirror the 'Group' of a 
+Cue Service Provider (as used in e.g. Columbus).
+
+------------------------------------------------------------------
+Release 3.11, build 2  28-06-1999   Peter Gosden
+Libraries version:
+New Libraries v13.17
+
+Minimum sharer version:
+Sharer 3.40
+
+Maintenance release with latest Omnibus core libraries.
+
+------------------------------------------------------------------
+Release 3.11, build 2  28-06-1999   Peter Gosden
+Libraries version:
+New Libraries v13.11
+
+Minimum sharer version:
+Sharer 3.40
+
+Used libraries version of Capped_sprintf.
+Changed Public ID limit for engines to 30 chars.
+
+------------------------------------------------------------------
+Release 3.11, build 1  07-06-1999   Peter Gosden
+Libraries version:
+New Libraries v13.8
+
+Minimum sharer version:
+Sharer 3.40
+
+Added stack trace code to catch 'NT Error 87' Dr Watson crash.
+
+------------------------------------------------------------------
+Release 3.11           24-03-1999   Peter Gosden
+
+Libraries version:
+New Libraries v13.8
+
+Minimum sharer version:
+Sharer 3.40
+
+Bug fixes:
+
+Broadcasts on correct (global) network addresses - ensures app can find sharer
+on subnetted networks (libraries fix).
+
+"File" field on filing screen (path for categories) now works correctly.
+
+Categories with commas in their names no longer cause errors when tidying
+cats.
+
+Libraries "Thread cleaner" thread no longer dies if a screen saver is active
+(libraries fix).
+
+System Manager no longer locks up if "Thread cleaner" thread disappears.
+Resource leaks are noted instead.
+
+'%' character added to the list of characters forbidden by System Manager 3.
+These characters are now:
+\/#,%"
+
+Errors now reported correctly.
+
+------------------------------------------------------------------
+Release 3.10           16-11-98     Peter Gosden
+
+Libraries version:
+New Libraries v13.0
+
+Minimum sharer version:
+Sharer 3.40
+
+New functionality:
+Support for Multi-domain config.
+Install feature for running generic 'install applets' from a floppy disk.
+Availablity of OUI-based applications can be controlled with the OUI's available 
+app's screen.
+OUI has 'fixed filter' field enabled to allow an automatic filter for the filer-fax
+to be chosen.
+
+Revisions and additions:
+Availability of OUI-based applications 'per User' is now done using the same 'available
+apps' method as for remote apps.
+
+Bug fixes:
+All invalid names for system database items are recognised correctly.
+
+Known problems:
+Corrupt system database entries require attention by OmniBus support staff.
+They may lead to the application being unable to remove the entries concerned,
+and any entries possibly referred to by that entry (e.g. it will not be possible
+to remove applications if Users, OUIs or Engines are corrupt).
+Errors appear in truncated form in the OUI help bar. For full messages, see the
+'OUI Station Status' screen (select 'Title' for a list of the last errors).
+
+
+------------------------------------------------------------------
+Release 3.02.03           20-10-98     Peter Gosden
+
+Libraries version:
+Common96 27 beta 1 (with modifications to the filing module);
+System 27 beta 1;
+Applib96 17 beta 1.
+
+Minimum sharer version:
+Sharer 3.39
+
+Revisions and additions:
+
+Bug fixes:
+Bug preventing deletion of applications was removed.
+
+Known problems:
+As 3.02.01.
+
+------------------------------------------------------------------
+Release 3.02.02           13-10-98     Peter Gosden
+
+No code changes from 3.02.01
+
+Memory leak due to compilation error in Alpha version.
+Alpha version rebuilt and re-released.
+Intel version re-released.
+
+------------------------------------------------------------------
+Release 3.02.01           13-10-98     Peter Gosden
+
+Libraries version:
+Common96 27 beta 1 (with modifications to the filing module);
+System 27 beta 1;
+Applib96 17 beta 1.
+
+Minimum sharer version:
+Sharer 3.39
+
+Revisions and additions:
+
+Bug fixes:
+Copy from... in the User setup screen filled the user's name field with
+SYS. It now leaves the name intact.
+Deleting apps, areas, groups, or categories in systems with greater than
+128 entries in the OUI, Engine, Users or Apps lists could lead to errors,
+preventing deletion from the system. 
+Deleting apps, areas, groups, or categories in systems with database 
+entries in the OUI, Engine, Users or Apps lists but no system data stored
+could lead to errors, preventing deletion from the system. 
+Consistent use of alpha sorted listwindows.
+
+Known problems:
+As 3.00.01(alpha).
+Corrupt system data for a database entry will cause System Manager 3 to be 
+unable to load that data. The existence of corrupt entries should be extremely 
+rare in any case, and should be referred to support for repair with the 
+assistance of OmniBus support staff.
+
+------------------------------------------------------------------
+Release 3.02           1-10-98     Peter Gosden
+Libraries version:
+Common96 27 beta 1 (with modifications to the filing module); System 27 beta 1; Applib96 17 beta 1.
+Minimum sharer version:
+Sharer 3.39
+
+Revisions and additions:
+Help bar messages implemented.
+Tidying categories shows a scrollbar to indicate the status when tidying large categories.
+
+Bug fixes:
+Blank names could be entered in Engines and OUIs on creation. This can not now be done.
+Groups and areas were created without system paths. They now receive system paths.
+Bug in Users database which led to 'num' field from entries in \OMN\SYSCAT\USERS being 
+correct and entries in Users folder DATA file 'num' field being incorrect. SYS user privilege 
+level is 20, and the minimum is 1.
+
+Known problems:
+As 3.00.01(alpha).
+Fixes have been implemented in 3.10 (which is under test). This release 
+is the only version of 3.0x which will be supported. Additional functionality requests will
+require version 3.1x. Some issues may require fixes which will necessitate upgrading to 3.1x.
+Consult Development staff for details.
+
+------------------------------------------------------------------
+Release 3.01(beta, withdrawn)     18-08-98     Peter Gosden
+Libraries version:
+NewLibs011.1 
+Minimum sharer version:
+Sharer 3.39
+
+Revisions and additions:
+App now 'logs off' if the logon procedure fails. Previously this necessitated a restart.
+
+Bug fixes:
+Any system category with > 128 entries could cause memory overwrites (possibly) crashing 
+System Manager.
+
+Known problems:
+As 3.00.01(alpha).
+Blank names can be entered in Engines and OUIs. This should not be done.
+Fixes will be implemented in 3.10 (which is already under development).
+
+-------------------------------------------------------------------
+Release 3.00.01(alpha, withdrawn)     27-05-98     Peter Gosden
+Libraries version:
+NewLibs010 (5).zip (release 10 of the new libraries, VC5 version).
+Minimum sharer version:
+Sharer 3.39
+
+Revisions and additions:
+Enabled changing of Engine & OUI 'names' (not IP addresses). The names must
+still be unique, and so are not 'copied from' another engine.
+
+Bug fixes:
+Flag for apps being allowed/disallowed on the user screen now works correctly.
+Poll list window has been widened.
+Alpha version suffered from the app logging off every time a dialog box was 
+requested by the app.
+The app tried to resolve IP addresses to IP addresses under certain circumstances.
+
+Known problems:
+User app flags which were set before upgrading may be out of sync with new flags.
+Resolving references for large numbers of apps can take a considerable time.
+Error reporting has been hijacked by the libraries. Errors as seen from the OUI 
+should be recalled by using the OUI status screen (click on the menu app name plinth).
+
+-------------------------------------------------------------------
+Release 3.00(alpha, withdrawn)     27-05-98     Peter Gosden
+Libraries version:
+NewLibs010 (5).zip (release 10 of the new libraries, VC5 version).
+Minimum sharer version:
+Sharer 3.37
+
+Released to coincide with Sharer 3.37 - the first Sharer release to
+fully support System Manager 3.
+
+Some error messages result in the message "b96" - this is due to the error
+trapping reaching the libraries layer.
+
+
+------------------------------------------------------------------
+EOF
+------------------------------------------------------------------

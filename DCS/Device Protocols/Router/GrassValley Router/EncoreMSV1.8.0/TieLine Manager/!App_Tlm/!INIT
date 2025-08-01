@@ -1,0 +1,6 @@
+| Start running app
+
+SetEval Omni$AppVer   122
+SetEval Omni$AppBuild 022
+SetEval Omni$Type 2
+

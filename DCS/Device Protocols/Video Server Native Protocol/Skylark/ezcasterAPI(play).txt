@@ -1,0 +1,357 @@
+                              General information
+
+The playlist service can be viewed as a server that executes jobs from a job-list.
+Every job (play-list item) is described by a static portion - what is entered in a play-list
+editor by the user, and dynamic portion - status of execution for this job.
+At any given time there is no more that one curren job for a play-list. All the jobs that are
+above the current item are either "DONE" or "SKIPPED"
+
+The service can be accessed by XML-RPC protocol over HTTP. The port number can be calculated
+as follows PORT = 4942 + PGM*16 + N where PGM is the number of a ProgramChannel service
+(zero based) and N is the layer number (N=0 corresponds to the MAIN layer or GR1 if there is no
+MAIN layer). All durations a transferred as the number of frames if it's an integer number or in
+Julian Days when it's a floaing point type.
+
+The following code may be used to convert between Julian Dates and Grigorian Dates:
+
+********* 한글 변환 내용
+플레이리스트 서비스는 job-list에서 job들을 실행하는 서버로 보여진다.
+모든 job(플레이리스트 아이템)은 static portion(사용자로부터 플레이리스트 에디터에 입력된 것)과 dynamic portion(실행되는 job의 상태)으로 기술된다.
+어느 시간에라도 현재의 job은 하나 이상을 가지지 않는다. 현재 아이템의 위에 있는 모든 job들은 “DONE’이나 “SKIPPED” 상태이다.
+
+서비스는 HTTP를 통한 XML-RPC로 접근할 수 있다.
+포트 번호는 다음과 같이 계산된다. 
+PORT = 4942+PGM*16+N
+PGM = programchannel 서비스 번호. 0부터 시작함.
+N = Layer 번호 (0 = main layer 또는 main layer가 없을 시 GR1)
+모든 듀레이션은 integer 경우에는 프레임으로 전달되는 것이고, 만일 소수점인 경우에는 Julian Days로 보내지는 것이다.
+아래 코드를 이용해서 Julian Date를 Gregorian Date로 변환할 수 있다.
+
+
+unsigned greg_to_jul( int y, int m, int d ) {
+    unsigned c, ya;
+    if ( y <= 99 )
+	y += 1900;
+    if ( m > 2 ) {
+	m -= 3;
+    } else {
+	m += 9;
+	y--;
+    }
+    c = y;					
+    c /= 100;
+    ya = y - 100*c;
+    return 1721119 + d + (146097*c)/4 + (1461*ya)/4 + (153*m+2)/5;
+}
+
+void jul_to_greg( unsigned jd, int &y, int &m, int &d ) {
+    unsigned x;
+    unsigned j = jd - 1721119;
+    y = (j*4 - 1)/146097;
+    j = j*4 - 146097*y - 1;
+    x = j/4;
+    j = (x*4 + 3) / 1461;
+    y = 100*y + j;
+    x = (x*4) + 3 - 1461*j;
+    x = (x + 4)/4;
+    m = (5*x - 3)/153;
+    x = 5*x - 3 - 153*m;
+    d = (x + 5)/5;
+    if ( m < 10 ) {
+	m += 3;
+    } else {
+	m -= 9;
+	y++;
+    }
+}
+
+double secs_to_time(double s) {
+	return s/(24*3600);
+}
+
+double time_to_secs(double t) {
+	return t*(24*3600);
+}
+
+double ymdf_to_time(int y, int m, int d, int f, double frame_time) {
+	int jd = greg_to_jul(y, m,  d);
+	int df = (int)(24*3600/frame_time + 0.5);
+	return jd + ((double)f)/df;
+}
+
+void time_to_ymdf(double t, double frame_time,
+				  int &y, int &m, int &d, int &f) {
+	int fd = (int)(24*3600/frame_time + 0.5f);
+	int jd = (int) t;
+	jul_to_greg( jd, y, m, d);
+	f = (int)((t - jd)*fd + 0.5);
+}
+
+
+                             Data types and structures
+
+
+struct AVCStaticInfo
+ fields: string "uri" - Media material ID
+         string "player" - Player name
+         int "start_type" - Item start mode
+            0 - Manual
+	    1 - Sequence
+	    2 - HardStart (at "start_time")
+            3 - FromStart (for secondary events)
+            4 - FromEnd (for secondary events)
+         double "start_time" - start time for HardStart items, -1 if not set
+         int "tc_orig" - defines the origin from which IN and OUT points are calculated
+           0 - in_point and out_point are counted from 0 offset
+           1 - in_point and out_point are counter from the IN point of the media material
+           10 - Segment 1
+           .....
+           40 - Segment 30
+         int "in_point" - timecode of the first frame to be played
+         int "out_point" - timecode of the first frame after the last frame to be played
+         int "duration" - total duration of an event. The media will be loopped if the duration
+                          if greater that OUT-IN. -1 for infinite events.
+         int "key1_mode" - Keyer1 switching mode (actual action is defined in the service config)
+            0 -  no change
+            1 -  turn keyer on
+            2 -  turn keyer off
+         int "key1_speed" - Keyer1 transition speed (actual action is defined in the service config)
+            -1 - fast
+            -2 - medium
+            -3 - slow
+         int "key2_mode" - Keyer2 switching mode (actual action is defined in the service config)
+            0 -  no change
+            1 -  turn keyer on
+            2 -  turn keyer off
+         int "key2_speed" - Keyer2 transition speed (actual action is defined in the service config)
+            -1 - fast
+            -2 - medium
+            -3 - slow
+         int "key3_mode" - Keyer3 switching mode (actual action is defined in the service config)
+            0 -  no change
+            1 -  turn keyer on
+            2 -  turn keyer off
+         int "key3_speed" - Keyer3 transition speed (actual action is defined in the service config)
+            -1 - fast
+            -2 - medium
+            -3 - slow
+         int "key4_mode" - Keyer4 switching mode (actual action is defined in the service config)
+            0 -  no change
+            1 -  turn keyer on
+            2 -  turn keyer off
+         int "key4_speed" - Keyer4 transition speed (actual action is defined in the service config)
+            -1 - fast
+            -2 - medium
+            -3 - slow
+	 int "trans_mode" - transition mode
+            0 - CUT
+            1 - V-MIX
+            2 - X-MIX
+            3 -OVERLAY (media id is taken from "trans_wipe")
+	 int "trans_speed" - transition speed (V and X)
+            -1 - fast
+            -2 - medium
+            -3 - slow
+         string "trans_wipe" - a wipe image used for V and X or a clip id for OVERLAY
+	 string "title" - play-list item title
+ 	 string "comment" - play-list item comment
+	 string "group" - play-list group name
+	 string "type" -  play-list item type
+	 int "gpi1_mode" - GPI 1 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi1_val" - GPI 1 parameter (actual action is defined in the service config)
+	 int "gpi2_mode" - GPI 2 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi2_val" - GPI 2 parameter (actual action is defined in the service config)
+	 int "gpi3_mode" - GPI 3 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi3_val" - GPI 3 parameter (actual action is defined in the service config)
+	 int "gpi4_mode" - GPI 4 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi4_val" - GPI 4 parameter (actual action is defined in the service config)
+	 int "gpi5_mode" - GPI 5 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi5_val" - GPI 5 parameter (actual action is defined in the service config)
+	 int "gpi6_mode" - GPI 6 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi6_val" - GPI 6 parameter (actual action is defined in the service config)
+	 int "gpi7_mode" - GPI 7 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi7_val" - GPI 7 parameter (actual action is defined in the service config)
+	 int "gpi8_mode" - GPI 8 mode (actual action is defined in the service config)
+	    0 -  No change
+            1 -  Switch ON
+            2 -  Switch OFF
+         string "gpi8_val" - GPI 8 parameter (actual action is defined in the service config)
+         string - "item_id" - Recon Key
+         int "secondary_autogen" - This flag enables or disable automatic, rule-based
+                                   secondary event generation
+	    0 -  auto-generation is disabled
+            1 -  auto-generation is enabled
+         int "purge_date" - A date (Julian Day) when the media material will be purged.
+                            -1 if not set.
+
+
+struct AVCDynInfo
+ fields:
+        int "id" - play-list item id
+        double "start_time" - actual play back start time for an item or -1 (defualt if field not present) if has not started yet
+        double "stop_time" - actual play bacl stop time for an item or -1 (defualt if field not present) if has not stopped yet
+        double "plan_start" - expected start time for an item ot -1 (defualt if field not present) if unknown (manual start type)
+	double "plan_stop" -  expected stop time for an utem or -1 (defualt if field not present) in unknown (infinite duration)
+	int "pos" - currently displaing frame number (not set or -1 if field not present)
+	int "state" - current state if an item
+          0 - Stopped (defualt if field not present)
+          1 - Cueing
+          2 - Ready
+          3 - Preroll
+          4 - Playing
+          5 - Paused
+	int "exit_code" - job completion code
+          0 - still playing
+          1 - playback was interrupted or the entire item was skipped by the user
+          2 - playlist item completed successfully (defualt if field not present)
+          3 - an error was detected buring playback
+	int "loop_start" - a flag that shows if an item was cued in loopping mode. In this mode
+                           only the total duration can be changed, out-point alway stays at
+                           the value it had during cue.  (false if field not present)
+	string "player" - name of a player that was chosen for playback (empty string if field not present)
+	int "err_code" - extended error code for completed jobs
+          0 - no error (defualt if field not present)
+          1 - unknown error
+          2 - connection to the rendering player was lost during playback
+
+
+struct AVCItemInfo
+ fields:
+        AVCStaticInfo "st" - static information about a play-list item
+        AVCDynInfo "dyn" - information about an execution state of an item. This field may not
+                           be present if an item was just added to a playlist and has never 
+                           been cued.
+        array(AVCStaticInfo) "secondary" - list of user specified secondary events
+        array(AVCStaticInfo) "auto_secondary" - list of secondary events generted by AutoGen
+        int "id" - play-list item id
+
+
+                                      Methods
+
+
+"add_item" - creates a new play-list item
+parameter 0 - int - ID of a play-list item before which we want to insert a newly created item.
+                    An item will be created at the end of the play-list it -1.
+parameter 1 - AVCStaticInfo - static information which will be set for a newly created item.
+parameter 2 - array(AVCStaticInfo) - optional array of secondary events for a newly created item.
+
+return value - int - ID of a newly created playlist item.
+---
+
+"set_item" - changes static information of a play-list item
+parameter 0 -  int - ID of a play-list item to be changed
+paremeter 1 -  struct AVCStaticInfo - static information which will be set for the item.
+parameter 2 - array(AVCStaticInfo) - optional array of secondary events for the item.
+
+return value - none
+---
+
+"del_item" - removes an item from the play-list
+parameter 0 - int - ID of an element to be deleted
+
+return value - none
+
+---
+
+"get_page_by_id" - retrieves a part of the play-list
+parameter 0 - int - ID of the first item of a part of the playlist that will be returned. If -1
+                    the first item will be the item that is currently being executed.
+parameter 1 - int - maximum number of item to be returned
+parameter 2 - double - maximum duration in seconds be returned
+return value - struct
+ fields: double "cur_time" - current time of the play-list service
+         int "cur_id" - ID a play-list item that is currently being executed
+         int "jump_id" - ID of a play-list item that is currently marked for a JUMP operation.
+         int "switch" - a flags that show if a JUMP operation is in the SWITCH_WAIT state.
+         "inf" - array of struct AVCItemInfo
+         "done" - array of struct AVCItemInfo
+
+---
+
+"get_page" - retrieves a part of the play-list
+parameter 0 - int - number of the first item of a part of the playlist that will be returned.
+parameter 1 - int - maximum number of item to be returned
+return value - struct
+ fields: int "total" - total number of items in the play-list
+         double "cur_time" - current time of the play-list service
+                "inf" - array of struct AVCItemInfo
+
+---
+
+"get_running" - retrieves information of the currently playing item
+parameters - none
+return value - struct
+ fields: double "cur_time" - current time of the play-list service
+         AVCDynInfo "dyn" - this fields is present only if the current item has at 
+                            least been cued.
+
+---
+
+"pretake" - CUEs the current item
+parameters - none
+return value - none
+---
+
+"stop_clip" - skips the curren item and goes on to the next one
+parameters - none
+return value - none
+---
+
+"stop_list" - stops playlist execution
+parameters - none
+return value - none
+
+---
+
+"is_list_running" - retrieves a flag if the play-list is currently running
+parameter - none
+return value - int - 1, play list is running
+                     0, play list is not running
+---
+
+"start" - starts playback from the rurrent item
+parameter 0 - double - startup delay in seconds
+return value - none
+---
+
+"reset" - stops playlist execution and makes current the very first item of the play list
+parameters - none
+return value - none
+---
+
+"jump" - allows to change the sequence of the play-list execution and make current the 
+         specified item
+parameter 0 - int - ID of an item that will be made current
+
+return value - none
+---
+
+"is_synced" - retrieves a flag if the play-list is currently synchrozed to another play-list service
+parameter - none
+return value - struct
+ fields: int "synced" - 0 - playlist is in free run
+                        1 - playlist is synchronized, players are connected
+                        2 - playlist is synchronized, players are not connected
+         string "src" - remote service address
+

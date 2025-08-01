@@ -1,0 +1,179 @@
+ERR1:No Config File Found
+ERR2:Illegal Route
+ERANGE:Route out of range
+NO_DEST_ALIAS: Only sources can have an alias
+OPLOCK: Destination Locked
+CP1:You already have an input of this name
+CP2:You already have an output of this name
+CP3:No memory for any more inputs
+CP4:No memory for any more outputs
+RP1:The source has not been selected
+RP2:The destination has not been selected
+RP3:Ilegal dst name
+RP4:Ilegal src name
+FPNOFILE:No file loaded to modify!
+WAIT1:Loading Salvo please Wait
+WAIT2:Saving Salvo please Wait
+WAIT3:Saving State
+WAIT4:Printing Report
+WAITLOAD:Loading database
+WAITSAVE: Saving database
+RESET_DB: Are you really sure you want to delete the database?
+HRESET_DB: Warning, this action will delete all existing sources, destinations, rules & router status.  It will also take the router off-line.
+WARN1:Please Log off and back on again
+WARN2:This destination is locked
+LT1:Select Alternative SRC.
+LT2:Select Link
+LT3:Select Device
+SEL_TYPE:Select Type
+SEL_SRC:Select Source
+SEL_DST:Select Destination
+SEL_AREA: Select Area
+MTRX_BAUD:Select Baud Rate
+PARITY:Select Parity
+STOP_BITS:Select Stop Bits
+DATA_BITS:Select Data Bits
+HANDSHAKE:Select Handshake Mode
+MTRX_SEL:Select Matrix
+SELA:Select Area
+SELP:Select Patch
+SELR:Select Repeat Period
+SELD:Select Day
+MTRX_NAME:Name of this matrix
+MTRX_ADDR:Matrix address (in hex)
+ENTER_REF:Enter Reference code
+NAME:Description
+TP5:Trigger time (hh:mm:ss  24 hour)
+TP6:Enter Date (dd/mm/yy)
+TP7:Enter Area
+TP8:Enter device Name
+TP9:Enter Equipment Type
+SRC_NO:Input No
+DST_NO:Output No
+LOAD_SALVO:Name of salvo to load
+SAVE_SALVO:Name of salvo to save
+MTRX_TYPE:Select Router Protocol
+ROUTEMODE:Select Redundancy Mode
+CONF1:Clears all database entrys
+BAD_LVL:The matrix that you selected is assigned to a different level
+NO_SRC: All the available sources are in use 
+NO_DST: All the available destinations are in use
+LCONFS:This Matrix Has Levels that conflict with others existing on this destination
+SELXYPRTO:Select Panel Protocol / Style
+SRCINHIB:Inhibited to Dest
+SEL_RULE:Select Rule
+MTRX_SIZE:Matrix Size
+MTRX_VIRT:No Virtual Circuits
+MTRX_PARK:Source Connector for Parking
+MTRX_PORT:Port (1-9)
+RULE_SEL: Select a Rule
+RULE_COPY: Copy a Rule
+RULE_NAME: Rule Name
+RULE_ADD: Add Rule to Dest
+RULE_STOP: Remove Dest from using Rule
+RULE_USED: Dests using Rule
+IN_SIZE: Input Size
+OUT_SIZE: Output Size
+MIR_IP: Enter IP address for the other Router in the mirrored pair 
+STAT_HELP: This List shows all current routes
+STAT_EDL: Router Status
+STAT_LOCK: Lock
+STAT_DEST: Dest
+STAT_OUT: Outputs
+STAT_HLOCK: Lock Status
+STAT_IN: Inputs
+SALV_HELP: This List shows the routes in this salvo
+SALV_DEST: Destination
+SALV_SRC: Source
+SALV_BRK: Break
+SALV_NEW: New Salvo
+SALV_HBRK: Breakaway
+NAMES: Database Names
+NAME_SHRT: ID (short name)
+NAME_LONG: Name (long name)
+NAME_IDX: Index
+NAME_HIDX: Index Number
+NAME_REF: Reference
+NAME_ID: Identifier
+NAMES_DST: Destination Names
+NAMES_SRC: Source Names
+NAMES_ALIAS: Alias
+H_NAMES_ALIAS: The Alternative name for this soure/dest
+LEVEL: Level
+HLEVEL: Level supplied by this matrix
+CFG_NAME: Name
+IO: I/O
+IO_ID: Connector ID
+MTRX_FOR: Matrix for
+RULE: Allowable inputs for
+IO_ADDR: Address
+STATUS: Status
+AVAIL: Availability
+MASTER:Disabled
+MIRROR:Mirror Slave
+MIRROR2:Assymetric Slave
+MIRMAST:Mirror Master
+KILL_SRCS: You are about to reduce the number of sources. Are you sure you want to do this? 
+KS_HELP: Sources with an index number higher than the maximum value will be discarded 
+KILL_DSTS: You are about to reduce the number of destinations. Are you sure you want to do this?
+KD_HELP: Destinations with an index number higher than the maximum value will be discarded  
+NO_DSTS: All destinations are already using this rule
+NO_DSTS_R: No destinations are using this rule
+RELOAD: Are you sure that you want to reload the Configuration 
+H_RELOAD:  If a Sharer is present, this action will also switch the application to Sharer filing mode.
+SAVEDB: Are you sure that you want to save the Configuration?
+H_SAVEDB:  This will overwrite both Local and Sharer configuration files. This action will also switch the application to Sharer filing mode.
+NO_RULE: No Rule
+LVL_CFG: Configure Level
+LEVEL_CFG: Any changes will effect all Omnibus areas
+ALIAS: Alias
+SAVING_ALIAS: Saving Area alias
+LABEL: Label
+NO_MX: No Available Matrices
+NO_CHAN: This channel is not configured
+BAD_SALVO: Incompatible File Version for Start Salvo
+H_CSVIMPORT: This will overwrite any existing database.
+CSVIMPORT: Import Router configuration from a CSV Configuration Spreadsheet?
+H_CSVEXPORT: If Exporting to the OUI ensure the correct devices are shared and accessible to the Guest login
+CSVEXPORT:	Export Router configuration to CSV Spreadsheet?
+CSV_LOAD: Importing CSV Configuration Spreadsheet
+CSV_SAVE: Exporting CSV Configuration Spreadsheet
+NO_CSV_FILE: The report file could not be opened
+BAD_CSV_FILE: The report file is of an incompatible version
+DUPLICATE_NAME: This name is already in use, Please choose another
+IO_IN_USE: This Connector ID is already in use, Please choose another
+MX_SYNC: Read the crosspoints back from attached matrices. All virtual routes will be lost
+MX_SYNCING: Reading the crosspoint status of attached matrices 
+H_MX_SYNC: If this action takes along time, it is usually because a matrix is not present
+INIT_COMMS: Reinitializing Communications with Matrix
+CHAN_VIEW: Communication Channels
+CHAN_SEL: Select Channel for Matrix
+RE_SYNC: Send the Router Database Map to attached matrices?
+H_RE_SYNC: If this action takes along time, it is usually because a matrix is not present
+RE_SYNCING: Sending Router Database Map to Matrices
+DB_RESET: Router Database is empty, Router is offline
+MX_NO_CHAN: This Matrix isn't assigned to an IO channel yet!
+LVL_CHG: Commit Level Changes To The Network
+H_LVL_CHG: These changes will be system-wide
+START_XPT: Starting Crosspoint
+WIPE_ZEROS: This action will wipe all database entries that have a crosspoint address of zero
+DEF_RULE: The Default Rule cannot be edited
+BAD_SAVE: Some parts of the Router database were not saved properly
+BAD_LOAD: Problems loading the database, the Router will not be available to the network
+RULE_DEL: Rule to Delete
+RULE_DEF: The Default Rule cannot be altered
+OFFLINE: This will withdraw the Routing Service From the Network - Press Commit Changes to resume the service
+H_OFFLINE: The Routing service will only be available by logging into the Router Application
+BAD_DB: The Routing Database is not in a fit to state to be available to the Network
+LOAD_PATCH: Select Salvo to Load
+COMMIT_CHANGES: Commit changes made to the network?        Caution: this action does not save the Router Database
+H_COMMIT_CHANGES: This Action will force all clients to reload the Router Database
+COMMIT_TIME: There must be at least 10 seconds between successive 'Commit Changes'
+SAVE_ALIAS: Save Area Alias?
+CHANGE_AREA: Change The Area that the Router appears in
+H_CHANGE_AREA: Caution, Please make sure that the area selected isn't in use by another Router
+SRC_ALIAS: Enter the Alias name for the source
+PORT_USED: Serial Port in use by another I/O Channel
+LEVEL_FMT: Select Level Format
+COMMIT_TIME_RESYNCOMM: There must be at least 10 seconds between successive 'Re-Sync Comms'
+PASSMIR:Mirror Passive

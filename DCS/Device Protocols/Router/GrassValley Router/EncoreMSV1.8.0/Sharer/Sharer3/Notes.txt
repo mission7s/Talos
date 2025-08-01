@@ -1,0 +1,223 @@
+Notes file for Sharer 3.63
+
+      
+Release V 3.63.14 (Sunday 1st March 2009)
+===============================================
+
+OS029506 and OS029544
+	More instrumentation has been added:
+	Sharer reported error 700021 - a failure to obtain the Engine Linked List mutex.
+		o	More filing calls have monitoring for disk API calls lasting longer than 30000ms or the value in the environment 
+		variable Omni$FilingTimeoutConfig (in ms) - this now includes functions for checking file timestamps.
+         
+===============================================================
+Release V 3.63.13 (Friday 27th February 2009)
+===============================================
+
+OS029506 and OS029544
+	More instrumentation has been added to try to ascertain the cause of this:
+	Sharer reported error 700021 - a failure to obtain the Engine Linked List mutex.
+		o	More filing calls have monitoring for disk API calls lasting longer than 30000ms or the value in the environment 
+		variable Omni$FilingTimeoutConfig (in ms) - this now includes output to the debug stream if timeouts happen for logging functions.
+         
+===============================================================
+Release V 3.63.12 (Thursday 26th February 2009)
+===============================================
+
+OS029506 and OS029544
+	Sharer reported error 700021 - a failure to obtain the Engine Linked List mutex.
+	Instrumentation has been added to try to ascertain the cause of this:
+		o	Filing calls have monitoring for disk API calls lasting longer than 30000ms or the value in the environment 
+		variable Omni$FilingTimeoutConfig (in ms)
+		o	Mutex access failures have been modified to log the holding thread when a mutex cannot be claimed.
+         
+===============================================================
+      
+Release V 3.63.11 (Monday 12th January 2009)
+===============================================
+
+OS029094
+   Sharer filing system has been reported "full" (i.e. we have reached sharer paths "\omn\z\z\76\77" on some sites.
+   The sharer logs errors with the following error code and error message:
+   700058,********** NO MORE FILE PATHS. FILE SYSTEM MUST BE RE-INITIALIZED. **********
+   
+   The filing system can now be safely re-initialised. Code for path allocation will report an error when an existing
+   path is found. It will then continue on to the "next" path. This will allow the system to safely "fill up" redundant
+   file paths.
+   
+   To reset the filing system, simply backup the file "\omn\nxtfile", delete it and restart the sharer. A new file will
+   be created with the paths reset to A\A\00\00. This change prevents the filing system from overwriting valid data
+   with new clips as the new files are created to fill in gaps in the filing system.
+         
+===============================================================
+
+Release V 3.63.10 (Tuesday 23rd December 2008)
+===============================================
+
+OS010265
+   In DeleteFileFromDustbinByName(), moved the callback to the end of the function since any error in it was
+   stopping the deletion from completing and gave rise to # files.
+
+===============================================================
+
+Release V 3.63.09 (Friday 1st June 2007)
+===============================================
+
+OS022548
+   Thread Safety changes to n_list.c to prevent crash when accessing freed memory during calls to netlink_list_check
+      
+===============================================================
+
+Release V 3.63.08 (Friday 11th May 2007)
+===============================================
+
+OS021944
+   Changes in 3.63.07 addressed the major part of the issue. Added code to hide the display of the text box 
+   tracking thread message allocation. This is controlled by shareroptions.ini, and the configuration is checked
+   on the fly - there is no need to restart the sharer to make the counter visible.
+   
+   This is controlled through the following entries in the [Debug] section of SharerOptions.ini.
+   DisplayOutstandingMessageCount
+   (defaults to OFF. ON displays the counter)
+      
+===============================================================
+
+Release V 3.63.07 (Tuesday 8th May 2007)
+===============================================
+
+OS021944
+   Altered the filing thread closing algorithm in fthread.cpp to prevent calls to netlink_end_event
+   where it is known that the filing event thread has reported an error (e.g. expected TCPIP_LINKDOWN errors)
+   and is therefore already closing. This prevents unnecessary thread messages being sent to the network event
+   thread when it is no longer processing messages and avoids the requirement for gt_flush_message_queue to
+   deal with these messages.
+      
+===============================================================
+
+Release V 3.63.06 (Thursday 3rd May 2007)
+===============================================
+
+OS021944
+   In gt_send_message() and gt_thread_main() in gt_nt.c, in OmniLibs: Added synchronisation to
+   prevent the possibility of a thread sending a message to another thread that is in the process
+   of dying. This should prevent the possibility of the message being missed by the thread's clear-up
+   algorithm, which could be the cause of the memory leak.
+   Also includes a counter on the sharer's GUI tracking allocation and deletion of thread message 
+   packages. This counter should increase rapidly if our diagnosis is correct, but this code fails to 
+   address the issue.   
+   
+===============================================================
+
+Release V 3.63.05 (Friday 20th April 2007)
+===============================================
+
+OS021944
+   In gt_send_message(), in gt_nt.c, in OmniLibs: Added free() in gt_send_message() if
+   PostThreadMessage() errors, which was causing a memory leak.
+
+===============================================================
+
+Release V 3.63.04 (Tuesday 16th May 2006)
+===============================================
+
+OS012061
+   Refined the trap for applications reporting application names of 16 characters or greater.
+   Only G3 applications with application names greater than 15 characters can report names in this way.
+   This would cause a crash with an access violation and corrupt stack information in Dr. Watson and the
+   sharer's internal stack trace code.
+   
+===============================================================
+
+Release V 3.63.03 (Tuesday 25th April 2006)
+===============================================
+
+OS017747
+   Change to RecordAppErrors functionality - if RecordAppErrors is switched off, a check has been added 
+   to the UDP Networking thread. This checks for and rejects update_error messages before passing them to 
+   control thread.
+   
+   If an application with serious problems causes a network storm of error messages, these messages were
+   all passed to the Control thread, potentially generating a message queue of over 10000 messages.
+   At this point, any other messages being sent to the control thread will fail with error code 930000.
+   The sharer will fail to process most subsequent UDP messages until the storm is stopped
+   by dealing with the offending application.
+   
+   This is particularly painful if the sharer is starting. You'll find it fails to initialise the NRT code 
+   (which needs to post messages to Control) - a catastrophic failure. You'll find the filing connections 
+   count increasing (Control decreases the count) and no applications running or users logged on (Control 
+   is the arbiter of app and user availability).
+   
+   New front end GUI section tracks how many messages per second are being streamed through the sharer's
+   network event handlers. There are four counters, reflecting the four different event handlers. It
+   is not possible to know what an 'unusual' threshold for each of these values is. Each site will be different.
+   Certain actions in the system (starting the sharer, broadcasting the sharer's location, emptying the dustbin etc)
+   will trigger higher levels of network traffic than normal.
+   
+   UDP packets/s     -  Reflects the number of UDP messages directed at sharerport each second
+                        in a case such as seen in this issue, this number would be unusually high.
+                        This is expected to get relatively large when the sharer is broadcasting its availability.
+   Filing conns/s    -  Reflects the number of incoming TCP filing connections directed at filerport each second.
+                        Each connection made will lead to a count in the "Filing connections" GUI count.
+                        This is expected to get relatively large when the sharer is broadcasting its availability,
+                        or when files are modified or deleted.
+   Filing packets/s  -  Reflects the total number of incoming TCP filing requests directed at all TCP filing connections 
+                        each second.
+                        This is expected to get relatively large when the sharer is broadcasting its availability,
+                        or when files are modified or deleted.
+   User packets/s    -  Reflects the total number of incoming UDP packets pertaining to logged on Users.
+                        This is expected to get relatively large when the sharer is broadcasting its availability.
+      
+===============================================================
+
+Release V 3.63.02 (Tuesday 4th April 2006)
+===============================================
+
+OS012061
+   Added a trap for applications reporting application names of 16 characters or greater.
+   Only G3 applications with application names greater than 15 characters can report names in this way.
+   This would cause a crash with an access violation and corrupt stack information in Dr. Watson and the
+   sharer's internal stack trace code.
+   
+===============================================================
+
+Release V 3.63.01 (Wednesday 28th December 2005)
+===============================================
+
+OS010418
+   Added code to trap for situations where the User thread for a given OUI is invalid. This had 
+   prevented anyone from logging on to the OUI until the sharer was restarted.
+   The new code removes the thread from the Sharer's list of 'live' User threads, causing the 
+   sharer to react as if the OUI is no longer logged on.
+   This could potentially leave a 'leaked' thread running in the background that will not receive 
+   or process any messages, but the OUI will be useable without having to resort to restarting the 
+   application.
+
+   Log entries will be found as follows:
+\omn\logs\DayXX.txt
+14:11:05.452,000007fc,003e51f0,ControlThread,,,,,,,,,harerVOB\sharer3\cpp\Control.cpp,000931,900006,Error posting message to user thread (gt handle 'U 192.168.255.1' handle 3e8938) for user SYS at 192.168.255.1. Thread handle is invalid - removing thread. 
+\omn\logs\EventXX.txt
+14:12:44.154,000007fc,003e51f0,ControlThread,,,,,,,,,arerVOB\sharer3\cpp\UserThrd.cpp,001246,000000,Removing invalid thread 'U 192.168.255.1'. Object to remove at d12318, gt handle 3e8640, nt id e3c
+
+   This has only been tested by altering return values from functions to simulate the issue as 
+   reported in logfiles from site. In a real situation, the name of the thread will most likely be 
+   reported as "Invalid" rather than "U xxx.xxx.xxx.xxx".
+
+===============================================================
+Release V 3.63.00 (Monday 11th October 2004)
+===============================================
+
+OS010066 & OS012061
+   Rebuilt under Visual Studio .NET 2003 with /GS compiler option enabled.
+   This build has the ability to catch stack buffer overruns at the end of the function that 
+   caused the buffer overrun (as opposed to waiting until an access violation inevitably occurs
+   in uncharted code).
+   An new menu option has been added - Technical\Cause Buffer Overrun.
+   This allows the code to be exercised, and should never be used in the normal course of events.
+   
+   The code will only produce meaningful results in Debug builds. Release builds may well have the
+   information about where the code was executing overwritten (tracefile.txt will have incorrect
+   information). Debug builds retain the information about which function the overwrite occured in 
+   (tracefile.txt will contain accurate information).
+   
+
+===============================================================

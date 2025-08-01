@@ -1,0 +1,6 @@
+| TEST APP RUN FILE
+
+WimpSlot -min 800k
+Obey <Obey$Dir>.!AppRun
+
+RUN <APP$DIR>.AppTlm %*0

@@ -1,0 +1,14 @@
+t,QC,kQC,110,0 
+t,QC_dst,DestinationName,kQC,110,0
+t,QD,kQD,110,0
+t,QD_dst,DestinationName,kQD,110,0
+t,QJ,kQJ,110,0
+t,QJ_dst,DestinationName,kQJ,110,0
+t,QC_area,512,kQC,110,0
+t,QD_area,512,kQC,110,0
+t,QJ_area,512,kQC,110,0
+t,TA,SCB151:CBSd_2,1,SCB151:CBSs_10,1,00:00:00,110,0
+Loop,2
+t,QNA,110,0
+t,QuerySourceNames,kQNS,110,0
+EndLoop

@@ -1,0 +1,1001 @@
+{$MINENUMSIZE 4}
+
+unit UnitOmTcData;
+
+interface
+
+uses System.SysUtils, UnitOmMediaDefs;
+
+type
+  // SMPTE 12M, "Time and Control Code":
+
+  TOmTcData = record
+    Data: array[0..7] of Byte;
+
+    // Byte 0
+    // Frame number (units):
+    // coverity[member_decl]
+    function FramesUnits: Cardinal;
+    // Binary group 1:
+    function BinaryGroup1: Cardinal;
+
+    // Byte 1
+    // Frame number (tens):
+    function FramesTens: Cardinal;
+    // TRUE ==> drop-frame, FALSE ==> non-drop-frame, for FldRate59_94Hz;
+    // reserved, for FldRate50Hz:
+    function DropFrame_59_94: Cardinal;
+    // Color-frame marker:
+    function ColorFrame: Cardinal;
+    // Binary group 2:
+    function BinaryGroup2: Cardinal;
+
+    // Byte 2
+    // Seconds (units):
+    function SecondsUnits: Cardinal;
+    // Binary group 3:
+    function BinaryGroup3: Cardinal;
+
+    // Byte 3
+    // Seconds (tens):
+    function SecondsTens: Cardinal;
+    // NRZ phase correction for LTC FldRate59_94Hz;
+    // Binary group flag #0 for LTC/VITC FldRate50Hz:
+    // Fieldmark for VITC FldRate59_94Hz
+    function PcFm_59_94_Bg0_50: Cardinal;
+    // Binary group 4:
+    function BinaryGroup4: Cardinal;
+
+    // Byte 4
+    // Minutes (units):
+    function MinutesUnits: Cardinal;
+    // Binary group 5:
+    function BinaryGroup5: Cardinal;
+
+    // Byte 5
+    // Minutes (tens):
+    function MinutesTens: Cardinal;
+    // Binary group flag #0 for FldRate59_94Hz;
+    // binary group flag #2 for FldRate50Hz:
+    function Bg0_59_94_Bg2_50: Cardinal;
+    // Binary group 6:
+    function BinaryGroup6: Cardinal;
+
+    // Byte 6
+    // Hours (units):
+    function HoursUnits: Cardinal;
+    // Binary group 7:
+    function BinaryGroup7: Cardinal;
+
+    // Byte 7
+    // Hours (tens):
+    function HoursTens: Cardinal;
+    // Binary group flag #1 (for both FldRate59_94Hz and FldRate50Hz):
+    function Bg1: Cardinal;
+    // Binary group flag #2 for FldRate59_94Hz;
+    // NRZ phase correction for LTC FldRate50Hz:
+    // Fieldmark for VITC FldRate50Hz:
+    function Bg2_59_94_PcFm_50: Cardinal;
+    // Binary group 8:
+    function BinaryGroup8: Cardinal;
+
+
+//    class operator Add(a, b: TMyRecord): TMyRecord;
+    procedure Init;
+    procedure SetInvalid;
+    function IsInvalid: Boolean;
+    function IsValid: Boolean;
+
+    function IsDropFrame: Boolean;
+    function IsColorFrame: Boolean;
+    function Hours: Cardinal;
+    function Minutes: Cardinal;
+    function Seconds: Cardinal;
+    function Frames: Cardinal;
+    function Fields(Is625: Boolean): Cardinal;
+    function Field(FieldRate: TOmFieldRate): Cardinal; overload;
+    function Field(RoundedHz: Cardinal): Cardinal; overload;
+
+    // returns index of frame in the range (0, fps]
+    function GetFrameIndex(FrameRate: TOmFrameRate): Cardinal;
+    function GetTime(Is625: Boolean): Cardinal; overload;
+    function GetTime(FrameRate: TOmFrameRate): Cardinal; overload;
+    function GetTime(Time: PAnsiChar; FieldRate: TOmFieldRate): Boolean; overload;
+    function GetTime(FieldRate: TOmFieldRate;
+                     var HH, MI, SS, FF, FieldNum: Cardinal;
+                     var DropFrm: Boolean): Boolean; overload;
+    function GetTime(var HH, MI, SS, FF, FieldNum: Cardinal;
+                     var Df, Cf: Boolean): Boolean; overload;
+
+    function GetFlagFields(Rate: TOmFieldRate; var Bgflag0, Bgflag1, Bgflag2: Boolean): Boolean; overload;
+    function GetFlagFields(RoundedHz: Cardinal; var Bgflag0, Bgflag1, Bgflag2: Boolean): Boolean; overload;
+    procedure SetFlagFields(RoundedHz: Cardinal; Bgflag0, Bgflag1, Bgflag2: Boolean);
+
+    // Set time using S12M frame counting (XXX what about field bit?)
+    procedure SetTime(HH, MI, SS, FF, Df, Cf: Cardinal); overload;
+    // Set time using straight (non-S12M) frame counting
+    procedure SetTime(HH, MI, SS, FrameIndex, RoundedHz, Df, Cf: Cardinal); overload;
+    procedure SetTime(TotalFrames: Integer; Is625: Boolean; Df: Boolean); overload;
+    procedure SetTime(TotalFrames: Integer; FrameRate: TOmFrameRate; Df: Boolean); overload;
+
+    // in drop frame mode can only cross a minute boundary once
+    function AddFrames(FieldRate: TOmFieldRate; FF: Cardinal): Boolean; overload;
+    function AddFrames(FrameRate: TOmFrameRate; FF: Cardinal): Boolean; overload;
+
+    function Timecode: Cardinal;
+    procedure InsertTimecode(Tc: Cardinal);
+    procedure InsertUserbits(Other: TOmTcData); overload;
+    procedure InsertUserbits(Ub: Cardinal); overload;
+
+    procedure Zero;
+    procedure ZeroUserbits;
+
+    function LowWord: Cardinal;
+    function HighWord: Cardinal;
+
+    procedure SetLowWord(X: Cardinal);
+    procedure SetHighWord(X: Cardinal);
+
+    function Userbits: Cardinal;
+    procedure SetFieldId(FieldRate: TOmFieldRate; FieldId: TOmFieldId);
+    procedure ClearLtcPhaseCorrectionBit(FieldRate: TOmFieldRate);
+
+    constructor Create(Value: Integer);
+  end;
+
+{  TOmTimecode = class(TObject)
+  public
+    FramesUnits: Cardinal       = 15; // mark invalid
+    binaryGroup1      = 0;
+    framesTens        = 0;
+    dropFrame_59_94   = 0;
+    colorFrame        = 0;
+    binaryGroup2      = 0;
+    secondsUnits      = 0;
+    binaryGroup3      = 0;
+    secondsTens       = 0;
+    pcFm_59_94_bg0_50 = 0;
+    binaryGroup4      = 0;
+    minutesUnits      = 0;
+    binaryGroup5      = 0;
+    minutesTens       = 0;
+    bg0_59_94_bg2_50  = 0;
+    binaryGroup6      = 0;
+    hoursUnits        = 0;
+    binaryGroup7      = 0;
+    hoursTens         = 0;
+    bg1               = 0;
+    bg2_59_94_pcFm_50 = 0;
+    binaryGroup8      = 0;
+
+    constructor Create(const AValue: TOmTimecode);
+  end; }
+
+implementation
+
+// Byte 0
+// Frame number (units):
+// coverity[member_decl]
+function TOmTcData.FramesUnits: Cardinal;
+begin
+  Result := (Data[0] shr 4);
+end;
+
+// Binary group 1:
+function TOmTcData.BinaryGroup1: Cardinal;
+begin
+  Result := (Data[0] and $0F);
+end;
+
+// Byte 1
+// Frame number (tens):
+function TOmTcData.FramesTens: Cardinal;
+begin
+  Result := (Data[1] shr 6);
+end;
+
+// TRUE ==> drop-frame, FALSE ==> non-drop-frame, for FldRate59_94Hz;
+// reserved, for FldRate50Hz:
+function TOmTcData.DropFrame_59_94: Cardinal;
+begin
+  Result := ((Data[1] shr 5) and $01);
+end;
+
+// Color-frame marker:
+function TOmTcData.ColorFrame: Cardinal;
+begin
+  Result := ((Data[1] shr 4) and $01);
+end;
+
+// Binary group 2:
+function TOmTcData.BinaryGroup2: Cardinal;
+begin
+  Result := (Data[1] and $0F);
+end;
+
+// Byte 2
+// Seconds (units):
+function TOmTcData.SecondsUnits: Cardinal;
+begin
+  Result := (Data[2] shr 4);
+end;
+
+// Binary group 3:
+function TOmTcData.BinaryGroup3: Cardinal;
+begin
+  Result := (Data[2] and $0F);
+end;
+
+// Byte 3
+// Seconds (tens):
+function TOmTcData.SecondsTens: Cardinal;
+begin
+  Result := (Data[3] shr 5);
+end;
+
+// NRZ phase correction for LTC FldRate59_94Hz;
+// Binary group flag #0 for LTC/VITC FldRate50Hz:
+// Fieldmark for VITC FldRate59_94Hz
+function TOmTcData.PcFm_59_94_Bg0_50: Cardinal;
+begin
+  Result := ((Data[3] shr 4) and $01);
+end;
+
+// Binary group 4:
+function TOmTcData.BinaryGroup4: Cardinal;
+begin
+  Result := (Data[3] and $0F);
+end;
+
+// Byte 4
+// Minutes (units):
+function TOmTcData.MinutesUnits: Cardinal;
+begin
+  Result := (Data[4] shr 4);
+end;
+
+// Binary group 5:
+function TOmTcData.BinaryGroup5: Cardinal;
+begin
+  Result := (Data[4] and $0F);
+end;
+
+// Byte 5
+// Minutes (tens):
+function TOmTcData.MinutesTens: Cardinal;
+begin
+  Result := (Data[5] shr 5);
+end;
+
+// Binary group flag #0 for FldRate59_94Hz;
+// binary group flag #2 for FldRate50Hz:
+function TOmTcData.Bg0_59_94_Bg2_50: Cardinal;
+begin
+  Result := ((Data[5] shr 4) and $01);
+end;
+
+// Binary group 6:
+function TOmTcData.BinaryGroup6: Cardinal;
+begin
+  Result := (Data[5] and $0F);
+end;
+
+// Byte 6
+// Hours (units):
+function TOmTcData.HoursUnits: Cardinal;
+begin
+  Result := (Data[6] shr 4);
+end;
+
+// Binary group 7:
+function TOmTcData.BinaryGroup7: Cardinal;
+begin
+  Result := (Data[6] and $0F);
+end;
+
+// Byte 7
+// Hours (tens):
+function TOmTcData.HoursTens: Cardinal;
+begin
+  Result := (Data[7] shr 6);
+end;
+
+// Binary group flag #1 (for both FldRate59_94Hz and FldRate50Hz):
+function TOmTcData.Bg1: Cardinal;
+begin
+  Result := ((Data[7] shr 5) and $01);
+end;
+
+// Binary group flag #2 for FldRate59_94Hz;
+// NRZ phase correction for LTC FldRate50Hz:
+// Fieldmark for VITC FldRate50Hz:
+function TOmTcData.Bg2_59_94_PcFm_50: Cardinal;
+begin
+  Result := ((Data[7] shr 4) and $01);
+end;
+
+// Binary group 8:
+function TOmTcData.BinaryGroup8: Cardinal;
+begin
+  Result := (Data[7] and $0F);
+end;
+
+
+
+procedure TOmTcData.Init;
+begin
+  Zero;
+  SetInvalid;
+end;
+
+procedure TOmTcData.SetInvalid;
+begin
+  Data[0] := ((15 shl 4) or BinaryGroup1);
+end;
+
+function TOmTcData.IsInvalid: Boolean;
+begin
+  Result := (FramesUnits = 15);
+end;
+
+function TOmTcData.IsValid: Boolean;
+begin
+  Result := (FramesUnits <> 15);
+end;
+
+function TOmTcData.IsDropFrame: Boolean;
+begin
+  Result := (DropFrame_59_94 = 1);
+end;
+
+function TOmTcData.IsColorFrame: Boolean;
+begin
+  Result := (ColorFrame = 1);
+end;
+
+function TOmTcData.Hours: Cardinal;
+begin
+  Result := HoursUnits + (HoursTens * 10);
+end;
+
+function TOmTcData.Minutes: Cardinal;
+begin
+  Result := MinutesUnits + (MinutesTens * 10);
+end;
+
+function TOmTcData.Seconds: Cardinal;
+begin
+  Result := SecondsUnits + (SecondsTens * 10);
+end;
+
+function TOmTcData.Frames: Cardinal;
+begin
+  Result := FramesUnits + (FramesTens * 10);
+end;
+
+function TOmTcData.Fields(Is625: Boolean): Cardinal;
+begin
+  Result := 2 * (FramesUnits + (FramesTens * 10));
+  if ((Is625) and (Bg2_59_94_PcFm_50 = 1)) or
+     ((not Is625) and (PcFm_59_94_Bg0_50 = 1)) then
+    Inc(Result);
+end;
+
+function TOmTcData.Field(FieldRate: TOmFieldRate): Cardinal;
+begin
+  if (FieldRate = omFldRate50Hz) then
+    Result := Bg2_59_94_pcFm_50
+  else
+    Result := PcFm_59_94_bg0_50;
+end;
+
+function TOmTcData.Field(RoundedHz: Cardinal): Cardinal;
+begin
+  if (RoundedHz in [50, 25]) then
+    Result := Bg2_59_94_pcFm_50
+  else
+    Result := PcFm_59_94_bg0_50;
+end;
+
+function TOmTcData.GetFrameIndex(FrameRate: TOmFrameRate): Cardinal;
+begin
+  if (IsInvalid) then
+  begin
+    Result := 0;
+    exit;
+  end;
+
+  if (FrameRate = omFrmRate50Hz) then
+    Result := Fields(True)
+  else if (FrameRate = omFrmRate59_94Hz) then
+    Result := Fields(False)
+  else
+    Result := Frames;
+end;
+
+function TOmTcData.GetTime(Is625: Boolean): Cardinal;
+var
+  NonDropMin: Cardinal;
+  DropMin: Cardinal;
+begin
+  if (IsInvalid) then
+  begin
+    Result := 0;
+    exit;
+  end;
+
+  if (Is625) then
+    Result := (Hours * 25 * 60 * 60) + (Minutes * 25 * 60) + (Seconds * 25) + Frames
+  else
+  begin
+    if (DropFrame_59_94 = 0) then
+      Result := (Hours * 30 * 60 * 60) + (Minutes * 30 * 60) + (Seconds * 30) + Frames
+    else
+    begin
+      NonDropMin := (Minutes + 9) div 10;
+      DropMin := Minutes - NonDropMin;
+
+      Result := (Hours * 6 * (1800 + 9 * 1798)) + (DropMin * 1798) + (NonDropMin * 1800) + (Seconds * 30) + Frames;
+      if ((Minutes mod 10) <> 0) then
+        if ((Seconds = 0) and (Frames < 2)) then
+          Dec(Result, 1)
+        else
+          Dec(Result, 2);
+    end;
+  end;
+end;
+
+function TOmTcData.GetTime(FrameRate: TOmFrameRate): Cardinal;
+begin
+  if (IsInvalid) then
+  begin
+    Result := 0;
+    exit;
+  end;
+
+  case FrameRate of
+    omFrmRate25Hz:
+      Result := GetTime(True);
+
+    omFrmRate29_97Hz:
+      Result := GetTime(False);
+
+    omFrmRate50Hz:
+    begin
+      Result := GetTime(True) * 2;
+      if (Bg2_59_94_PcFm_50 > 0) then
+        Inc(Result);
+    end;
+
+    omFrmRate59_94Hz:
+    begin
+      Result := GetTime(False) * 2;
+      if (PcFm_59_94_Bg0_50 > 0) then
+        Inc(Result);
+    end;
+
+    else
+      Result := GetTime(True);
+  end;
+end;
+
+function TOmTcData.GetTime(Time: PAnsiChar; FieldRate: TOmFieldRate): Boolean;
+begin
+  if (IsInvalid) then
+  begin
+    Time := 'Invalid';
+    Result := False;
+    exit;
+  end;
+
+  Time := PAnsiChar(Format('%0.2d:%0.2d:%0.2d:%0.2d:%d', [Hours, Minutes, Seconds, Frames, Field(FieldRate)]));
+  Result := True;
+end;
+
+function TOmTcData.GetTime(FieldRate: TOmFieldRate;
+                 var HH, MI, SS, FF, FieldNum: Cardinal;
+                 var DropFrm: Boolean): Boolean;
+begin
+  if (IsInvalid) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  HH := Hours;
+  MI := Minutes;
+  SS := Seconds;
+  FF := Frames;
+
+  if (Field(FieldRate) = 0) then
+    FieldNum := 1
+  else
+    FieldNum := 2;
+
+  DropFrm := (FieldRate = omFldRate59_94Hz) and (DropFrame_59_94 = 1);
+
+  Result := True;
+end;
+
+function TOmTcData.GetTime(var HH, MI, SS, FF, FieldNum: Cardinal;
+                           var Df, Cf: Boolean): Boolean;
+begin
+  if (IsInvalid) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  HH := Hours;
+  MI := Minutes;
+  SS := Seconds;
+  FF := Frames;
+
+  Df := (DropFrame_59_94 = 1);
+  Cf := (ColorFrame = 1);
+
+  Result := True;
+end;
+
+function TOmTcData.GetFlagFields(Rate: TOmFieldRate; var Bgflag0, Bgflag1, Bgflag2: Boolean): Boolean;
+var
+  Hz: Cardinal;
+begin
+  if (Rate = omFldRateInvalid) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  if (Rate = omFldRate50Hz) then
+    Hz := 50
+  else Hz := 60;
+
+  Result := GetFlagFields(Hz, Bgflag0, Bgflag1, Bgflag2);
+end;
+
+function TOmTcData.GetFlagFields(RoundedHz: Cardinal; var Bgflag0, Bgflag1, Bgflag2: Boolean): Boolean;
+var
+  Is625: Boolean;
+begin
+  if (IsInvalid) then
+  begin
+    Result := False;
+    exit;
+  end;
+
+  Is625 := (RoundedHz in [25, 50]);
+
+  if (Is625) then
+  begin
+    Bgflag0 := (PcFm_59_94_bg0_50 = 1);
+    Bgflag1 := (Bg1 = 1);
+    Bgflag2 := (Bg0_59_94_bg2_50 = 1);
+  end
+  else
+  begin
+    Bgflag0 := (Bg0_59_94_bg2_50 = 1);
+    Bgflag1 := (Bg1 = 1);
+    Bgflag2 := (Bg2_59_94_pcFm_50 = 1);
+  end;
+
+  Result := True;
+end;
+
+procedure TOmTcData.SetFlagFields(RoundedHz: Cardinal; Bgflag0, Bgflag1, Bgflag2: Boolean);
+var
+  Is625: Boolean;
+begin
+  // No need to set the fieldMark, which is calculated by OmTcData when time is set or frames are added
+  Is625 := (RoundedHz in [25, 50]);
+
+  if (Is625) then
+  begin
+    Data[3] := ((Integer(Bgflag0) shl 4) or Data[3]);
+    Data[7] := ((Integer(Bgflag1) shl 5) or Data[7]);
+    Data[5] := ((Integer(Bgflag2) shl 4) or Data[5]);
+  end
+  else
+  begin
+    Data[5] := ((Integer(Bgflag0) shl 4) or Data[5]);
+    Data[7] := ((Integer(Bgflag1) shl 5) or Data[7]);
+    Data[7] := ((Integer(Bgflag2) shl 4) or Data[7]);
+  end;
+end;
+
+// Set time using S12M frame counting (XXX what about field bit?)
+procedure TOmTcData.SetTime(HH, MI, SS, FF, Df, Cf: Cardinal);
+begin
+  Data[0] := ((FF mod 10) shl 4) or Data[0]; // FrameUnits
+  Data[1] := ((FF div 10) shl 6) or Data[1]; // FrameTens
+
+  Data[2] := ((SS mod 10) shl 4) or Data[2]; // SecondsUnits
+  Data[3] := ((SS div 10) shl 5) or Data[3]; // SecondsTens
+
+  Data[4] := ((MI mod 10) shl 4) or Data[4]; // MinutesUnits
+  Data[5] := ((MI div 10) shl 5) or Data[5]; // MinutesUnits
+
+  Data[6] := ((HH mod 10) shl 4) or Data[6]; // HoursUnits
+  Data[7] := ((HH div 10) shl 6) or Data[7]; // HoursTens
+
+  Data[0] := (Df shl 5) or Data[0];          // DropFrame_59_94
+  Data[1] := (Df shl 4) or Data[1];          // ColorFrame
+end;
+
+// Set time using straight (non-S12M) frame counting
+procedure TOmTcData.SetTime(HH, MI, SS, FrameIndex, RoundedHz, Df, Cf: Cardinal);
+begin
+  if (RoundedHz = 60) then // 59.94
+  begin
+    Data[3] := ((FrameIndex and 1) shl 4) or Data[3]; // PcFm_59_94_bg0_50
+    FrameIndex := FrameIndex div 2;
+  end
+  else if (RoundedHz = 50) then
+  begin
+    Data[7] := ((FrameIndex and 1) shl 4) or Data[7]; // Bg2_59_94_pcFm_50
+    FrameIndex := FrameIndex div 2;
+  end;
+
+  SetTime(HH, MI, SS, FrameIndex, Df, Cf);
+end;
+
+procedure TOmTcData.SetTime(TotalFrames: Integer; Is625: Boolean; Df: Boolean);
+var
+  Tmp: Cardinal;
+  HH: Cardinal;
+  MI: Cardinal;
+  SS: Cardinal;
+  FF: Cardinal;
+begin
+  if (Is625) then
+  begin
+    TotalFrames := (TotalFrames mod (25 * 60 * 60 * 24));
+
+    if (TotalFrames < 0) then
+      TotalFrames := TotalFrames + (25 * 60 * 60 * 24);
+
+    Tmp := (TotalFrames div (25 * 60 * 60));
+    HH := Tmp;
+    TotalFrames := TotalFrames - (Tmp * (25 * 60 * 60));
+
+    Tmp := (TotalFrames div (25 * 60));
+    MI := Tmp;
+    TotalFrames := TotalFrames - (Tmp * (25 * 60));
+
+    Tmp := (TotalFrames div 25);
+    SS := Tmp;
+    TotalFrames := TotalFrames - (Tmp * 25);
+
+    FF := TotalFrames mod 25;
+  end
+  else
+  begin
+    if (Df) then
+    begin
+      TotalFrames := (TotalFrames mod (((30 * 60 * 60) - (54 * 2)) * 24));
+      if (TotalFrames < 0) then
+        TotalFrames := TotalFrames + (((30 * 60 * 60) - (54 * 2)) * 24);
+
+      Tmp := (TotalFrames mod 17982);
+      TotalFrames := TotalFrames + (TotalFrames div 17982) * 18;
+      if (Tmp >= 1800) then
+        TotalFrames := TotalFrames + ((Tmp - 1800) div 1798) * 2 + 2;
+    end
+    else
+    begin
+      TotalFrames := (TotalFrames mod (30 * 60 * 60 * 24));
+      if (TotalFrames < 0) then
+        TotalFrames := TotalFrames + (30 * 60 * 60 * 24);
+    end;
+
+    Tmp := (TotalFrames div (30 * 60 * 60));
+    HH := Tmp;
+    TotalFrames := TotalFrames - (Tmp * (30 * 60 * 60));
+
+    Tmp := (TotalFrames div (30 * 60));
+    MI := Tmp;
+    TotalFrames := TotalFrames - (Tmp * (30 * 60));
+
+    Tmp := (TotalFrames div 30);
+    SS := Tmp;
+    TotalFrames := TotalFrames - (Tmp * 30);
+
+    FF := TotalFrames mod 30;
+  end;
+
+  SetTime(HH, MI, SS, FF, Integer(Df), 0);
+end;
+
+procedure TOmTcData.SetTime(TotalFrames: Integer; FrameRate: TOmFrameRate; Df: Boolean);
+begin
+  case FrameRate of
+    omFrmRate25Hz:
+    begin
+      SetTime(TotalFrames, True, Df);
+      Data[7] := (0 shl 4) or Data[7];  // bg2_59_94_pcFm_50
+    end;
+    omFrmRate29_97Hz:
+    begin
+      SetTime(TotalFrames, False, Df);
+      Data[3] := (0 shl 4) or Data[3];  // pcFm_59_94_bg0_50
+    end;
+    omFrmRate50Hz:
+    begin
+      SetTime(TotalFrames div 2, True, Df);
+      if ((TotalFrames and 1) > 0) then
+        Data[7] := (1 shl 4) or Data[7]   // bg2_59_94_pcFm_50
+      else
+        Data[7] := (0 shl 4) or Data[7];  // bg2_59_94_pcFm_50
+    end;
+    omFrmRate59_94Hz:
+    begin
+      SetTime(TotalFrames div 2, False, Df);
+      if ((TotalFrames and 1) > 0) then
+        Data[3] := (1 shl 4) or Data[3]   // pcFm_59_94_bg0_50
+      else
+        Data[3] := (0 shl 4) or Data[3];  // pcFm_59_94_bg0_50
+    end
+    else
+    begin
+      SetTime(TotalFrames, True, Df);
+      Data[7] := (0 shl 4) or Data[7];  // bg2_59_94_pcFm_50
+    end;
+  end;
+end;
+
+// in drop frame mode can only cross a minute boundary once
+function TOmTcData.AddFrames(FieldRate: TOmFieldRate; FF: Cardinal): Boolean;
+var
+  CheckDrop: Boolean;
+  MaxFrames: Cardinal;
+  TmpFrames: Cardinal;
+  TmpSeconds: Cardinal;
+  TmpMinutes: Cardinal;
+  TmpHours: Cardinal;
+begin
+  CheckDrop := False;
+
+  case FieldRate of
+    omFldRate59_94Hz:
+    begin
+      if (DropFrame_59_94 > 0) then
+      begin
+        if (Frames >= 1798) then
+        begin
+          Result := False;
+          exit;
+        end;
+        CheckDrop := True;
+      end;
+      MaxFrames := 30;
+    end;
+    omFldRate50Hz:
+    begin
+      MaxFrames := 25;
+    end;
+    omFldRate24Hz:
+    begin
+      MaxFrames := 24;
+    end;
+    else
+      MaxFrames := 1;
+  end;
+
+  TmpFrames := FF + FramesUnits + FramesTens * 10;
+  if (TmpFrames >= maxFrames) then
+  begin
+    TmpSeconds := TmpFrames div MaxFrames + SecondsUnits + SecondsTens * 10;
+    TmpFrames := TmpFrames mod MaxFrames;
+    if (TmpSeconds >= 60) then
+    begin
+      TmpMinutes := TmpSeconds div 60 + MinutesUnits + MinutesTens * 10;
+      TmpSeconds := TmpSeconds mod 60;
+      if (TmpMinutes >= 60) then
+      begin
+        TmpHours := TmpMinutes div 60 + HoursUnits + HoursTens * 10;
+        TmpMinutes := TmpMinutes mod 60;
+        // limit hours to 24
+        TmpHours := TmpHours mod 24;
+
+        Data[6] := ((TmpHours mod 10) shl 4) or Data[6];  // HoursUnits
+        Data[7] := ((TmpHours div 10) shl 6) or Data[7];  // HoursTens
+      end;
+
+      Data[4] := ((TmpMinutes mod 10) shl 4) or Data[4];  // MinutesUnits
+      Data[5] := ((TmpMinutes div 10) shl 5) or Data[5];  // MinutesTens
+
+      // if drop frame and increment past the 2 dropped frames
+      // every non multiple of 10 minuntes, then add two frames
+      if (CheckDrop) and (MinutesUnits <> 0) then
+      begin
+        // add two frames
+        TmpFrames := TmpFrames + 2;
+        // check for frames roll over
+        if (TmpFrames >= MaxFrames) then
+        begin
+          TmpFrames := TmpFrames - MaxFrames;
+          Inc(TmpSeconds);
+        end;
+      end;
+    end;
+
+    Data[2] := ((TmpSeconds mod 10) shl 4) or Data[2];  // SecondsUnits
+    Data[3] := ((TmpSeconds div 10) shl 5) or Data[3];  // SecondsTens
+  end;
+
+  Data[0] := ((TmpFrames mod 10) shl 4) or Data[0];  // FramesUnits
+  Data[1] := ((TmpFrames div 10) shl 6) or Data[1];  // FramesTens
+
+  Result := True;
+end;
+
+function TOmTcData.AddFrames(FrameRate: TOmFrameRate; FF: Cardinal): Boolean;
+var
+  FldRate: TOmFieldRate;
+begin
+  case FrameRate of
+    omFrmRate59_94Hz:
+    begin
+      if ((FF and 1) = 0) then
+        FF := FF div 2
+      else if (PcFm_59_94_Bg0_50 = 0) then
+      begin
+        Data[3] := (1 shl 4) or Data[3];  // pcFm_59_94_bg0_50
+        FF := FF div 2
+      end
+      else
+      begin
+        Data[3] := (0 shl 4) or Data[3];  // pcFm_59_94_bg0_50
+        FF := (FF div 2) + 1
+      end;
+      FldRate := omFldRate59_94Hz;
+    end;
+    omFrmRate50Hz:
+    begin
+      if ((FF and 1) = 0) then
+        FF := FF div 2
+      else if (Bg2_59_94_PcFm_50 = 0) then
+      begin
+        Data[7] := (1 shl 4) or Data[7];  // bg2_59_94_pcFm_50
+        FF := FF div 2
+      end
+      else
+      begin
+        Data[7] := (0 shl 4) or Data[7];  // pcFm_59_94_bg0_50
+        FF := (FF div 2) + 1
+      end;
+      FldRate := omFldRate50Hz;
+    end;
+    omFrmRate29_97Hz:
+      FldRate := omFldRate59_94Hz;
+    omFrmRate25Hz:
+      FldRate := omFldRate50Hz;
+    omFrmRate24Hz:
+      FldRate := omFldRate24Hz;
+    else
+    begin
+      Result := False;
+      exit;
+    end;
+  end;
+
+  Result := AddFrames(FldRate, FF);
+end;
+
+function TOmTcData.Timecode: Cardinal;
+begin
+  Result := ((FramesUnits and $F) shl 0) or
+            ((FramesTens and $F) shl 4) or
+            ((SecondsUnits and $F) shl 8) or
+            ((SecondsTens and $F) shl 12) or
+            ((MinutesUnits and $F) shl 16) or
+            ((MinutesTens and $F) shl 20) or
+            ((HoursUnits and $F) shl 24) or
+            ((HoursTens and $F) shl 28);
+end;
+
+const
+//  UserbitsMask = $F0F0F0F0;
+  UserbitsMask = $F0;
+
+procedure TOmTcData.InsertTimecode(Tc: Cardinal);
+var
+  I: Integer;
+begin
+  // strip out existing tc
+  for I := Low(Data) to High(Data) do
+    Data[I] := (Data[I] and UserbitsMask);
+
+  // insert new tc
+  Data[0] := (Data[0] or ((Tc shl 0) and $F));
+  Data[1] := (Data[1] or ((Tc shl 4) and $F));
+  Data[2] := (Data[2] or ((Tc shl 8) and $F));
+  Data[3] := (Data[3] or ((Tc shl 12) and $F));
+  Data[4] := (Data[4] or ((Tc shl 16) and $F));
+  Data[5] := (Data[5] or ((Tc shl 20) and $F));
+  Data[6] := (Data[6] or ((Tc shl 24) and $F));
+  Data[7] := (Data[7] or ((Tc shl 28) and $F));
+end;
+
+procedure TOmTcData.InsertUserbits(Other: TOmTcData);
+var
+  I: Integer;
+begin
+  for I := Low(Data) to High(Data) do
+    Data[I] := (Data[I] and (not UserbitsMask)) or (Other.Data[I] and UserbitsMask);
+end;
+
+procedure TOmTcData.InsertUserbits(Ub: Cardinal);
+begin
+  Data[0] := ((Ub shl 0) and $F);   // BinaryGroup1
+  Data[1] := ((Ub shl 4) and $F);   // BinaryGroup2
+  Data[2] := ((Ub shl 8) and $F);   // BinaryGroup3
+  Data[3] := ((Ub shl 12) and $F);  // BinaryGroup4
+  Data[4] := ((Ub shl 16) and $F);  // BinaryGroup5
+  Data[5] := ((Ub shl 20) and $F);  // BinaryGroup6
+  Data[6] := ((Ub shl 24) and $F);  // BinaryGroup7
+  Data[7] := ((Ub shl 28) and $F);  // BinaryGroup8
+end;
+
+procedure TOmTcData.Zero;
+var
+  I: Integer;
+begin
+  for I := Low(Data) to High(Data) do
+    Data[I] := $00;
+end;
+
+procedure TOmTcData.ZeroUserbits;
+var
+  I: Integer;
+begin
+  for I := Low(Data) to High(Data) do
+    Data[I] := Data[I] and (not UserbitsMask);
+end;
+
+function TOmTcData.LowWord: Cardinal;
+begin
+  Result := Cardinal(@Data);
+end;
+
+function TOmTcData.HighWord: Cardinal;
+begin
+  Result := Cardinal(@Data[4]);
+end;
+
+procedure TOmTcData.SetLowWord(X: Cardinal);
+begin
+  Move(Data, X, SizeOf(Cardinal));
+end;
+
+procedure TOmTcData.SetHighWord(X: Cardinal);
+begin
+  Move(Data[4], X, SizeOf(Cardinal));
+end;
+
+function TOmTcData.Userbits: Cardinal;
+begin
+  Result := (BinaryGroup1 shr 0) or
+            (BinaryGroup2 shr 4) or
+            (BinaryGroup3 shr 8) or
+            (BinaryGroup4 shr 12) or
+            (BinaryGroup5 shr 16) or
+            (BinaryGroup6 shr 20) or
+            (BinaryGroup7 shr 24) or
+            (BinaryGroup7 shr 28);
+end;
+
+procedure TOmTcData.SetFieldId(FieldRate: TOmFieldRate; FieldId: TOmFieldId);
+procedure TOmTcData.ClearLtcPhaseCorrectionBit(FieldRate: TOmFieldRate);
+
+constructor TOmTcData.Create(Value: Integer);
+begin
+
+end;
+
+//constructor TOmTimecode.Create(const AValue: TOmTimecode);
+//begin
+//
+//end;
+
+end.

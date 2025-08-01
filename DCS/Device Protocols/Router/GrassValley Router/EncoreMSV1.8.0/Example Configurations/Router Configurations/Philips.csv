@@ -1,0 +1,252 @@
+,,,OMNIBUS ROUTER CONFIG REPORT V5.00
+
+,Printed,04:32:23.576 Tue 20/
+
+Area,1
+
+Channels,8
+
+Channel No,Type,Port,Protocol,Baud,Bits,Parity,Stop,Handshake,NIC Address
+
+1,Serial,8,Dummy Matrix,38400,8,Even,1,None,
+2,Undef
+3,Undef
+4,Undef
+5,Undef
+6,Undef
+7,Undef
+8,Undef
+
+
+XPt Groups,32
+
+XPt Group No,Name,Inputs,Outputs
+
+1,V,32,32
+2,A1,32,32
+3,A2,32,32
+4,A3,32,32
+5,~Undef Xpt Group  5,1024,1024
+6,~Undef Xpt Group  6,1024,1024
+7,~Undef Xpt Group  7,1024,1024
+8,~Undef Xpt Group  8,1024,1024
+9,~Undef Xpt Group  9,1024,1024
+10,~Undef Xpt Group 10,1024,1024
+11,~Undef Xpt Group 11,1024,1024
+12,~Undef Xpt Group 12,1024,1024
+13,~Undef Xpt Group 13,1024,1024
+14,~Undef Xpt Group 14,1024,1024
+15,~Undef Xpt Group 15,1024,1024
+16,~Undef Xpt Group 16,1024,1024
+17,~Undef Xpt Group 17,1024,1024
+18,~Undef Xpt Group 18,1024,1024
+19,~Undef Xpt Group 19,1024,1024
+20,~Undef Xpt Group 20,1024,1024
+21,~Undef Xpt Group 21,1024,1024
+22,~Undef Xpt Group 22,1024,1024
+23,~Undef Xpt Group 23,1024,1024
+24,~Undef Xpt Group 24,1024,1024
+25,~Undef Xpt Group 25,1024,1024
+26,~Undef Xpt Group 26,1024,1024
+27,~Undef Xpt Group 27,1024,1024
+28,~Undef Xpt Group 28,1024,1024
+29,~Undef Xpt Group 29,1024,1024
+30,~Undef Xpt Group 30,1024,1024
+31,~Undef Xpt Group 31,1024,1024
+32,~Undef Xpt Group 32,1024,1024
+
+
+Controllers,32
+
+Controller No,X-Pt Group,Channel,Address,Offset,NIC Address
+
+1,V,1,0,0,
+2,A1,1,1,0,
+3,A2,1,2,0,
+4,A3,1,3,0,
+5,Undef
+6,Undef
+7,Undef
+8,Undef
+9,Undef
+10,Undef
+11,Undef
+12,Undef
+13,Undef
+14,Undef
+15,Undef
+16,Undef
+17,Undef
+18,Undef
+19,Undef
+20,Undef
+21,Undef
+22,Undef
+23,Undef
+24,Undef
+25,Undef
+26,Undef
+27,Undef
+28,Undef
+29,Undef
+30,Undef
+31,Undef
+32,Undef
+
+
+Segments,32
+
+Segment No,X-Pt Group,Id,Type,First In,Last In,First Out,Last Out,Park,Virtuals
+
+1,V,A,Blocked,1,32,1,32,0,0
+2,A1,A,Blocked,1,32,1,32,0,0
+3,A2,A,Blocked,1,32,1,32,0,0
+4,A3,A,Blocked,1,32,1,32,0,0
+5,Undef
+6,Undef
+7,Undef
+8,Undef
+9,Undef
+10,Undef
+11,Undef
+12,Undef
+13,Undef
+14,Undef
+15,Undef
+16,Undef
+17,Undef
+18,Undef
+19,Undef
+20,Undef
+21,Undef
+22,Undef
+23,Undef
+24,Undef
+25,Undef
+26,Undef
+27,Undef
+28,Undef
+29,Undef
+30,Undef
+31,Undef
+32,Undef
+
+
+Logical Matrices,32
+
+Matrix No,Name,Level,Inter-Level list,Segment 1,Segment 2,Segment 3,Segment 4,Segment 5,Segment 6,Segment 7,Segment 8
+
+1,V,1,,V:A
+2,A1,2,,A1:A
+3,A2,3,,A2:A
+4,A3,4,,A3:A
+5,~Undef Matrix  5,0,,
+6,~Undef Matrix  6,0,,
+7,~Undef Matrix  7,0,,
+8,~Undef Matrix  8,0,,
+9,~Undef Matrix  9,0,,
+10,~Undef Matrix 10,0,,
+11,~Undef Matrix 11,0,,
+12,~Undef Matrix 12,0,,
+13,~Undef Matrix 13,0,,
+14,~Undef Matrix 14,0,,
+15,~Undef Matrix 15,0,,
+16,~Undef Matrix 16,0,,
+17,~Undef Matrix 17,0,,
+18,~Undef Matrix 18,0,,
+19,~Undef Matrix 19,0,,
+20,~Undef Matrix 20,0,,
+21,~Undef Matrix 21,0,,
+22,~Undef Matrix 22,0,,
+23,~Undef Matrix 23,0,,
+24,~Undef Matrix 24,0,,
+25,~Undef Matrix 25,0,,
+26,~Undef Matrix 26,0,,
+27,~Undef Matrix 27,0,,
+28,~Undef Matrix 28,0,,
+29,~Undef Matrix 29,0,,
+30,~Undef Matrix 30,0,,
+31,~Undef Matrix 31,0,,
+32,~Undef Matrix 32,0,,
+
+
+Sources,32
+
+Source No,ID,Name,Alias,Type,V,Conn,A1,Conn,A2,Conn,A3,Conn,Level 5,Conn,Level 6,Conn,Level 7,Conn,Level 8 ,Conn,Level 9 ,Conn,Level 10 ,Conn,Level 11 ,Conn,Level 12 ,Conn,Level 13 ,Conn,Level 14 ,Conn,Level 15 ,Conn,Level 16 ,Conn,Level 17 ,Conn,Level 18 ,Conn,Level 19 ,Conn,Level 20 ,Conn,Level 21 ,Conn,Level 22 ,Conn,Level 23 ,Conn,Level 24 ,Conn,Level 25 ,Conn,Level 26 ,Conn,Level 27 ,Conn,Level 28 ,Conn,Level 29 ,Conn,Level 30 ,Conn,Level 31 ,Conn,Level 32 ,Conn,
+
+1,SRC1,SRC1,ееее VФ,General,V,1,A1,1,A2,1,A3,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+2,SRC2,SRC2,,General,V,2,A1,2,A2,2,A3,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+3,SRC3,SRC3,,General,V,3,A1,3,A2,3,A3,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+4,SRC4,SRC4,,General,V,4,A1,4,A2,4,A3,4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+5,SRC5,SRC5,,General,V,5,A1,5,A2,5,A3,5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+6,SRC6,SRC6,,General,V,6,A1,6,A2,6,A3,6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+7,SRC7,SRC7,,General,V,7,A1,7,A2,7,A3,7,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+8,SRC8,SRC8,,General,V,8,A1,8,A2,8,A3,8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+9,SRC9,SRC9,,General,V,9,A1,9,A2,9,A3,9,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10,SRC10,SRC10,,General,V,10,A1,10,A2,10,A3,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+11,SRC11,SRC11,,General,V,11,A1,11,A2,11,A3,11,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+12,SRC12,SRC12,,General,V,12,A1,12,A2,12,A3,12,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+13,SRC13,SRC13,,General,V,13,A1,13,A2,13,A3,13,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+14,SRC14,SRC14,,General,V,14,A1,14,A2,14,A3,14,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+15,SRC15,SRC15,,General,V,15,A1,15,A2,15,A3,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+16,SRC16,SRC16,,General,V,16,A1,16,A2,16,A3,16,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+17,SRC17,SRC17,,General,V,17,A1,17,A2,17,A3,17,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+18,SRC18,SRC18,,General,V,18,A1,18,A2,18,A3,18,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+19,SRC19,SRC19,,General,V,19,A1,19,A2,19,A3,19,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+20,SRC20,SRC20,,General,V,20,A1,20,A2,20,A3,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+21,SRC21,SRC21,,General,V,21,A1,21,A2,21,A3,21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+22,SRC22,SRC22,,General,V,22,A1,22,A2,22,A3,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+23,SRC23,SRC23,,General,V,23,A1,23,A2,23,A3,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+24,SRC24,SRC24,,General,V,24,A1,24,A2,24,A3,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+25,SRC25,SRC25,,General,V,25,A1,25,A2,25,A3,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+26,SRC26,SRC26,,General,V,26,A1,26,A2,26,A3,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+27,SRC27,SRC27,,General,V,27,A1,27,A2,27,A3,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28,SRC28,SRC28,,General,V,28,A1,28,A2,28,A3,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+29,SRC29,SRC29,,General,V,29,A1,29,A2,29,A3,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+30,SRC30,SRC30,,General,V,30,A1,30,A2,30,A3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+31,SRC31,SRC31,,General,V,31,A1,31,A2,31,A3,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+32,SRC32,SRC32,,General,V,32,A1,32,A2,32,A3,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+
+Dests,32
+
+Dest No,ID,Name,Type,Rules,V,Conn,A1,Conn,A2,Conn,A3,Conn,Level 5,Conn,Level 6,Conn,Level 7,Conn,Level 8 ,Conn,Level 9 ,Conn,Level 10 ,Conn,Level 11 ,Conn,Level 12 ,Conn,Level 13 ,Conn,Level 14 ,Conn,Level 15 ,Conn,Level 16 ,Conn,Level 17 ,Conn,Level 18 ,Conn,Level 19 ,Conn,Level 20 ,Conn,Level 21 ,Conn,Level 22 ,Conn,Level 23 ,Conn,Level 24 ,Conn,Level 25 ,Conn,Level 26 ,Conn,Level 27 ,Conn,Level 28 ,Conn,Level 29 ,Conn,Level 30 ,Conn,Level 31 ,Conn,Level 32 ,Conn,
+
+1,DST1,DST1,General,,V,1,A1,1,A2,1,A3,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+2,DST2,DST2,General,,V,2,A1,2,A2,2,A3,2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+3,DST3,DST3,General,,V,3,A1,3,A2,3,A3,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+4,DST4,DST4,General,,V,4,A1,4,A2,4,A3,4,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+5,DST5,DST5,General,,V,5,A1,5,A2,5,A3,5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+6,DST6,DST6,General,,V,6,A1,6,A2,6,A3,6,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+7,DST7,DST7,General,,V,7,A1,7,A2,7,A3,7,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+8,DST8,DST8,General,,V,8,A1,8,A2,8,A3,8,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+9,DST9,DST9,General,,V,9,A1,9,A2,9,A3,9,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+10,DST10,DST10,General,,V,10,A1,10,A2,10,A3,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+11,DST11,DST11,General,,V,11,A1,11,A2,11,A3,11,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+12,DST12,DST12,General,,V,12,A1,12,A2,12,A3,12,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+13,DST13,DST13,General,,V,13,A1,13,A2,13,A3,13,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+14,DST14,DST14,General,,V,14,A1,14,A2,14,A3,14,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+15,DST15,DST15,General,,V,15,A1,15,A2,15,A3,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+16,DST16,DST16,General,,V,16,A1,16,A2,16,A3,16,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+17,DST17,DST17,General,,V,17,A1,17,A2,17,A3,17,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+18,DST18,DST18,General,,V,18,A1,18,A2,18,A3,18,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+19,DST19,DST19,General,,V,19,A1,19,A2,19,A3,19,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+20,DST20,DST20,General,,V,20,A1,20,A2,20,A3,20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+21,DST21,DST21,General,,V,21,A1,21,A2,21,A3,21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+22,DST22,DST22,General,,V,22,A1,22,A2,22,A3,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+23,DST23,DST23,General,,V,23,A1,23,A2,23,A3,23,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+24,DST24,DST24,General,,V,24,A1,24,A2,24,A3,24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+25,DST25,DST25,General,,V,25,A1,25,A2,25,A3,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+26,DST26,DST26,General,,V,26,A1,26,A2,26,A3,26,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+27,DST27,DST27,General,,V,27,A1,27,A2,27,A3,27,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+28,DST28,DST28,General,,V,28,A1,28,A2,28,A3,28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+29,DST29,DST29,General,,V,29,A1,29,A2,29,A3,29,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+30,DST30,DST30,General,,V,30,A1,30,A2,30,A3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+31,DST31,DST31,General,,V,31,A1,31,A2,31,A3,31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+32,DST32,DST32,General,,V,32,A1,32,A2,32,A3,32,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+
+Rules,1
+
+Rule No,Name,Conditions
+

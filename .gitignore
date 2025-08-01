@@ -1,0 +1,9 @@
+.exe
+.zip
+*.exe
+*.zip
+*.o
+*.mxf
+*.log
+*.dcu
+*.htm

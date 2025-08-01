@@ -1,0 +1,724 @@
+unit UnitDeviceLouth;
+
+interface
+
+uses System.Classes, System.SysUtils, System.SyncObjs, Winapi.Windows,
+  UnitDeviceThread, UnitCommons,
+  UnitOmPlrDefs, UnitOmPlrClnt, UnitOmMediaDefs;
+
+type
+  TDevicceOMNEON = class(TDeviceThread)
+  private
+    FPlrHandle: TOmPlrHandle;
+    FPlrStatus: TOmPlrStatus;
+    FPlayRate: Double;
+
+    FClipHandleCurr: TOmPlrClipHandle;
+    FClipHandleNext: TOmPlrClipHandle;
+
+    FCueing: Boolean;
+    FCueDone: Boolean;
+
+    FLastPlrError: TOmPlrError;
+  protected
+    procedure ControlReset; override;
+    procedure ControlCommand; override;
+    procedure ControlClear; override;
+    procedure ControlChanged; override;
+    procedure ControlStart; override;
+    procedure ControlStop; override;
+    procedure ControlCue; override;
+    procedure ControlSchedule; override;
+    procedure ControlGetStatus; override;
+
+    function GetStatus: TDeviceStatus; override;
+
+//    function DCSGetStatus(ABuffer: String): Integer; override;
+  public
+    constructor Create(ADevice: PDevice); override;
+    destructor Destroy; override;
+
+    function DeviceOpen: Integer; override;
+    function DeviceClose: Integer; override;
+    function DeviceInit: Integer; override;
+  end;
+
+implementation
+
+uses UnitConsts;
+
+constructor TDevicceOMNEON.Create(ADevice: PDevice);
+begin
+  inherited Create(ADevice);
+  FPlayRate := 1.0;
+
+  FClipHandleCurr := 0;
+  FClipHandleNext := 0;
+
+  FCueing  := False;
+  FCueDone := False;
+end;
+
+destructor TDevicceOMNEON.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TDevicceOMNEON.ControlReset;
+begin
+  inherited;
+end;
+
+procedure TDevicceOMNEON.ControlCommand;
+begin
+  inherited;
+end;
+
+procedure TDevicceOMNEON.ControlClear;
+begin
+  inherited;
+end;
+
+procedure TDevicceOMNEON.ControlChanged;
+var
+  ClipInfo: TOmPlrClipInfo;
+  ClipDuration: Cardinal;
+  PlrStatus: TOmPlrStatus;
+begin
+  try
+    if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+    begin
+      // If current event status is onair
+      // If next event is manual event and status is cued then SetMaxPos set current duration time
+      if (FEventCurr <> nil) and (FEventCurr^.Status = esOnAir) and
+         (FEventNext <> nil) {and (FEventNext^.ManualEvent) }and (FEventNext^.Status = esCued) then
+      begin
+        FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        if (PlrStatus.MaxPos > (PlrStatus.CurrClipStartPos + PlrStatus.CurrClipLen)) then
+        begin
+          FLastPlrError := OmPlrSetMaxPos(FPlrHandle, PlrStatus.CurrClipStartPos + PlrStatus.CurrClipLen);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+        end;
+
+  {      FillChar(ClipInfo, SizeOf(TOmPlrClipInfo), #0);
+        FLastPlrError := OmPlrClipGetInfo(FPlrHandle, FEventNext^.Player.ID.ID, ClipInfo);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        ClipDuration := ClipInfo.LastFrame - ClipInfo.FirstFrame;
+
+        FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        if (PlrStatus.MaxPos > PlrStatus.ClipDuration) then
+        begin
+          FLastPlrError := OmPlrSetMaxPos(FPlrHandle, PlrStatus.MaxPos - ClipDuration);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+        end;  }
+      end;
+    end;
+  finally
+    inherited;
+  end;
+end;
+
+procedure TDevicceOMNEON.ControlStart;
+var
+  PlrStatus: TOmPlrStatus;
+begin
+  try
+    if (FEventNext <> nil) and (FEventNext^.Status = esCued) then
+    begin
+      if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+      begin
+        FLastPlrError := OmPlrSetMaxPosMax(FPlrHandle);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        // Take 명령에 의해 현재 송출 중인 이벤트의 길이가 줄어 들었을 경우
+        // Player의 시작위치를 Take 이벤트의 위치로 조정
+        if (FEventCurr <> nil) and
+           (PlrStatus.CurrClipNum = 0) and (PlrStatus.Pos < PlrStatus.CurrClipStartPos + PlrStatus.CurrClipLen) and
+           ((TimecodeToFrame(FEventCurr^.DurTime) - 1) < PlrStatus.CurrClipLen) then
+        begin
+          FLastPlrError := OmPlrSetPos(FPlrHandle, PlrStatus.CurrClipStartPos + PlrStatus.CurrClipLen);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+      //      FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+        end;
+
+        if (PlrStatus.State <> omPlrStatePlay) then
+        begin
+          FLastPlrError := OmPlrPlay(FPlrHandle, FPlayRate);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+    //        FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+        end;
+
+        if (FEventCurr <> nil) then
+        begin
+          FLastPlrError := OmPlrGetClipAtNum(FPlrHandle, 0, FClipHandleCurr);
+
+          if (FClipHandleCurr <> 0) then
+          begin
+            FLastPlrError := OmPlrDetach(FPlrHandle, FClipHandleCurr, omPlrShiftModeBefore);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+    //          FEventCurr^.Status := esError;
+              SetEventStatus(FEventCurr, esError);
+              exit;
+            end;
+            FClipHandleCurr := 0;
+
+  {      FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+            FLastPlrError := OmPlrSetMaxPosMax(FPlrHandle);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              SetEventStatus(FEventNext, esError);
+              exit;
+            end; }
+          end;
+  //        FEventQueue.Remove(FEventCurr);
+  //        FEventCurr := nil;
+        end;
+
+        FClipHandleCurr := FClipHandleNext;
+      end;
+
+//      FEventCurr^.Status := esOnAir;
+      SetEventStatus(FEventNext, esOnAir);
+    end;
+  finally
+//    if (FEventCurr <> nil) and (FEventCurr^.Status <> esOnAir) then
+//    begin
+//      FEventQueue.Remove(FEventCurr);
+//      FEventCurr := nil;
+//    end;
+
+//    if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+    begin
+      FClipHandleNext := 0;
+    end;
+
+    inherited;
+  end;
+end;
+
+procedure TDevicceOMNEON.ControlStop;
+var
+  PlrStatus: TOmPlrStatus;
+  MaxPos: Integer;
+begin
+  try
+    if (FEventCurr <> nil) and (FEventCurr^.Status = esOnAir) then
+    begin
+      if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+      begin
+    {    FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+          FEventNext^.Status := esError;
+          exit;
+        end;
+
+        if (FEventNext = nil) or
+           ((FEventNext <> nil) and (FEventNext^.Status <= esLoaded)) then
+        begin
+          if (PlrStatus.NumClips > 0) and (PlrStatus.CurrClipNum < PlrStatus.NumClips - 1) then
+          begin
+            FLastPlrError := OmPlrStop(FPlrHandle);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              FEventCurr^.Status := esError;
+              exit;
+            end;
+          end
+          else
+          begin
+            FLastPlrError := OmPlrStep(FPlrHandle, 0);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              FEventCurr^.Status := esError;
+              exit;
+            end;
+          end;
+        end;
+
+        if (FClipHandleCurr <> 0) then
+        begin
+          if (PlrStatus.NumClips > 0) and (PlrStatus.CurrClipNum < PlrStatus.NumClips - 1) then
+          begin
+            FLastPlrError := OmPlrDetach(FPlrHandle, FClipHandleCurr, omPlrShiftModeBefore);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              FEventCurr^.Status := esError;
+              exit;
+            end;
+            FClipHandleCurr := 0;
+          end;
+        end; }
+
+        // If no next event or next event is not cuedone state then paused
+  {      if (FEventNext = nil) or
+           ((FEventNext <> nil) and (FEventNext^.Status <= esLoaded)) then
+        begin
+          // Waiting for playback to the out point
+          repeat
+            FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+            FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+    //          FEventCurr^.Status := esError;
+              SetEventStatus(FEventCurr, esError);
+              exit;
+            end;
+          until (Terminated) or (PlrStatus.Pos >= PlrStatus.MaxPos - 1);
+
+          FLastPlrError := OmPlrCuePlay(FPlrHandle, FPlayRate);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+    //        FEventCurr^.Status := esError;
+            SetEventStatus(FEventCurr, esError);
+            exit;
+          end;
+        end;
+
+        // If next event start time greater then current event end time, paused
+        if (FEventNext <> nil) and (FEventNext^.Status = esCued) and
+           (CompareEventTime(FEventNext^.StartTime, GetEventEndTime(FEventCurr^.StartTime, FEventCurr^.DurTime)) > 0) then
+        begin
+          FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+          FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+  //          FEventCurr^.Status := esError;
+            SetEventStatus(FEventCurr, esError);
+            exit;
+          end;
+
+          // Waiting for playback to the out point
+          MaxPos := PlrStatus.MaxPos - TimecodeToFrame(FEventNext^.DurTime);
+          while (not Terminated) and (PlrStatus.Pos <= MaxPos - 1) do
+          begin
+            FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+            FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              SetEventStatus(FEventCurr, esError);
+              exit;
+            end;
+          end;
+
+          FLastPlrError := OmPlrCuePlay(FPlrHandle, FPlayRate);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+    //        FEventCurr^.Status := esError;
+            SetEventStatus(FEventCurr, esError);
+            exit;
+          end;
+        end;
+
+        if (FEventCurr^.EventID.SerialNo = 5) then
+        begin
+          FEventCurr^.EventID.SerialNo := 5;
+        end; }
+      end;
+
+//      FEventCurr^.Status := esDone;
+      SetEventStatus(FEventCurr, esDone);
+    end;
+  finally
+{    FEventQueue.Remove(FEventCurr);
+    FEventCurr := nil; }
+
+    inherited;
+  end;
+end;
+
+procedure TDevicceOMNEON.ControlCue;
+var
+  ClipID: TOmPlrChar;
+  ClipExist: Boolean;
+  ClipIn, ClipOut: Cardinal;
+  ClipAttachHandle: TOmPlrClipHandle;
+
+  PlrStatus: TOmPlrStatus;
+begin
+  try
+    if (FEventNext <> nil) then
+    begin
+  //    FEventNext^.Status := esCueing;
+      SetEventStatus(FEventNext, esCueing);
+
+      if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+      begin
+        FDevice^.Status.Player.Cue := True;
+    //    FDevice^.Status.Player.CueDone := False;
+    //    FCueing  := True;
+        FCueDone := False;
+        UpdateStatus;
+
+        FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+    //      FEventNext^.Status := esError;
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        if //(FClipHandleNext <> 0) and
+           (((FEventCurr <> nil) and (PlrStatus.NumClips >= 2)) or ((FEventCurr = nil) and (PlrStatus.NumClips >= 1))) then
+        begin
+          FLastPlrError := OmPlrGetClipAtNum(FPlrHandle, PlrStatus.NumClips - 1, FClipHandleNext);
+          if (FClipHandleNext <> 0) then
+          begin
+            FLastPlrError := OmPlrDetach(FPlrHandle, FClipHandleNext, omPlrShiftModeAfter);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+              SetEventStatus(FEventNext, esError);
+              exit;
+            end;
+            FClipHandleNext := 0;
+          end;
+        end;
+
+        FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+        FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+        if (FLastPlrError <> omPlrOk) then
+        begin
+    //      FEventNext^.Status := esError;
+          SetEventStatus(FEventNext, esError);
+          exit;
+        end;
+
+        if ((FEventCurr <> nil) and (PlrStatus.NumClips <= 1)) or
+           ((FEventCurr = nil) and (PlrStatus.NumClips <= 0)) then
+        begin
+
+
+
+          ClipID := FEventNext^.Player.ID.ID;
+          ClipExist := False;
+          FLastPlrError := OmPlrClipExists(FPlrHandle, FEventNext^.Player.ID.ID, ClipExist);
+          if (FLastPlrError <> omPlrOk) or (not ClipExist) then
+          begin
+      //      FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+
+          ClipIn  := TimecodeToFrame(FEventNext^.Player.StartTC) - 1;
+          ClipOut := TimecodeToFrame(GetPlusTimecode(FEventNext^.Player.StartTC, FEventNext^.DurTime)) - 1;
+          FLastPlrError := OmPlrAttach(FPlrHandle, ClipID, ClipIn, ClipOut, 0, omPlrShiftModeAfter, ClipAttachHandle);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+      //      FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+          FClipHandleNext := ClipAttachHandle;
+
+          // If current event end time smaller then next event start time, set maxposmax
+          if (FEventCurr = nil) or
+             ((FEventCurr <> nil) {and (not FEventCurr^.ManualEvent)} and
+              (CompareEventTime(FEventNext^.StartTime, GetEventEndTime(FEventCurr^.StartTime, FEventCurr^.DurTime)) <= 0)) then
+          begin
+            FLastPlrError := OmPlrSetMaxPosMax(FPlrHandle);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+        //      FEventNext^.Status := esError;
+              SetEventStatus(FEventNext, esError);
+              exit;
+            end;
+          end;
+
+          FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+          FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+      //      FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+
+          if (PlrStatus.State = omPlrStateStopped) then
+          begin
+            FLastPlrError := OmPlrCuePlay(FPlrHandle, FPlayRate);
+            if (FLastPlrError <> omPlrOk) then
+            begin
+      //        FEventNext^.Status := esError;
+              SetEventStatus(FEventNext, esError);
+              exit;
+            end;
+          end;
+
+          FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+          FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+          if (FLastPlrError <> omPlrOk) then
+          begin
+      //      FEventNext^.Status := esError;
+            SetEventStatus(FEventNext, esError);
+            exit;
+          end;
+        end;
+
+    //    FDevice^.Status.Player.Cue := False;
+    //    FDevice^.Status.Player.CueDone := True;
+        FCueDone := True;
+    //    UpdateStatus;
+
+      end;
+
+//      FEventNext^.Status := esCued;
+      SetEventStatus(FEventNext, esCued);
+    end;
+  finally
+{    if (FEventNext <> nil) and (FEventNext^.Status <> esCued) then
+    begin
+      FEventQueue.Remove(FEventNext);
+//      FEventNext := nil;
+      FEventNext := GetNextEvent;
+//      FClipHandleNext := 0;
+    end; }
+
+    inherited;
+  end;
+end;
+
+procedure TDevicceOMNEON.ControlSchedule;
+begin
+  inherited;
+end;
+
+procedure TDevicceOMNEON.ControlGetStatus;
+begin
+  inherited;
+end;
+
+function TDevicceOMNEON.GetStatus: TDeviceStatus;
+const
+  FrameRateValues: array[TOmFrameRate] of Double =
+    (1, 24, 25, 29.97, 30, 50, 59.94, 60, 23.97);
+var
+  PlrStatus: TOmPlrStatus;
+begin
+  FillChar(Result, SizeOf(TDeviceStatus), #0);
+  with Result do
+  begin
+    EventType := ET_PLAYER;
+
+    FillChar(PlrStatus, SizeOf(TOmPlrStatus), #0);
+    FLastPlrError := OmPlrGetPlayerStatus(FPlrHandle, PlrStatus);
+    if (FLastPlrError = omPlrOk) then
+    begin
+      Player.Connected := True;
+
+      Player.Stop       := (PlrStatus.NumClips = 0) or (PlrStatus.State = omPlrStateStopped);
+
+//      Player.Cue        := (PlrStatus.State in [omPlrStateCuePlay, omPlrStateCueRecord]);
+      Player.Play       := (PlrStatus.State = omPlrStatePlay) and (PlrStatus.Pos < PlrStatus.MaxPos - 1);
+      Player.Rec        := (PlrStatus.State = omPlrStateRecord) and (PlrStatus.Pos < PlrStatus.MaxPos - 1);
+//      Player.Still      := (PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and (PlrStatus.Rate = 0.0);
+//      Player.Still      := (PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and (PlrStatus.Pos = (PlrStatus.MaxPos - 1));
+
+{      if (FCueDone) and 
+         (PlrStatus.Pos - PlrStatus.CurrClipStartPos = 0) and
+         (PlrStatus.NumClips > 0) and (PlrStatus.CurrClipNum = PlrStatus.NumClips - 1) then
+        Player.Still := False
+      else  }
+        Player.Still      := (PlrStatus.NumClips > 0) and
+                             ((PlrStatus.Rate = 0.0) or
+                              (PlrStatus.State in [{omPlrStateStopped, }omPlrStateCuePlay]) or
+                              ((PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and (PlrStatus.Pos = PlrStatus.MaxPos - 1)));
+
+      Player.Jog        := (PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and (PlrStatus.Rate < 1) and (PlrStatus.Rate > -1);
+      Player.Shuttle    := (PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and ((PlrStatus.Rate > 1) or (PlrStatus.Rate < -1));
+      Player.PortBusy   := False;
+
+      if ((PlrStatus.Pos = PlrStatus.MinPos) or
+          (PlrStatus.Pos - PlrStatus.CurrClipStartPos > 0)) and  //(PlrStatus.State in [omPlrStatePlay, omPlrStateRecord]) and
+         (PlrStatus.NumClips > 0) and (PlrStatus.CurrClipNum = PlrStatus.NumClips - 1) then
+        FCueDone := False;
+
+//      if (FCueDone) then FCueing := False;
+//        
+//      Player.Cue     := FCueing;
+      Player.CueDone := FCueDone;
+
+//      Player.CueDone    := (PlrStatus.State in [omPlrStateCuePlay, omPlrStateCueRecord]) and (PlrStatus.MaxPos > 0);
+
+      Player.DropFrame  := (PlrStatus.FrameRate in [omFrmRate29_97Hz, omFrmRate59_94Hz, omFrmRate23_976Hz]);
+
+      if (Player.Stop) then
+      begin
+        Player.CurTC    := 0;
+        Player.RemainTC := 0;
+      end
+      else
+      begin
+        Player.CurTC    := FrameToTimecode(PlrStatus.Pos - PlrStatus.CurrClipStartPos + 1, FrameRateValues[PlrStatus.FrameRate]);
+        Player.RemainTC := FrameToTimecode(PlrStatus.CurrClipLen - (PlrStatus.Pos - PlrStatus.CurrClipStartPos) + 1, FrameRateValues[PlrStatus.FrameRate]);
+      end;
+    end
+    else
+    begin
+      Player.Connected := False;
+      if (not FOpened) then DeviceOpen;
+
+//      if (FLastPlrError = omPlrBadRemoteHandle) then
+//        if (DCSOpen = D_OK) then
+//          Result := GetStatus;
+    end;
+  end;
+
+  Result := inherited GetStatus;
+end;
+
+function TDevicceOMNEON.DeviceOpen: Integer;
+begin
+  Result := inherited DeviceOpen;
+
+  with FDevice^.Omneon do
+  begin
+    FLastPlrError := OmPlrOpen(DirectorName, PlayerName, FPlrHandle);
+    if (FLastPlrError <> omPlrOk) then
+    begin
+      Result := D_FALSE;
+      exit;
+    end;
+  end;
+
+  FOpened := True;
+end;
+
+function TDevicceOMNEON.DeviceClose: Integer;
+begin
+  Result := inherited DeviceClose;
+
+  if (FPlrHandle = nil) then
+  begin
+    Result := D_FALSE;
+    exit;
+  end;
+
+  FLastPlrError := OmPlrClose(FPlrHandle);
+  if (FLastPlrError <> omPlrOk) then
+  begin
+    Result := D_FALSE;
+    exit;
+  end;
+
+  FPlrHandle := nil;
+  FOpened := False;
+
+  Result := D_OK;
+end;
+
+function TDevicceOMNEON.DeviceInit: Integer;
+begin
+  Result := inherited DeviceInit;
+
+  if (GV_DCSMine <> nil) and (GV_DCSMine^.Main) then
+  begin
+    // Omneon device initialize
+    FLastPlrError := OmPlrStop(FPlrHandle);
+    if (FLastPlrError <> omPlrOk) then
+    begin
+      Result := D_FALSE;
+      exit;
+    end;
+
+    FLastPlrError := OmPlrDetachAllClips(FPlrHandle);
+    if (FLastPlrError <> omPlrOk) then
+    begin
+      Result := D_FALSE;
+      exit;
+    end;
+
+    FLastPlrError := OmPlrSetMaxPosMax(FPlrHandle);
+    if (FLastPlrError <> omPlrOk) then
+    begin
+      Result := D_FALSE;
+      exit;
+    end;
+
+    FLastPlrError := OmPlrSetMinPosMin(FPlrHandle);
+    if (FLastPlrError <> omPlrOk) then
+    begin
+      Result := D_FALSE;
+      exit;
+    end;
+
+    FCueing  := False;
+    FCueDone := False;
+
+    FClipHandleCurr := 0;
+    FClipHandleNext := 0;
+  end;
+end;
+
+{function TDevicceOMNEON.DCSGetStatus(ABuffer: String): Integer;
+const
+  FrameRateValues: array[TOmFrameRate] of Double =
+    (1, 24, 25, 29.97, 30, 50, 59.94, 60, 23.97);
+var
+  Status: TDeviceStatus;
+begin
+  Result := inherited DCSGetStatus(ABuffer);
+
+  Status := GetStatus;
+
+  SetLength(FSendBuffer, SizeOf(TDeviceStatus));
+  Move(Status, FSendBuffer, SizeOf(FSendBuffer));
+end;
+}
+end.

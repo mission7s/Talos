@@ -1,0 +1,191 @@
+911200,DstRange,Destination Index is out of range
+911201,TakeFail,Take could not be performed on any levels
+911202,SrcRule,A Source Exclusion Rule forbids this source to be routed to this destination
+911203,DstLock,The Destination is Locked
+911204,TieFeedB,Tie Line Feedback has occurred
+911205,DataSrc,For Data Routers only Previously routed source could not be released from the destination
+911206,CBNPBad,A CBNP Message or file was found to be corrupt or could not be parsed properly
+911207,TLmising,The Tie Line Manager is not available for accepting Tie Line Route requests
+911208,TLnoSend,The Tie Line Manager is available but the Tie Line route request could not be sent
+911209,SvoVerBd,The Salvo version is not compatible with this Router Controller
+911210,SvoNoXpt,A Salvo containing no routes was received
+911211,DBVerDif,All parts of the database do not share the same instance number
+911212,MapVerDf,The Status Map on the sharer is not the same size as the router database
+911213,CBNPMap,Could Not create the CBNP Status Map for storing on the sharer
+911214,CBNPCfg,Could Not create the CBNP Router Configuration for storing on the sharer
+911215,CBNPRule,Could Not create the CBNP Rules for storing on the sharer
+911216,CBNPSrc,Could Not create the CBNP Sources for storing on the sharer
+911217,CBNPDst,Could Not create the CBNP Destinations for storing on the sharer
+911218,CBNPpMap,Could not parse the CBNP Status Map stored on the sharer
+911219,CBNPpCfg,Could not parse the CBNP Router Configuration stored on the sharer
+911220,CBNPSrEx,Could not parse the CBNP Source Exclusion Rules stored on the sharer
+911221,CBNPpSrc,Could not parse the CBNP Sources stored on the sharer
+911222,CBNPpDst,Could not parse the CBNP Destination stored on the sharer
+911223,CSVbdVer,CSV Router Database Spreadsheet is of an incompatible version
+911224,SrcAlias,The UMD Source Aliases file is of an incompatible version
+911225,SharPath,The Sharer Path of the Router Database is unknown
+911226,TakeBufF,The Timed Takes Buffer is already full
+911227,RtrMutex,A Router Mutex could not be claimed
+911228,TimeSBad,An Invalid Timestamp was detected
+911229,MutexBad,Failed waiting for Mutex
+911230,TimeCBad,Invalid time code sent by client
+911231,GenError,General Error
+911232,GenError,General Error
+911233,CacheBad,Data in pending cache was invalid
+911234,CachePrm,Bad parameter was passed to pending cache module
+911235,GenError,General Error
+911236,UnlockFl,Client check failed attempting to unlock
+911237,SrcRange,Source is out of range
+911238,VirFeedB,Virtual feedback detected
+911239,VirOverF,Virtual overflow detected
+911240,MtxCfgBd,Matrix configuration error
+911241,SegCfgBd,Segment configuration error
+911242,XptCfgBd,Cross point configuration error
+911243,CtlCfgBd,Controller configuration error
+911244,VirCfgBd,Virtual point configuration error
+911245,LckTimed,Lock command time out matrix levels
+911246,FilePath,Invalid file path
+911247,RAMError,Non Volatile RAM error
+911248,ModBdDst,Attempting to monitor to an invalid destination
+911249,XptFileB,Could not create ROUTE_XPT file
+911250,XptFileP,Could not load/parse ROUTE_XPT file
+911251,TLMError,Error reported from TLM
+911601,NoSrc,Indicates Source Index has exceeded range
+911602,NoSrc,Indicates Source Index equals Zero Invalid
+911603,NoSrc,Indicates Source Index is not configured
+911604,NoSrc,Indicates Source Area Index has exceeded range
+911605,NoSrc,Indicates Source Area equals Zero Invalid
+911606,NoSrc,Indicates Source Area Index is not configured
+911607,AreaExcl,Indicates Source Area Index is excluded
+911608,NoDst,Indicates Destination Index has exceeded range
+911609,NoDst,Indicates Destination Index equals zero Invalid
+911610,NoDst,Indicates Destination Index is not configured
+911611,NoDst,Indicates Destination Area Index has exceeded range
+911612,NoDst,Indicates Destination Index equals Zero Invalid
+911613,NoDst,Indicates Destination Area Index is not configured,
+911614,AreaExcl,Indicates Destination Area Index is excluded,
+911615,SrcLvlsB,Indicates Source Levels are not configured or are not available,
+911616,SLvlExcl,Indicates Source Levels are excluded,
+911617,DstLvlsB,Indicates Destination Levels are not configured or not available,
+911618,DLvlExcl,Indicates Destination Levels are excluded,
+911619,XptLvlEr,Indicates No Xpt request levels are set,
+911620,XptLvlEx,Indicates that a Take request was made with Levels that are excluded,
+911621,NoSvo,Indicates Salvo Index has exceeded range,
+911622,NoSvo,Indicates Salvo Index is not configured,
+911623,SvoExcl,Indicates Salvo is excluded,
+911624,AreaExcl,Indicates an Area is excluded,
+911625,Min1Lvl,Indicates that a minimum of one level must always be preset active, 
+911626,SvoRange,Indicates that the Salvo index is 0 or exceeds the MAX_SALVO value,
+911627,NoRouter,Indicates that a control panel's controlled destination area has no router available,
+911628,NoConfig,Indicates that a panel application has not received a configuration,
+911629,<UNDEF>,Indicates that there is NO STATUS available for the controlled DST
+911630,BtnTypeB,Indicates that a button type is not allowed to be configured for a given panel type
+911631,BtnIndxB,Indicates that a button index is out of range of the acceptable button indexes for a given button type
+911632,BtnAreaB,Indicates that a button area is out of range of the acceptable button area for a given button type
+911633,BtnLocBd,Indicates the a hardware defined button number does not exists in the applicable panel application
+911634,HmAreaBd,Indicates that the Home Area value is not in the range of 0 MAX_AREAS
+911635,NoDstLvl,Indicates that the active Tally Level does not exists on the current Destination
+911636,BtnLvlBd,Indicates a Level Select button does not a Level index configured
+911637,DstExcl,Indicates a Destination is Excluded
+911638,LvlExcl,Indicates a Level is Excluded
+911639,PROTECT,Indicates a Destination is currently Protected
+911640,KeypdCfg,Indicates a Prefix Set Suffix Set or Keypad Set has not been configured
+911641,ChopLock,Indicates that Chop Lock is active and an attempt was made to access a function that is prevented by Chop Lock
+911642,CfgLock,Indicates that Configuration Lock is active and an attempt was made to access a function that is prevented by Self Configuration Lock
+911643,LvlChgLk,Indicates that Level Change Lock is active and an attempt was made to access a function that is prevented by Level Change Lock
+911644,ProtLock,Indicates that Protect Lock is active and an attempt was made to access a function that is prevented by Protect Lock
+911645,SvoLock,Indicates that Salvo Lock is active and an attempt was made to access a function that is prevented by Salvo Lock
+911646,MonOnly,Indicates that Monitor Only is active and an attempt was made to access a function that is prevented by Monitor Only Mode
+911647,DstChgLk,Indicates that DST Change Lock is active and an attempt was made to access a function that is prevented by DST Change Lock
+911648,AESLock,Indicates that AES Lock is active and an attempt was made to access a function that is prevented by AES Lock
+911649,NoPstDst,Indicates that a Destination has not been preset first
+911681,PgSetBad,Indicates that a page set Source Destination or Salvo is not available not configured or not able to be read from file
+911682,SOFTLOCK,Indicates a Destination is Soft Locked
+911683,HARDLOCK,Indicates a Destination is Hard Locked
+911684,MutlExcl,Indicates an attribute or flag being set is in direct conflict with another mutually exclusive attribute or flag
+911685,DstChgLk,Indicates Destination Change is Prohibited because the Destination Change Lock Flag is active
+911686,PnlIDLck,Indicates OUI Panel Identification is Prohibited because the Type 3 ID Lock Flag is active
+911687,PrefixCf,Indicates that a Keypad Prefix Set has not been configured properly assigned properly or is missing a valid name
+911688,SuffixCf,Indicates that a Keypad Suffix Set has not been configured properly assigned properly or is missing a valid name
+911690,RangeErr,Indicates a general range checking of value error occured
+911691,NotAvail,Indicates a feature that is not currently available within the system or within the application because it is not implemented yet or requires a configuration change to enable the feature
+911692,NotUsed,Indicates that a button attribute or feature is not used in a given control panel mode of operation
+911693,APITimed,Indicates a request from the OUI has timed out at the API layer,
+911694,Dev_Bad,Indicates a device panel app panel client RCL client etc that is not currently listed in the device table in either the CapPanelContainer or the Panel Proxy layer,
+911695,NO_XPT,Indicates a bad Matrix XPT typically this is used when a matrix xpt board is missing pulled or bad,
+911696,PnlTpBad,Indicates that the Panel Server received an unsupported or invalid panel type,
+911697,PnlGrpEr,Indicates that the Panel Server attempted an operation or detected a configuration setting that is not valid with the panel grouping feature set,  
+911698,NotUniqe,Indicates that a system device or configuration name that is required to be unique has been found to be a duplicate, 
+911699,GenError,Indicates any General Fault that is does not have a finite definition or is difficult to categorize,  
+911700,NO_LICNS,Indicates that the License Manager value is either 0 or the user is attempting to exceed the allowed license values,
+911701,Disabled,Indicates that the Control Panel is currently disabled enable button function, 
+911702,UndoLock,Indicates that the Undo Take feature is locked by a configuration flag setting,
+911703,NoMatrix,Used only for Prelude control system to indicate a Matrix is no longer communicating with routing control,
+911704,UPDATING,Received new configuration and updating parameters,
+911706,HOLD,Indicates a bus is being held and not allowed to accept changes,
+911707,KEYLOCAL,Indicates the Panel's keypad is only able to access sources in the panel's controlled areas no tielines,
+911708,NO_MATCH,Indicates the keypad name lookup could not find a src/dst name that matches the prefix/suffix keypad text entered for a preset,
+911709,AutoTly,Indicates the Panel is overriding the configured default tally level with the first available non excluded and preset level status,
+911710,ALLLVL,Indicates the Panel is currently tallying on the configured default Tally Level
+911711,^_DEST_^,Indicates the Panel is in Destination Mode
+911712,^SALVO^,Indicates the Panel is in Salvo Mode
+911713,CHOPPING,Indicates the Panel is in Chopping Mode
+911714,CHOPPIN*,Indicates the Panel is in Chopping Mode and has a Breakaway
+911715,ClearLVL,Indicates the Panel is attempting clear a preset Level
+911716,PROTOVRD,Indicates the Panel is configured to perform Takes even on Lock/Protected Destinations
+911717,Self_Cfg,Indicates the Panel is in Self Configuration mode
+911718,SrcName=,Used for Information Display Sequences typically SrcName=
+911719,DstName=,Used for Information Display Sequences typically DstName=
+911720,SrcArea=,Used for Information Display Sequences typically SrcArea=
+911721,DstArea=,Used for Information Display Sequences typically DstArea=
+911722,Tieline=,Used for Information Display Sequences typically Tieline=
+911723,TlyLvl=,Used for Information Display Sequences typically TlyLvl=
+911724,LvlPage1,Info Indicates Level Page 1 is currently displayed
+911725,LvlPage2,Info Indicates Level Page 2 is currently displayed
+911726,LvlPage3,Info Indicates Level Page 3 is currently displayed
+911727,LvlPage4,INfo Indicates Level Page 4 is currently displayed
+911728,SuperUsr,Used to inform that the destination is locked by Super User such as RCE
+911736,LvlInvLk,Indicates Level Inverse Lock is active 
+911737,NoSvrPnl,Indicates that in a Client-Server panel group the Server is not online or available
+911738,GPI_HELD,Indicates that a Joystick Source Select Non Latching input is being held
+911739,SelfProt,Indicates that a panel is in Self Protect mode preventing any crosspong changes
+911740,Parked,Indicates the Destination is Parked
+911741,NoStatus,Indicate on MCO panel to Show NOStatus message on the destination bus when ever there is no linkage Established.
+911742,Chop_To:,Indicates panel is in Chop mode and is awaiting a source input to chop
+911743,STEREO,Indicates Audio Attribute Stereo Status
+911744,SUM,Indicates Audio Attribute Sum Status
+911745,SWAP,Indicates Audio Attribute Swap Status
+911746,MUTE,Indicates Audio Attribute Mute Status
+911747,INV_L_R,Indicates Audio Attribute Invert on Channels 1 Left and 2 Right Status
+911748,INV_L ,Indicates Audio Attribute Channel 1 Left Invert Status
+911749,INV_R,Indicates Audio Attribute Channel 2 Right Invert Status
+911750,MONO_L,Indicates Audio Attribute Channel 1 Left Mono Status
+911751,MONO_R,Indicates Audio Attribute Channel 2 Right Mono Status
+911752,MonoInvL,Indicates 2 Audio Attributes applied Mono plus Invert on Channel 1 Left
+911753,MonoInvR,Indicates 2 Audio Attributes applied Mono plus Invert on Channel 2 Right
+911754,SwapInvL,Indicates 2 Audio Attributes applied Swap plus Invert on Channel 1 Left
+911755,SwapInvR,Indicates 2 Audio Attributes applied Swap plus Invert on Channel 2 Right
+911756,SumInvL,Indicates 2 Audio Attributes applied Sum plus Invert on Channel 1 Left
+911757,SumInvR,Indicates 2 Audio Attributes applied Sum plus Invert on Channel 2 Right
+911758,SwapINVT,Indicates 3 Audio Attributes applied Swap plus Invert on both Channel 1 Left and 2 Right
+911759,SumINVT,Indicates 3 Audio Attributes applied Sum plus Invert on both Channel 1 and 2 Left and Right
+911760,SrcExcl,Indicates a Source is Excluded
+911761,Template,Indicates a panel is attempting to operate using a template rather than a config
+911770,DUP_NAME,Indicates if a Panel fails to Signon due to Duplicate Name
+911771,MAX_PNLS,Indicates if a Panel fails to Signon due to exceeds the allowed panels limit which is 128.
+911772,UNKN_PNL,Indicates if a Panel fails to Signon due to unknown panel type (not suppoted)
+911773,PNL_NAME,Indicates if a Panel fails to Signon due to Panel Name length exceeds more than 8 characters
+911774,OUI_EDIT,Indicate if a Panel fails to Signon due to the same Panel Name being edited in OUI
+911775,SRVR_ERR,Indicate if a Panel fails to Signon due to server error
+911252,ChpTLErr,Could not Chop as Tie Line Chopping is not allowed
+911253,ChpLvErr,Chop on non-Video Levels not supported
+911254,AttLvErr, Attributes are not supported on non audio levels
+911932,TLNoPath,Indicates no Tie-Line path found between the ultimate source and final destination
+911933,TLBusy,"Indicates that there is a Tie-Line path between the source and destinaiton, however all the applicable Tie-Lines are already being used."
+911934,TLIntLvl,Indicates that the TLM has received an Interlevel route request.
+911935,TLGenErr,Indicates that an unknown error occurred in the TLM.
+911936,TLBlock,Indicates that a Source Block blocks the route request.
+911776,NoCateg,Indicates that no category is applied to the button
+911777,DstGang,Indicates that the destinations are ganged and the operation is not allowed
+911778,DfltAtt,Indicates that the default attribute that is Stereo cannot be removed
+911779,NoPnlGrp,Used in PXD and PXYE panel to indicate there is no online panel group Master

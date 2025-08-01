@@ -1,0 +1,66 @@
+- Normal Command & Response
+	- Command
+	{
+		"command" : "OPEN",
+	}
+
+	- Response : Success
+	{
+		"response" : "success"
+	}
+
+	- Response : Fail
+	{
+		"response" : "fail",
+		"errorcode" : 1
+	}
+
+
+
+- Preset/Select
+	- Command
+	{
+		"command" : "play_cue",
+		"id" : "TEST001"
+	}
+
+
+	{
+		"command" : "play_cue_data",
+		"id" : "TEST001",
+		"start" : "00:00:00:00",
+		"duration" : "00:59:59:29"
+	}
+
+
+- Sense Request
+	- Request
+	{
+		"command" : "get_status"
+	}
+
+	- Response
+	{
+		"response" : "success",
+		"status" : {
+				"idle" : true,
+				"cueing" : true,
+				"cuedone" : true,
+				"play" : true,
+				"pause" true				
+			}
+	}
+
+	- Request
+	{
+		"command" : "get_timecode"
+	}
+
+	- Response
+	{
+		"response" : "success",
+		"timecode" : "00:00:00:00"
+	}
+
+
+

@@ -1,0 +1,223 @@
+{$MINENUMSIZE 4}
+unit UnitTestK3DAsyncEngine;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Winapi.ActiveX,
+  UnitK3DAsyncEngine;
+
+type
+  TForm1 = class(TForm)
+    btnConnect: TButton;
+    Label1: TLabel;
+    edtServerIP: TEdit;
+    Label2: TLabel;
+    edtServerPort: TEdit;
+    cbConnectType: TComboBox;
+    Label3: TLabel;
+    mmDesc: TMemo;
+    btnDisconnect: TButton;
+    edtFileName: TEdit;
+    btnLoadScene: TButton;
+    btnUnloadPage: TButton;
+    btnStop: TButton;
+    edtSceneName: TEdit;
+    btnPrepare: TButton;
+    btnPlay: TButton;
+    edtProjectFileName: TEdit;
+    btnLoadProject: TButton;
+    btnQueryPageMode: TButton;
+    Label4: TLabel;
+    Label5: TLabel;
+    cbLayer: TComboBox;
+    Label6: TLabel;
+    btnStopAll: TButton;
+    btnPause: TButton;
+    procedure btnConnectClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnLoadSceneClick(Sender: TObject);
+    procedure btnUnloadPageClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
+    procedure btnPrepareClick(Sender: TObject);
+    procedure btnPlayClick(Sender: TObject);
+    procedure btnLoadProjectClick(Sender: TObject);
+    procedure btnQueryPageModeClick(Sender: TObject);
+    procedure btnStopAllClick(Sender: TObject);
+    procedure btnPauseClick(Sender: TObject);
+  private
+    { Private declarations }
+    FEngine: TKAEngine;
+    FScenePlayer: TKAScenePlayer;
+    FScene: IKAScene;
+
+    procedure OnLogMessage(Sender: TObject; ALogMessage: String);
+
+    procedure OnReceiveEvent(Sender: TObject; ReceiveData: String);
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.OnLogMessage(Sender: TObject; ALogMessage: String);
+begin
+  mmDesc.Lines.Add(ALogMessage);
+end;
+
+procedure TForm1.OnReceiveEvent(Sender: TObject; ReceiveData: String);
+begin
+  mmDesc.Lines.Add(ReceiveData);
+end;
+
+procedure TForm1.btnConnectClick(Sender: TObject);
+const
+  ModeNames: array[False..True] of String = ('UDP', 'TCP');
+var
+  HR: HRESULT;
+
+  TCPFlag: Boolean;
+  IP: PChar;
+  Port: LongInt;
+begin
+//ShowMessage(IntToStr(SizeOf(TCPFlag)));
+  TCPFlag := (cbConnectType.ItemIndex = 0);
+  IP := PChar(edtServerIP.Text);
+  Port := StrToIntDef(edtServerPort.Text, 0);
+
+  if (TCPFlag) then
+    HR := FEngine.Connect(TCPFlag, IP, Port, 0)
+  else
+    HR := FEngine.Connect(TCPFlag, IP, 0, Port);
+
+  if (Succeeded(HR)) then
+  begin
+    HR := FEngine.GetScenePlayer(FScenePlayer);
+  end;
+end;
+
+procedure TForm1.btnDisconnectClick(Sender: TObject);
+var
+  HR: Integer;
+begin
+  HR := FEngine.Disconnect;
+  OnLogMessage(FEngine, 'Disconnected.');
+end;
+
+procedure TForm1.btnLoadSceneClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FEngine.LoadScene(edtFileName.Text, edtSceneName.Text, FScene);
+end;
+
+procedure TForm1.btnLoadProjectClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FEngine.LoadProject(edtProjectFileName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('LoadProject Success, ProjectFileName = %s', [edtProjectFileName.Text]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('LoadProject Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnPauseClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FScenePlayer.Pause(cbLayer.ItemIndex);
+end;
+
+procedure TForm1.btnPlayClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FScenePlayer.Play(cbLayer.ItemIndex);
+end;
+
+procedure TForm1.btnPrepareClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FScenePlayer.Prepare(cbLayer.ItemIndex, FScene);
+end;
+
+procedure TForm1.btnQueryPageModeClick(Sender: TObject);
+var
+  R: Integer;
+  PageMode: String;
+begin
+  R := FEngine.QueryPageMode(edtPageName.Text, PageMode);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('QueryPageMode Success, PageName = %s, PageMode = %s', [edtPageName.Text, PageMode]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('QueryPageMode Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.btnStopAllClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FScenePlayer.StopAll;
+end;
+
+procedure TForm1.btnStopClick(Sender: TObject);
+var
+  HR: HRESULT;
+begin
+  HR := FScenePlayer.Stop(cbLayer.ItemIndex);
+end;
+
+procedure TForm1.btnUnloadPageClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FEngine.UnloadPage(edtPageName.Text);
+
+  if (R = T3D_TRUE) then
+  begin
+    mmDesc.Lines.Add(Format('UnloadPage Success, PageName = %s', [edtPageName.Text]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('UnloadPage Error = %d', [R]));
+    exit;
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FEngine := TKAEngine.Create;
+  FScenePlayer := TKAScenePlayer.Create(FEngine);
+
+  cbLayer.ItemIndex := 0;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(FScenePlayer);
+  FreeAndNil(FEngine);
+end;
+
+end.

@@ -1,0 +1,22 @@
+t,ResetDestinationStatus,110,0
+t,ResetProtect,110,0
+t,ResetDestinationChange,110,0
+t,ResetTieLineChange,110,0
+t,ResetSourceChange,110,0
+t,ResetLevelChange,110,0
+t,ResetSalvoChange,110,0
+t,ResetRoomChange,110,0
+t,QueryLevelNames,110,0
+t,QuerySourceNames,kQNS,110,0
+t,QueryDestinationNames,kQND,110,0
+t,GetLevel4Echo,110,0
+t,QueryDestinationStatus,dst 3,kQC,110,0
+t,TakeDestination,dst 4,src 4,00:00:00,110,0
+t,QuerySourceNames,kQNIS,110,0
+t,QueryDestinationNames,kQNID,110,0
+t,QuerySalvoNames,110,0
+t,TakeDestinationIndex,2,5,00:00:00,110,0
+t,Protect,dst 3,1,110,0
+t,TakeDestination,dst 3,src 5,00:00:00,110,0
+t,UnProtect,dst 3,1,110,0
+t,TakeDestination,dst 3,src 5,00:00:00,110,0

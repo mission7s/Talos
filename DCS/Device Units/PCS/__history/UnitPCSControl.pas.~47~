@@ -1,0 +1,1646 @@
+unit UnitPCSControl;
+
+interface
+
+uses System.Classes, System.SysUtils, System.SyncObjs, Winapi.Windows, System.JSON,
+  System.Generics.Collections,
+  UnitUDPIn, UnitUDPOut;
+
+const
+  D_OK    = 0;
+  D_FALSE = -1;
+
+  E_TIMEOUT = $F0;
+
+  E_COMMAND_IGNORED = -1;
+  E_INVALID_COMMAND = -2;
+  E_INVALID_RESPONSE = -3;
+
+  TIME_OUT = 100;
+
+  TypeCommand  = 'command';
+  TypeResponse = 'response';
+  TypeSuccess  = 'success';
+  TypeFail     = 'fail';
+
+  INVALID_DEVICEID = -1;
+
+  INIT_TIMECODE = '00:00:00;00';
+
+  KeyCount = 8;
+
+type
+  TPCSBaseControl = class(TObject)
+    FServerIP: AnsiString;
+    FServerPort: Word;
+    FTimeout: Cardinal;
+
+    FUDPOut: TUDPOut;
+
+    FCommand: AnsiString;
+    FSendJSONObject: TJSONObject;
+    FRecvJSONObject: TJSONObject;
+
+    FSyncMsgEvent: THandle;
+
+    FLastResult: Integer;
+
+    FUDPLock: TCriticalSection;
+
+    function SendCommand(AJSONObject: TJSONObject): Integer;
+
+    procedure SetServerIP(AValue: AnsiString);
+    procedure SetServerPort(AValue: Word);
+    procedure SetTimeout(AValue: Cardinal);
+
+    procedure StartUDPOut;
+    procedure StopUDPOut;
+  protected
+    procedure UDPRead(const ABindingIP: AnsiString; const AData: AnsiString; const ADataSize: Integer); virtual;
+  public
+    constructor Create; overload; virtual;
+    constructor Create(AServerIP: AnsiString; AServerPort: Word; ATimeout: Cardinal = TIME_OUT); overload; virtual;
+    destructor Destroy; override;
+
+    function TransmitCommand(AJSONObject: TJSONObject): Integer;
+
+    function Open(var AOpened: Boolean): Integer; virtual;
+    function Close(var AClosed: Boolean): Integer; virtual;
+    function GetDeviceNo(var ADeviceID: Integer): Integer; virtual;
+
+    property ServerIP: AnsiString read FServerIP write SetServerIP;
+    property ServerPort: Word read FServerPort write SetServerPort;
+    property Timeout: Cardinal read FTimeout write SetTimeout;
+  end;
+
+  TPCSTimecodeType = (ttCurrent, ttRemain);
+
+  TPCSMediaStatus = record
+    Idle: Boolean;
+    Play: Boolean;
+    Paused: Boolean;
+    Cue: Boolean;
+    CueDone: Boolean;
+  end;
+
+  TPCSMediaControl = class(TPCSBaseControl)
+  public
+    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+
+    function GetStatus(var AStatus: TPCSMediaStatus): Integer;
+
+    // Play only
+    function PlayCue(AFileName: String): Integer;
+    function PlayCueData(AFileName, AStartTimecode, ADurationTimecode: String): Integer;
+
+    function SetTimecode(ATimecode: String): Integer;
+    function GetTimecode(ATimecodeType: TPCSTimecodeType; var ATimecode: String): Integer;
+
+    function SetRate(ARate: Double): Integer;
+    function GetRate(var ARate: Double): Integer;
+
+    function GetClipExist(AFileName: String; var AExist: Boolean): Integer;
+    function GetClipSize(AFileName: String; var ATimecode: String): Integer;
+
+    // Record only
+    function RecordCue(AFileName: String): Integer;
+    function RecordCueData(AFileName, ADurationTimecode: String): Integer;
+
+    function SetSCTE35(AID, ADate, ATime, ADuration: String): Integer;
+    function GetSCTE35(AID: String; var ADate, ATime, ADuration: String): Integer;
+  end;
+
+  TPCSCGControl = class(TPCSBaseControl)
+  public
+    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+    function Rewind: Integer;
+
+    function PlayCue(AFileName: String): Integer;
+
+    function SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+    function GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+
+    function SetContent(AObjectID, AContent: String): Integer;
+    function GetContent(AObjectID: String; var AContent: String): Integer;
+
+    function SetRate(ARate: Double): Integer;
+    function GetRate(var ARate: Double): Integer;
+
+    function SetTimecode(ATimecode: String): Integer;
+    function GetTimecode(ATimecodeType: TPCSTimecodeType; var ATimecode: String): Integer;
+
+    function GetClipExist(AFileName: String; var AExist: Boolean): Integer;
+
+    function GetStatus(var AStatus: TPCSMediaStatus): Integer;
+  end;
+
+  TPCSSwitchBus = (
+    sbProgram = 0,
+    sbPreset,
+    sbOutput1,
+    sbOutput2
+    );
+
+  TPCSSwitchBusEnable = class
+  public
+    Bus: TPCSSwitchBus;
+    Enabled: Boolean;
+
+    constructor Create(ABus: TPCSSwitchBus; AEnabled: Boolean); overload;
+    destructor Destroy; override;
+  end;
+
+  TPCSSwitchBusEnables = TObjectList<TPCSSwitchBusEnable>;
+
+  TPCSKeyBusEnables = TObjectList<TPCSSwitchBusEnables>;
+
+  TPCSKeyEnables = TList<Boolean>;
+
+  TPCSKeyTransitionType = class
+  public
+    TypeName: String;
+    Params: String;
+
+    constructor Create(ATypeName: String; AParams: String); overload;
+    destructor Destroy; override;
+  end;
+
+  TPCSKeyTransitionTypes = TObjectList<TPCSKeyTransitionType>;
+
+  TPCSKeyTransitionRate = class
+    RateName: String;
+    Frames: Integer;
+
+    constructor Create(ARateName: String; AFrames: Integer); overload;
+    destructor Destroy; override;
+  end;
+
+  TPCSKeyTransitionRates = TObjectList<TPCSKeyTransitionRate>;
+
+  TPCSSwitcherControl = class(TPCSBaseControl)
+  public
+    function NextTransition(ABackground, AKey: Boolean): Integer;
+    function StartTransition: Integer;
+    function CrosspointTake(ACrosspoint: Integer; ASwitchBusEnables: TPCSSwitchBusEnables): Integer;
+    function KeyTake(AKeyBusEnables: TPCSKeyBusEnables): Integer;
+    function KeyTransition(AKeyBusEnables: TPCSKeyBusEnables): Integer;
+
+    function SetTransitionType(ATypeName: String; AParams: String = ''): Integer;
+    function SetTransitionRate(ARateName: String; ARateFrames: Integer = 0): Integer;
+
+    function SetEnableKey(AKeyEnables: TPCSKeyEnables): Integer;
+    function SetKeyTransitionType(AKeyTransitionTypes: TPCSKeyTransitionTypes): Integer;
+    function SetKeyTransitionRate(AKeyTransitionRates: TPCSKeyTransitionRates): Integer;
+
+    function GetCrosspointTake(ASwitchBus: TPCSSwitchBus; var ACrosspoint: Integer): Integer;
+    function GetKeyTake(var AKeyBusEnables: TPCSKeyBusEnables): Integer;
+
+    function GetTransitionType(var ATypeName: String; var AParams: String): Integer;
+    function GetTransitionRate(var ARateName: String; var ARateFrames: Integer): Integer;
+
+    function GetEnableKey(var AKeyEnables: TPCSKeyEnables): Integer;
+    function GetKeyTransitionType(var AKeyTransitionTypes: TPCSKeyTransitionTypes): Integer;
+    function GetKeyTransitionRate(var AKeyTransitionRates: TPCSKeyTransitionRates): Integer;
+
+    function GetStatus(var AStatus: String): Integer;
+
+{    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+    function Rewind: Integer;
+
+    function PlayCue(AFileName: String): Integer;
+
+    function SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+    function GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+
+    function SetContent(AObjectID, AContent: String): Integer;
+    function GetContent(AObjectID: String; var AContent: String): Integer;
+
+    function GetStatus(var AStatus: TPCSMediaStatus): Integer; }
+  end;
+
+const
+  SwitchBusNames: array [TPCSSwitchBus] of String = ('program', 'preset', 'output1', 'output2');
+
+implementation
+
+{ TPCSBaseControl }
+
+constructor TPCSBaseControl.Create;
+begin
+//  FUDPOut := TUDPOut.Create;
+//  FUDPOut.OnUDPRead := UDPRead;
+
+  FTimeout := TIME_OUT;
+
+  FSyncMsgEvent := CreateEvent(nil, True, False, nil);
+
+  FUDPLock := TCriticalSection.Create;
+end;
+
+constructor TPCSBaseControl.Create(AServerIP: AnsiString; AServerPort: Word; ATimeout: Cardinal = TIME_OUT);
+begin
+  Create;
+
+  FServerIP := AServerIP;
+  FServerPort := AServerPort;
+  FTimeout := ATimeout;
+
+{  FUDPOut.Port := AServerPort;
+  FUDPOut.AsyncMode := False;
+  FUDPOut.Broadcast := False;
+  FUDPOut.Timeout := ATimeout;
+  FUDPOut.Start;
+
+  while not (FUDPOut.Started) do
+    Sleep(30); }
+
+  StartUDPOut;
+
+//  Sleep(2000);
+end;
+
+destructor TPCSBaseControl.Destroy;
+begin
+  if (FSendJSONObject <> nil) then
+    FreeAndNil(FSendJSONObject);
+
+  if (FRecvJSONObject <> nil) then
+    FreeAndNil(FRecvJSONObject);
+
+  FreeAndNil(FUDPLock);
+
+  CloseHandle(FSyncMsgEvent);
+
+  StopUDPOut;
+//  FreeAndNil(FUDPOut);
+
+  inherited Destroy;
+end;
+
+procedure TPCSBaseControl.UDPRead(const ABindingIP: AnsiString; const AData: AnsiString; const ADataSize: Integer);
+var
+  UTF8Buffer: UTF8String;
+
+  Path: String;
+
+  Command: AnsiString;
+  Response: AnsiString;
+begin
+  // read response
+  UTF8Buffer := String(AData);
+
+  if (FRecvJSONObject <> nil) then
+    FreeAndNil(FRecvJSONObject);
+
+  FRecvJSONObject := TJSONObject.ParseJSONValue(UTF8Buffer) as TJSONObject;
+  try
+    Path := TypeCommand;
+    if (FRecvJSONObject.TryGetValue(Path, Command)) then
+    begin
+//      if (Command = FCommand) then
+//      begin
+        Path := TypeResponse;
+        if (FRecvJSONObject.TryGetValue(Path, Response)) then
+        begin
+          if (Response = TypeSuccess) then
+            FLastResult := D_OK
+          else if (Response = TypeFail) then
+          begin
+            FLastResult := D_FALSE;
+
+            Path := TypeFail;
+            FLastResult := D_FALSE;
+            FRecvJSONObject.TryGetValue(Path, FLastResult);
+          end
+          else
+            FLastResult := E_INVALID_RESPONSE;
+        end
+        else
+          FLastResult := E_INVALID_RESPONSE;
+//      end
+//      else
+//        FLastResult := E_INVALID_COMMAND;
+    end
+    else
+      FLastResult := E_COMMAND_IGNORED;
+  finally
+//    FreeAndNil(RecvJSONObject);
+  end;
+
+  SetEvent(FSyncMsgEvent);
+end;
+
+procedure TPCSBaseControl.SetServerIP(AValue: AnsiString);
+begin
+  if (FServerIP <> AValue) then
+  begin
+    StopUDPOut;
+
+    FServerIP := AValue;
+
+    StartUDPOut;
+  end;
+end;
+
+procedure TPCSBaseControl.SetServerPort(AValue: Word);
+begin
+  if (FServerPort <> AValue) then
+  begin
+    StopUDPOut;
+
+    FServerPort := AValue;
+
+    StartUDPOut;
+  end;
+end;
+
+procedure TPCSBaseControl.SetTimeout(AValue: Cardinal);
+begin
+  if (FTimeout <> AValue) then
+  begin
+    StopUDPOut;
+
+    FTimeout := AValue;
+
+    StartUDPOut;
+  end;
+end;
+
+{function TPCSBaseControl.SendCommand(ACommandData: AnsiString; const ADataIds: array of String; const ADataBufs: array of const): Integer;
+var
+  Val: String;
+  UTF8Buffer: UTF8String;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  FSendJSONObject.AddPair(TypeCommand, ACommandData);
+
+  for I := Low(ADataIds) to High(ADataIds) do
+    if ((I >= Low(ADataBufs)) and (I <= High(ADataBufs))) then
+    begin
+      case ADataBufs[I].VType of
+        vtInteger: Val := IntToStr(ADataBufs[I].VInteger);
+        vtChar: Val := Char(ADataBufs[I].VChar);
+        vtWideChar: Val := Char(ADataBufs[I].VWideChar);
+        vtExtended, vtCurrency: Val := FloatToStr(ADataBufs[I].VExtended^);
+        vtPointer: Val := IntToHex(IntPtr(ADataBufs[I].VPointer), SizeOf(Pointer) * 2);
+        vtPChar: Val := UnicodeString(ADataBufs[I].VPChar);
+        vtPWideChar: Val := WideString(ADataBufs[I].VPWideChar);
+        vtAnsiString: Val := UnicodeString(AnsiString(ADataBufs[I].VAnsiString));
+        vtWideString: Val := WideString(ADataBufs[I].VWideString);
+        vtInt64: Val := IntToStr(ADataBufs[I].VInt64^);
+        vtUnicodeString: Val := UnicodeString(ADataBufs[I].VUnicodeString);
+        else continue;
+      end;
+
+      FSendJSONObject.AddPair(ADataIds[I], Val);
+    end;
+
+  // get JSON string
+  UTF8Buffer := FSendJSONObject.ToJSON;
+  FUDPOut.Send(FServerIP, FServerPort, UTF8Buffer);
+
+  Result := D_OK;
+end; }
+
+function TPCSBaseControl.SendCommand(AJSONObject: TJSONObject): Integer;
+var
+  UTF8Buffer: UTF8String;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (AJSONObject = nil) then exit;
+
+  // get JSON string
+  UTF8Buffer := AJSONObject.ToJSON;
+  FUDPOut.Send(FServerIP, FServerPort, UTF8Buffer);
+
+  Result := D_OK;
+end;
+
+procedure TPCSBaseControl.StartUDPOut;
+begin
+  if (FUDPOut = nil) then FUDPOut := TUDPOut.Create;
+
+  FUDPOut.Port := FServerPort;
+  FUDPOut.AsyncMode := True;
+  FUDPOut.Broadcast := False;
+  FUDPOut.Timeout   := FTimeout;
+  FUDPOut.OnUDPRead := UDPRead;
+
+{  if (FServerPort = 1300) then
+  begin
+  FUDPOut.LogPath := 'C:\Out1\';
+  FUDPOut.LogEnabled := True;
+  FUDPOut.LogExt := '.log';
+  end; }
+  FUDPOut.Start;
+
+  while not (FUDPOut.Started) do
+    Sleep(30);
+end;
+
+procedure TPCSBaseControl.StopUDPOut;
+begin
+  if (FUDPOut <> nil) then
+  begin
+    if (FUDPOut.Started) then
+    begin
+      FUDPOut.Close;
+//      FUDPOut.Terminate;
+      FUDPOut.WaitFor;
+    end;
+    FreeAndNil(FUDPOut);
+  end;
+end;
+
+function TPCSBaseControl.TransmitCommand(AJSONObject: TJSONObject): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if (AJSONObject = nil) then exit;
+
+  if (AJSONObject.TryGetValue(TypeCommand, FCommand)) then
+  begin
+    ResetEvent(FSyncMsgEvent);
+
+    FUDPLock.Enter;
+    try
+      if (SendCommand(AJSONObject) = NOERROR) then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeout);
+        case R of
+          WAIT_OBJECT_0:
+            begin
+              Result := FLastResult;
+            end;
+          else Result := E_TIMEOUT;
+         end;
+      end;
+    finally
+      FUDPLock.Leave;
+    end;
+  end;
+end;
+
+function TPCSBaseControl.Open(var AOpened: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AOpened := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('open'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      AOpened := True;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSBaseControl.Close(var AClosed: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AClosed := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('close'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      AClosed := True;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSBaseControl.GetDeviceNo(var ADeviceID: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ADeviceID := INVALID_DEVICEID;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_device_no'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('no', ADeviceID);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TPCSMediaControl }
+
+function TPCSMediaControl.Play: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.Pause: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('pause'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.Stop: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('stop'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.PlayCue(AFileName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.PlayCueData(AFileName, AStartTimecode, ADurationTimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue_data'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+    JSONObejct.AddPair('start', TJSONString.Create(AStartTimecode));
+    JSONObejct.AddPair('duration', TJSONString.Create(ADurationTimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.SetTimecode(ATimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_timecode'));
+  try
+    JSONObejct.AddPair('timecode', TJSONString.Create(ATimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetTimecode(ATimecodeType: TPCSTimecodeType; var ATimecode: String): Integer;
+const
+  TypeNames: array[TPCSTimecodeType] of String = ('current', 'remain');
+var
+  JSONObejct: TJSONObject;
+begin
+  ATimecode := INIT_TIMECODE;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_timecode'));
+  try
+    JSONObejct.AddPair('type', TJSONString.Create(TypeNames[ATimecodeType]));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('timecode', ATimecode);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.SetRate(ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_rate'));
+  try
+    JSONObejct.AddPair('rate', TJSONNumber.Create(ARate));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetRate(var ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ARate := 0;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_rate'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('rate', ARate);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetClipExist(AFileName: String; var AExist: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+  ExistStr: String;
+begin
+  AExist := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_clip_exist'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('exists', ExistStr);
+    end;
+
+    AExist := StrToBoolDef(ExistStr, False);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetClipSize(AFileName: String; var ATimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ATimecode := INIT_TIMECODE;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_clip_size'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('duration', ATimecode);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetStatus(var AStatus: TPCSMediaStatus): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  FillChar(AStatus, SizeOf(TPCSMediaStatus), #0);
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_status'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('idle', AStatus.Idle);
+      FRecvJSONObject.TryGetValue('play', AStatus.Play);
+      FRecvJSONObject.TryGetValue('pause', AStatus.Paused);
+      FRecvJSONObject.TryGetValue('cueing', AStatus.Cue);
+      FRecvJSONObject.TryGetValue('cue_done', AStatus.CueDone);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.RecordCue(AFileName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('record_cue'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.RecordCueData(AFileName, ADurationTimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('record_cue_data'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+    JSONObejct.AddPair('duration', TJSONString.Create(ADurationTimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+// Date format : yyyymmdd
+// Time format : hh:mi:ss.sss
+function TPCSMediaControl.SetSCTE35(AID, ADate, ATime, ADuration: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_scte35'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AID));
+    JSONObejct.AddPair('date', TJSONString.Create(ADate));
+    JSONObejct.AddPair('time', TJSONString.Create(ATime));
+    JSONObejct.AddPair('duration', TJSONString.Create(ADuration));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSMediaControl.GetSCTE35(AID: String; var ADate, ATime, ADuration: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ASpliceStartTimecode := INIT_TIMECODE;
+  ASpliceDurationTimecode := INIT_TIMECODE;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_scte35'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AID));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('time', ASpliceStartTimecode);
+      FRecvJSONObject.TryGetValue('duration', ASpliceDurationTimecode);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TPCSCGControl }
+
+function TPCSCGControl.Play: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.Pause: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('pause'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.Stop: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('stop'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.Rewind: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('rewind'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.PlayCue(AFileName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_data'));
+  try
+    JSONObejct.AddPair('object_id', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('name', TJSONString.Create(APropertyName));
+    JSONObejct.AddPair('value', TJSONString.Create(APropertyValue));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  APropertyValue := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_data'));
+  try
+    JSONObejct.AddPair('object_id', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('name', TJSONString.Create(APropertyName));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('value', APropertyValue);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.SetContent(AObjectID, AContent: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_content'));
+  try
+    JSONObejct.AddPair('object_id', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('content', TJSONString.Create(AContent));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetContent(AObjectID: String; var AContent: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AContent := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_content'));
+  try
+    JSONObejct.AddPair('object_id', TJSONString.Create(AObjectID));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('content', AContent);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.SetTimecode(ATimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_timecode'));
+  try
+    JSONObejct.AddPair('timecode', TJSONString.Create(ATimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetTimecode(ATimecodeType: TPCSTimecodeType; var ATimecode: String): Integer;
+const
+  TypeNames: array[TPCSTimecodeType] of String = ('current', 'remain');
+var
+  JSONObejct: TJSONObject;
+begin
+  ATimecode := INIT_TIMECODE;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_timecode'));
+  try
+    JSONObejct.AddPair('type', TJSONString.Create(TypeNames[ATimecodeType]));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('timecode', ATimecode);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.SetRate(ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_rate'));
+  try
+    JSONObejct.AddPair('rate', TJSONNumber.Create(ARate));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetRate(var ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ARate := 0;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_rate'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('rate', ARate);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetClipExist(AFileName: String; var AExist: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+  ExistStr: String;
+begin
+  AExist := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_clip_exist'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('exists', ExistStr);
+    end;
+
+    AExist := StrToBoolDef(ExistStr, False);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSCGControl.GetStatus(var AStatus: TPCSMediaStatus): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  FillChar(AStatus, SizeOf(TPCSMediaStatus), #0);
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_status'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('idle', AStatus.Idle);
+      FRecvJSONObject.TryGetValue('play', AStatus.Play);
+      FRecvJSONObject.TryGetValue('pause', AStatus.Paused);
+      FRecvJSONObject.TryGetValue('cueing', AStatus.Cue);
+      FRecvJSONObject.TryGetValue('cue_done', AStatus.CueDone);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TPCSSwitchBusEnable }
+
+constructor TPCSSwitchBusEnable.Create(ABus: TPCSSwitchBus; AEnabled: Boolean);
+begin
+  Bus := ABus;
+  Enabled := AEnabled;
+end;
+
+destructor TPCSSwitchBusEnable.Destroy;
+begin
+  inherited;
+end;
+
+{ TPCSKeyTransitionType }
+
+constructor TPCSKeyTransitionType.Create(ATypeName: String; AParams: String);
+begin
+  TypeName := ATypeName;
+  Params := AParams;
+end;
+
+destructor TPCSKeyTransitionType.Destroy;
+begin
+  inherited;
+end;
+
+{ TPCSKeyTransitionRate }
+
+constructor TPCSKeyTransitionRate.Create(ARateName: String; AFrames: Integer);
+begin
+  RateName := ARateName;
+  Frames := AFrames;
+end;
+
+destructor TPCSKeyTransitionRate.Destroy;
+begin
+  inherited;
+end;
+
+{ TPCSSwitcherControl }
+
+function TPCSSwitcherControl.NextTransition(ABackground, AKey: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('next_transition'));
+  try
+    JSONObejct.AddPair('background', TJSONBool.Create(ABackground));
+    JSONObejct.AddPair('key', TJSONBool.Create(AKey));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.StartTransition: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('start_transition'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.CrosspointTake(ACrosspoint: Integer; ASwitchBusEnables: TPCSSwitchBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  BusObject: TJSONObject;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (ASwitchBusEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('crosspoint_take'));
+  try
+    BusObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('bus', BusObject);
+
+    for I := 0 to ASwitchBusEnables.Count - 1 do
+    begin
+      BusObject.AddPair(SwitchBusNames[ASwitchBusEnables[I].Bus], TJSONBool.Create(ASwitchBusEnables[I].Enabled));
+    end;
+
+    JSONObejct.AddPair('crosspoint', TJSONNumber.Create(ACrosspoint));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.KeyTake(AKeyBusEnables: TPCSKeyBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject, BusObject: TJSONObject;
+
+  I, J: Integer;
+  BusEnables: TPCSSwitchBusEnables;
+begin
+  Result := D_FALSE;
+
+  if (AKeyBusEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('key_take'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyBusEnables.Count - 1 do
+    begin
+      BusEnables := AKeyBusEnables[I];
+      if (BusEnables <> nil) then
+      begin
+        BusObject := TJSONObject.Create;
+        KeysObject.AddPair(Format('key%d', [I + 1]), BusObject);
+
+        for J := 0 to BusEnables.Count - 1 do
+          BusObject.AddPair(SwitchBusNames[BusEnables[J].Bus], TJSONBool.Create(BusEnables[J].Enabled));
+      end;
+    end;
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.KeyTransition(AKeyBusEnables: TPCSKeyBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject, BusObject: TJSONObject;
+
+  I, J: Integer;
+  BusEnables: TPCSSwitchBusEnables;
+begin
+  Result := D_FALSE;
+
+  if (AKeyBusEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('key_transition'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyBusEnables.Count - 1 do
+    begin
+      BusEnables := AKeyBusEnables[I];
+      if (BusEnables <> nil) then
+      begin
+        BusObject := TJSONObject.Create;
+        KeysObject.AddPair(Format('key%d', [I + 1]), BusObject);
+
+        for J := 0 to BusEnables.Count - 1 do
+          BusObject.AddPair(SwitchBusNames[BusEnables[J].Bus], TJSONBool.Create(BusEnables[J].Enabled));
+      end;
+    end;
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.SetTransitionType(ATypeName: String; AParams: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_transition_type'));
+  try
+    JSONObejct.AddPair('type', TJSONString.Create(ATypeName));
+
+    if (AParams <> '') then
+      JSONObejct.AddPair('parameters', TJSONString.Create(AParams));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.SetTransitionRate(ARateName: String; ARateFrames: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+  RateString: String;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_transition_rate'));
+  try
+    if (ARateName = '') then
+      RateString := IntToStr(ARateFrames)
+    else
+      RateString := ARateName;
+
+    JSONObejct.AddPair('rate', TJSONString.Create(RateString));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.SetEnableKey(AKeyEnables: TPCSKeyEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (AKeyEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_enable_key'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyEnables.Count - 1 do
+    begin
+      KeysObject.AddPair(Format('key%d', [I + 1]), TJSONBool.Create(AKeyEnables[I]));
+    end;
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.SetKeyTransitionType(AKeyTransitionTypes: TPCSKeyTransitionTypes): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject: TJSONObject;
+  KeyObject: TJSONObject;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (AKeyTransitionTypes = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_key_transition_type'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyTransitionTypes.Count - 1 do
+    begin
+      KeyObject := TJSONObject.Create;
+
+      KeysObject.AddPair(Format('key%d', [I + 1]), KeyObject);
+      KeyObject.AddPair('type', AKeyTransitionTypes[I].TypeName);
+      KeyObject.AddPair('parameters', AKeyTransitionTypes[I].Params);
+    end;
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.SetKeyTransitionRate(AKeyTransitionRates: TPCSKeyTransitionRates): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject: TJSONObject;
+  RateString: String;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (AKeyTransitionRates = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_key_transition_rate'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyTransitionRates.Count - 1 do
+    begin
+      if (AKeyTransitionRates[I].RateName = '') then
+        RateString := IntToStr(AKeyTransitionRates[I].Frames)
+      else
+        RateString := AKeyTransitionRates[I].RateName;
+
+      KeysObject.AddPair(Format('key%d', [I + 1]), RateString);
+    end;
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetCrosspointTake(ASwitchBus: TPCSSwitchBus; var ACrosspoint: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ACrosspoint := -1;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_crosspoint_take');
+  try
+    JSONObejct.AddPair('bus', SwitchBusNames[ASwitchBus]);
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('crosspoint', ACrosspoint);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetKeyTake(var AKeyBusEnables: TPCSKeyBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysPair: TJSONPair;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+  KeyPair: TJSONPair;
+  KeyObject: TJSONObject;
+
+  BusEnables: TPCSSwitchBusEnables;
+
+  J: TPCSSwitchBus;
+  BusEnabled: Boolean;
+begin
+  Result := D_FALSE;
+
+  if (AKeyBusEnables = nil) then exit;
+
+  AKeyBusEnables.Clear;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_key_take');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      KeysPair := FRecvJSONObject.Get('keys');
+      if (KeysPair = nil) then exit;
+
+      KeysObject := TJSONObject(KeysPair.JsonValue);
+      if (KeysObject = nil) then exit;
+
+      for I := 0 to KeyCount - 1 do
+      begin
+        KeyPair := KeysObject.Get(Format('key%d', [I + 1]));
+        if (KeyPair = nil) then continue;
+
+        KeyObject := TJSONObject(KeyPair.JsonValue);
+        if (KeyObject = nil) then continue;
+
+        BusEnables := TPCSSwitchBusEnables.Create;
+        for J := sbProgram to sbOutput2 do
+        begin
+          if (KeyObject.TryGetValue(SwitchBusNames[J], BusEnabled)) then
+          begin
+            BusEnables.Add(TPCSSwitchBusEnable.Create(J, BusEnabled));
+          end;
+        end;
+
+        AKeyBusEnables.Add(BusEnables);
+      end;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetTransitionType(var ATypeName: String; var AParams: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ATypeName := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_transition_type');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('type', ATypeName);
+
+      FRecvJSONObject.TryGetValue('parameters', AParams);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetTransitionRate(var ARateName: String; var ARateFrames: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ARateName := '';
+  ARateFrames := 0;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_transition_rate');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('rate', ARateName);
+      if (ARateName <> 'slow') and
+         (ARateName <> 'medium') and
+         (ARateName <> 'fast') then
+        ARateFrames := StrToIntDef(ARateName, 0);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetEnableKey(var AKeyEnables: TPCSKeyEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysPair: TJSONPair;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+  KeyEnbled: Boolean;
+begin
+  Result := D_FALSE;
+
+  if (AKeyEnables = nil) then exit;
+
+  AKeyEnables.Clear;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_enable_key');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      KeysPair := FRecvJSONObject.Get('keys');
+      if (KeysPair = nil) then exit;
+
+      KeysObject := TJSONObject(KeysPair.JsonValue);
+      if (KeysObject = nil) then exit;
+
+      for I := 0 to KeyCount - 1 do
+      begin
+        if (KeysObject.TryGetValue(Format('key%d', [I + 1]), KeyEnbled)) then
+        begin
+          AKeyEnables.Add(KeyEnbled);
+        end;
+      end;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetKeyTransitionType(var AKeyTransitionTypes: TPCSKeyTransitionTypes): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysPair: TJSONPair;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+  KeyPair: TJSONPair;
+  KeyObject: TJSONObject;
+
+  KeyTransitionType: TPCSKeyTransitionType;
+begin
+  Result := D_FALSE;
+
+  if (AKeyTransitionTypes = nil) then exit;
+
+  AKeyTransitionTypes.Clear;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_key_transition_type');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      KeysPair := FRecvJSONObject.Get('keys');
+      if (KeysPair = nil) then exit;
+
+      KeysObject := TJSONObject(KeysPair.JsonValue);
+      if (KeysObject = nil) then exit;
+
+      for I := 0 to KeyCount - 1 do
+      begin
+        KeyPair := KeysObject.Get(Format('key%d', [I + 1]));
+        if (KeyPair = nil) then continue;
+
+        KeyObject := TJSONObject(KeyPair.JsonValue);
+        if (KeyObject = nil) then continue;
+
+        KeyTransitionType := TPCSKeyTransitionType.Create;
+
+        KeyObject.TryGetValue('type', KeyTransitionType.TypeName);
+        KeyObject.TryGetValue('parameters', KeyTransitionType.Params);
+
+        AKeyTransitionTypes.Add(KeyTransitionType);
+      end;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetKeyTransitionRate(var AKeyTransitionRates: TPCSKeyTransitionRates): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysPair: TJSONPair;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+
+  KeyTransitionRate: TPCSKeyTransitionRate;
+begin
+  Result := D_FALSE;
+
+  if (AKeyTransitionRates = nil) then exit;
+
+  AKeyTransitionRates.Clear;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_key_transition_rate');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      KeysPair := FRecvJSONObject.Get('keys');
+      if (KeysPair = nil) then exit;
+
+      KeysObject := TJSONObject(KeysPair.JsonValue);
+      if (KeysObject = nil) then exit;
+
+      for I := 0 to KeyCount - 1 do
+      begin
+        KeyTransitionRate := TPCSKeyTransitionRate.Create;
+
+        KeysObject.TryGetValue(Format('key%d', [I + 1]), KeyTransitionRate.RateName);
+
+        if (KeyTransitionRate.RateName <> 'slow') and
+           (KeyTransitionRate.RateName <> 'medium') and
+           (KeyTransitionRate.RateName <> 'fast') then
+          KeyTransitionRate.Frames := StrToIntDef(KeyTransitionRate.RateName, 0);
+
+        AKeyTransitionRates.Add(KeyTransitionRate);
+      end;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TPCSSwitcherControl.GetStatus(var AStatus: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AStatus := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_status');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('status', AStatus);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+end.

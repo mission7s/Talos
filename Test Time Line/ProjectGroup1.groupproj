@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{2AECAE61-802C-4392-909F-E9EF07573D6C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TestTimeLine.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestTimeLine">
+        <MSBuild Projects="TestTimeLine.dproj"/>
+    </Target>
+    <Target Name="TestTimeLine:Clean">
+        <MSBuild Projects="TestTimeLine.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestTimeLine:Make">
+        <MSBuild Projects="TestTimeLine.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dcWiseMediaPack">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj"/>
+    </Target>
+    <Target Name="dcWiseMediaPack:Clean">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dcWiseMediaPack:Make">
+        <MSBuild Projects="..\..\xe_lib\WiseMedia Tools\dcWiseMediaPack.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestTimeLine;dcWiseMediaPack"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestTimeLine:Clean;dcWiseMediaPack:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestTimeLine:Make;dcWiseMediaPack:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

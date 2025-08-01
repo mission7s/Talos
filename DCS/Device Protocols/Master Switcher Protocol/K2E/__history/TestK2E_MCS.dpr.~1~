@@ -1,0 +1,16 @@
+program TestK2E_MCS;
+
+uses
+  Vcl.Forms,
+  UnitTestVTS in '..\Video Tron\TestVTS\UnitTestVTS.pas' {Form1},
+  UnitSerialVideoTronSwitcher in '..\..\..\Device Units\Serial Protocol\Video Tron\UnitSerialVideoTronSwitcher.pas',
+  UnitBaseSerial in '..\..\..\..\Common\UnitBaseSerial.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.

@@ -1,0 +1,970 @@
+unit UnitClientRemoteControl;
+
+interface
+
+uses System.Classes, System.SysUtils, System.SyncObjs, Winapi.Windows, System.JSON,
+  System.Generics.Collections,
+  UnitUDPIn, UnitUDPOut;
+
+const
+  D_OK    = 0;
+  D_FALSE = -1;
+
+  E_TIMEOUT = $F0;
+
+  E_COMMAND_IGNORED = -1;
+  E_INVALID_COMMAND = -2;
+  E_INVALID_RESPONSE = -3;
+
+  TIME_OUT = 1000;
+
+  TypeCommand  = 'command';
+  TypeResponse = 'response';
+  TypeSuccess  = 'success';
+  TypeFail     = 'fail';
+
+  INVALID_DEVICEID = -1;
+
+  INIT_TIMECODE = '00:00:00;00';
+
+  KeyCount = 8;
+
+type
+  TBaseRemoteControl = class(TObject)
+    FServerIP: AnsiString;
+    FServerPort: Word;
+
+    FUDPOut: TUDPOut;
+
+    FCommand: AnsiString;
+    FSendJSONObject: TJSONObject;
+    FRecvJSONObject: TJSONObject;
+
+    FSyncMsgEvent: THandle;
+
+    FLastResult: Integer;
+
+    FUDPLock: TCriticalSection;
+
+    function SendCommand(AJSONObject: TJSONObject): Integer;
+  protected
+    procedure UDPRead(const ABindingIP: AnsiString; const AData: AnsiString; const ADataSize: Integer); virtual;
+  public
+    constructor Create(AServerIP: AnsiString; AServerPort: Word; ATimeout: Cardinal = 10000); virtual;
+    destructor Destroy; override;
+
+    function TransmitCommand(AJSONObject: TJSONObject): Integer;
+
+    function Open(var AOpened: Boolean): Integer; virtual;
+    function Close(var AClosed: Boolean): Integer; virtual;
+    function GetDeviceNo(var ADeviceID: Integer): Integer; virtual;
+  end;
+
+  TPlayerRemoteStatus = record
+    Idle: Boolean;
+    Play: Boolean;
+    Paused: Boolean;
+    Cue: Boolean;
+    CueDone: Boolean;
+  end;
+
+  TMediaRemoteControl = class(TBaseRemoteControl)
+  public
+    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+
+    function PlayCue(AFileName: String): Integer;
+    function PlayCueData(AFileName, AStartTimecode, ADurationTimecode: String): Integer;
+
+    function SetTimecode(ATimecode: String): Integer;
+    function GetTimecode(var ATimecode: String): Integer;
+
+    function SetRate(ARate: Double): Integer;
+    function GetRate(var ARate: Double): Integer;
+
+    function GetStatus(var AStatus: TPlayerRemoteStatus): Integer;
+  end;
+
+  TCGRemoteControl = class(TBaseRemoteControl)
+  public
+    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+    function Rewind: Integer;
+
+    function PlayCue(AFileName: String): Integer;
+
+    function SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+    function GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+
+    function SetContent(AObjectID, AContent: String): Integer;
+    function GetContent(AObjectID: String; var AContent: String): Integer;
+
+    function GetStatus(var AStatus: TPlayerRemoteStatus): Integer;
+  end;
+
+  TSwitchBus = (
+    sbProgram = 0,
+    sbPreset,
+    sbOutput1,
+    sbOutput2
+    );
+
+  TSwitchBusEnable = class
+  public
+    Bus: TSwitchBus;
+    Enabled: Boolean;
+
+    constructor Create(ABus: TSwitchBus; AEnabled: Boolean);
+    destructor Destroy; override;
+  end;
+
+  TSwitchBusEnables = TObjectList<TSwitchBusEnable>;
+
+  TKeyBusEnables = TObjectList<TSwitchBusEnables>;
+
+  TSwitcherRemoteControl = class(TBaseRemoteControl)
+  public
+    function NextTransition(ABackground, AKey: Boolean): Integer;
+    function StartTransition: Integer;
+    function CrosspointTake(ACrosspoint: Integer; ASwitchBusEnables: TSwitchBusEnables): Integer;
+    function KeyTake(AKeyBusEnables: TKeyBusEnables): Integer;
+    function SetTransitionType(ATypeName: String): Integer;
+    function SetTransitionRate(ARateName: String; ARateFrames: Integer): Integer;
+
+    function GetCrosspointTake(ASwitchBus: TSwitchBus; var ACrosspoint: Integer): Integer;
+    function GetKeyTake(var AKeyBusEnables: TKeyBusEnables): Integer;
+
+    function GetTransitionType(var ATypeName: String): Integer;
+    function GetTransitionRate(var ARateName: String; var ARateFrames: Integer): Integer;
+
+{    function SetEnableKey(bool &bResponse, const std::vector<bool> &Keys);
+    function GetEnableKey(bool &bResponse, std::vector<bool> &Keys);
+    function GetStatus(bool &bResponse, UnicodeString &Status);
+
+    function Play: Integer;
+    function Pause: Integer;
+    function Stop: Integer;
+    function Rewind: Integer;
+
+    function PlayCue(AFileName: String): Integer;
+
+    function SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+    function GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+
+    function SetContent(AObjectID, AContent: String): Integer;
+    function GetContent(AObjectID: String; var AContent: String): Integer;
+
+    function GetStatus(var AStatus: TPlayerRemoteStatus): Integer; }
+  end;
+
+const
+  SwitchBusNames: array [TSwitchBus] of String = ('program', 'preset', 'output1', 'output2');
+
+implementation
+
+{ TBaseRemoteControl }
+
+constructor TBaseRemoteControl.Create(AServerIP: AnsiString; AServerPort: Word; ATimeout: Cardinal = 10000);
+begin
+  inherited Create;
+
+  FServerIP := AServerIP;
+  FServerPort := AServerPort;
+
+  FUDPOut := TUDPOut.Create;
+  FUDPOut.Port := AServerPort;
+  FUDPOut.AsyncMode := False;
+  FUDPOut.Broadcast := False;
+  FUDPOut.Timeout := ATimeout;
+  FUDPOut.OnUDPRead := UDPRead;
+  FUDPOut.Start;
+
+  while not (FUDPOut.Started) do
+    Sleep(30);
+
+//  Sleep(2000);
+
+  FSyncMsgEvent := CreateEvent(nil, True, False, nil);
+
+  FUDPLock := TCriticalSection.Create;
+end;
+
+destructor TBaseRemoteControl.Destroy;
+begin
+  if (FSendJSONObject <> nil) then
+    FreeAndNil(FSendJSONObject);
+
+  if (FRecvJSONObject <> nil) then
+    FreeAndNil(FRecvJSONObject);
+
+  FreeAndNil(FUDPLock);
+
+  CloseHandle(FSyncMsgEvent);
+
+  FUDPOut.Close;
+  FUDPOut.Terminate;
+  FUDPOut.WaitFor;
+  FreeAndNil(FUDPOut);
+
+  inherited Destroy;
+end;
+
+procedure TBaseRemoteControl.UDPRead(const ABindingIP: AnsiString; const AData: AnsiString; const ADataSize: Integer);
+var
+  UTF8Buffer: UTF8String;
+
+  Path: String;
+
+  Command: AnsiString;
+  Response: AnsiString;
+begin
+  // read response
+  UTF8Buffer := String(AData);
+
+  if (FRecvJSONObject <> nil) then
+    FreeAndNil(FRecvJSONObject);
+
+  FRecvJSONObject := TJSONObject.ParseJSONValue(UTF8Buffer) as TJSONObject;
+  try
+    Path := TypeCommand;
+    if (FRecvJSONObject.TryGetValue(Path, Command)) then
+    begin
+      if (Command = FCommand) then
+      begin
+        Path := TypeResponse;
+        if (FRecvJSONObject.TryGetValue(Path, Response)) then
+        begin
+          if (Response = TypeSuccess) then
+            FLastResult := D_OK
+          else if (Response = TypeFail) then
+          begin
+            FLastResult := D_FALSE;
+
+            Path := TypeFail;
+            FLastResult := D_FALSE;
+            FRecvJSONObject.TryGetValue(Path, FLastResult);
+          end
+          else
+            FLastResult := E_INVALID_RESPONSE;
+        end
+        else
+          FLastResult := E_INVALID_RESPONSE;
+      end
+      else
+        FLastResult := E_INVALID_COMMAND;
+    end
+    else
+      FLastResult := E_COMMAND_IGNORED;
+  finally
+//    FreeAndNil(RecvJSONObject);
+  end;
+
+  SetEvent(FSyncMsgEvent);
+end;
+
+{function TBaseRemoteControl.SendCommand(ACommandData: AnsiString; const ADataIds: array of String; const ADataBufs: array of const): Integer;
+var
+  Val: String;
+  UTF8Buffer: UTF8String;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  FSendJSONObject.AddPair(TypeCommand, ACommandData);
+
+  for I := Low(ADataIds) to High(ADataIds) do
+    if ((I >= Low(ADataBufs)) and (I <= High(ADataBufs))) then
+    begin
+      case ADataBufs[I].VType of
+        vtInteger: Val := IntToStr(ADataBufs[I].VInteger);
+        vtChar: Val := Char(ADataBufs[I].VChar);
+        vtWideChar: Val := Char(ADataBufs[I].VWideChar);
+        vtExtended, vtCurrency: Val := FloatToStr(ADataBufs[I].VExtended^);
+        vtPointer: Val := IntToHex(IntPtr(ADataBufs[I].VPointer), SizeOf(Pointer) * 2);
+        vtPChar: Val := UnicodeString(ADataBufs[I].VPChar);
+        vtPWideChar: Val := WideString(ADataBufs[I].VPWideChar);
+        vtAnsiString: Val := UnicodeString(AnsiString(ADataBufs[I].VAnsiString));
+        vtWideString: Val := WideString(ADataBufs[I].VWideString);
+        vtInt64: Val := IntToStr(ADataBufs[I].VInt64^);
+        vtUnicodeString: Val := UnicodeString(ADataBufs[I].VUnicodeString);
+        else continue;
+      end;
+
+      FSendJSONObject.AddPair(ADataIds[I], Val);
+    end;
+
+  // get JSON string
+  UTF8Buffer := FSendJSONObject.ToJSON;
+  FUDPOut.Send(FServerIP, FServerPort, UTF8Buffer);
+
+  Result := D_OK;
+end; }
+
+function TBaseRemoteControl.SendCommand(AJSONObject: TJSONObject): Integer;
+var
+  UTF8Buffer: UTF8String;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (AJSONObject = nil) then exit;
+
+  // get JSON string
+  UTF8Buffer := AJSONObject.ToJSON;
+  FUDPOut.Send(FServerIP, FServerPort, UTF8Buffer);
+
+  Result := D_OK;
+end;
+
+function TBaseRemoteControl.TransmitCommand(AJSONObject: TJSONObject): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if (AJSONObject = nil) then exit;
+
+  if (AJSONObject.TryGetValue(TypeCommand, FCommand)) then
+  begin
+    ResetEvent(FSyncMsgEvent);
+
+    FUDPLock.Enter;
+    try
+      if (SendCommand(AJSONObject) = NOERROR) then
+      begin
+        R := WaitForSingleObject(FSyncMsgEvent, TIME_OUT);
+        case R of
+          WAIT_OBJECT_0:
+            begin
+              Result := FLastResult;
+            end;
+          else Result := E_TIMEOUT;
+         end;
+      end;
+    finally
+      FUDPLock.Leave;
+    end;
+  end;
+end;
+
+function TBaseRemoteControl.Open(var AOpened: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AOpened := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('open'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      AOpened := True;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TBaseRemoteControl.Close(var AClosed: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AClosed := False;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('close'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      AClosed := True;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TBaseRemoteControl.GetDeviceNo(var ADeviceID: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ADeviceID := INVALID_DEVICEID;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_device_no'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('no', ADeviceID);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TMediaRemoteControl }
+
+function TMediaRemoteControl.Play: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.Pause: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('pause'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.Stop: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('stop'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.PlayCue(AFileName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.PlayCueData(AFileName, AStartTimecode, ADurationTimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue_data'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+    JSONObejct.AddPair('start', TJSONString.Create(AStartTimecode));
+    JSONObejct.AddPair('duration', TJSONString.Create(ADurationTimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.SetTimecode(ATimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_timecode'));
+  try
+    JSONObejct.AddPair('timecode', TJSONString.Create(ATimecode));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.GetTimecode(var ATimecode: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ATimecode := INIT_TIMECODE;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_timecode'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('timecode', ATimecode);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.SetRate(ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_rate'));
+  try
+    JSONObejct.AddPair('rate', TJSONNumber.Create(ARate));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.GetRate(var ARate: Double): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ARate := 0;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_rate'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('rate', ARate);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TMediaRemoteControl.GetStatus(var AStatus: TPlayerRemoteStatus): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  FillChar(AStatus, SizeOf(TPlayerRemoteStatus), #0);
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_status'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('idle', AStatus.Idle);
+      FRecvJSONObject.TryGetValue('play', AStatus.Play);
+      FRecvJSONObject.TryGetValue('pause', AStatus.Paused);
+      FRecvJSONObject.TryGetValue('cueing', AStatus.Cue);
+      FRecvJSONObject.TryGetValue('cue_done', AStatus.CueDone);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TCGRemoteControl }
+
+function TCGRemoteControl.Play: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.Pause: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('pause'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.Stop: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('stop'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.Rewind: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('rewind'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.PlayCue(AFileName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('play_cue'));
+  try
+    JSONObejct.AddPair('id', TJSONString.Create(AFileName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.SetData(AObjectID, APropertyName, APropertyValue: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_data'));
+  try
+    JSONObejct.AddPair('object', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('name', TJSONString.Create(APropertyName));
+    JSONObejct.AddPair('value', TJSONString.Create(APropertyValue));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.GetData(AObjectID, APropertyName: String; var APropertyValue: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  APropertyValue := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_data'));
+  try
+    JSONObejct.AddPair('object', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('name', TJSONString.Create(APropertyName));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('value', APropertyValue);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.SetContent(AObjectID, AContent: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_content'));
+  try
+    JSONObejct.AddPair('object', TJSONString.Create(AObjectID));
+    JSONObejct.AddPair('content', TJSONString.Create(AContent));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.GetContent(AObjectID: String; var AContent: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  AContent := '';
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_content'));
+  try
+    JSONObejct.AddPair('object', TJSONString.Create(AObjectID));
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('content', AContent);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TCGRemoteControl.GetStatus(var AStatus: TPlayerRemoteStatus): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  FillChar(AStatus, SizeOf(TPlayerRemoteStatus), #0);
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('get_status'));
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('idle', AStatus.Idle);
+      FRecvJSONObject.TryGetValue('play', AStatus.Play);
+      FRecvJSONObject.TryGetValue('pause', AStatus.Paused);
+      FRecvJSONObject.TryGetValue('cueing', AStatus.Cue);
+      FRecvJSONObject.TryGetValue('cue_done', AStatus.CueDone);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+{ TSwitchBusEnable }
+
+constructor TSwitchBusEnable.Create(ABus: TSwitchBus; AEnabled: Boolean);
+begin
+  Bus := ABus;
+  Enabled := AEnabled;
+end;
+
+destructor TSwitchBusEnable.Destroy;
+begin
+  inherited;
+end;
+
+{ TSwitcherRemoteControl }
+
+function TSwitcherRemoteControl.NextTransition(ABackground, AKey: Boolean): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('next_transition'));
+  try
+    JSONObejct.AddPair('background', TJSONBool.Create(ABackground));
+    JSONObejct.AddPair('key', TJSONBool.Create(AKey));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.StartTransition: Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('start_transition'));
+  try
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.CrosspointTake(ACrosspoint: Integer; ASwitchBusEnables: TSwitchBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  BusObject: TJSONObject;
+
+  I: Integer;
+begin
+  Result := D_FALSE;
+
+  if (ASwitchBusEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('crosspoint_take'));
+  try
+    BusObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('bus', BusObject);
+
+    for I := 0 to ASwitchBusEnables.Count - 1 do
+    begin
+      BusObject.AddPair(SwitchBusNames[ASwitchBusEnables[I].Bus], TJSONBool.Create(ASwitchBusEnables[I].Enabled));
+    end;
+
+    JSONObejct.AddPair('crosspoint', TJSONNumber.Create(ACrosspoint));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.KeyTake(AKeyBusEnables: TKeyBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysObject, BusObject: TJSONObject;
+
+  I, J: Integer;
+  BusEnables: TSwitchBusEnables;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('key_take'));
+  try
+    KeysObject := TJSONObject.Create;
+
+    JSONObejct.AddPair('keys', KeysObject);
+
+    for I := 0 to AKeyBusEnables.Count - 1 do
+    begin
+      BusEnables := AKeyBusEnables[I];
+      if (BusEnables <> nil) then
+      begin
+        BusObject := TJSONObject.Create;
+        KeysObject.AddPair(Format('key%d', [I + 1]), BusObject);
+
+        for J := 0 to BusEnables.Count - 1 do
+          BusObject.AddPair(SwitchBusNames[BusEnables[J].Bus], TJSONBool.Create(BusEnables[J].Enabled));
+      end;
+    end;
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.SetTransitionType(ATypeName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_transition_type'));
+  try
+    JSONObejct.AddPair('type', TJSONString.Create(ATypeName));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.SetTransitionRate(ARateName: String; ARateFrames: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+  RateString: String;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, TJSONString.Create('set_transition_rate'));
+  try
+    if (ARateName = '') then
+      RateString := IntToStr(ARateFrames)
+    else
+      RateString := ARateName;
+
+    JSONObejct.AddPair('rate', TJSONString.Create(RateString));
+
+    Result := TransmitCommand(JSONObejct);
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.GetCrosspointTake(ASwitchBus: TSwitchBus; var ACrosspoint: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_crosspoint_take');
+  try
+    JSONObejct.AddPair('bus', SwitchBusNames[ASwitchBus]);
+
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('crosspoint', ACrosspoint);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.GetKeyTake(var AKeyBusEnables: TKeyBusEnables): Integer;
+var
+  JSONObejct: TJSONObject;
+  KeysPair: TJSONPair;
+  KeysObject: TJSONObject;
+
+  I: Integer;
+  KeyPair: TJSONPair;
+  KeyObject: TJSONObject;
+
+  BusEnables: TSwitchBusEnables;
+
+  J: TSwitchBus;
+  BusEnabled: Boolean;
+begin
+  Result := D_FALSE;
+
+  if (AKeyBusEnables = nil) then exit;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_key_take');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      KeysPair := FRecvJSONObject.Get('keys');
+      if (KeysPair = nil) then exit;
+
+      KeysObject := TJSONObject(KeysPair.JsonValue);
+      if (KeysObject = nil) then exit;
+
+      for I := 0 to KeyCount - 1 do
+      begin
+        KeyPair := KeysObject.Get(Format('key%d', [I + 1]));
+        if (KeyPair = nil) then continue;
+
+        KeyObject := TJSONObject(KeyPair.JsonValue);
+        if (KeyObject = nil) then continue;
+
+        BusEnables := TSwitchBusEnables.Create;
+        for J := sbProgram to sbOutput2 do
+        begin
+          if (KeyObject.TryGetValue(SwitchBusNames[J], BusEnabled)) then
+          begin
+            BusEnables.Add(TSwitchBusEnable.Create(J, BusEnabled));
+          end;
+        end;
+
+        AKeyBusEnables.Add(BusEnables);
+      end;
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.GetTransitionType(var ATypeName: String): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_transition_type');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('type', ATypeName);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+function TSwitcherRemoteControl.GetTransitionRate(var ARateName: String; var ARateFrames: Integer): Integer;
+var
+  JSONObejct: TJSONObject;
+begin
+  ARateName := '';
+  ARateFrames := 0;
+
+  JSONObejct := TJSONObject.Create.AddPair(TypeCommand, 'get_transition_rate');
+  try
+    Result := TransmitCommand(JSONObejct);
+    if (Result = D_OK) then
+    begin
+      FRecvJSONObject.TryGetValue('rate', ARateName);
+      if (ARateName <> 'slow') and
+         (ARateName <> 'medium') and
+         (ARateName <> 'fast') then
+        ARateFrames := StrToIntDef(ARateName, 0);
+    end;
+  finally
+    FreeAndNil(JSONObejct);
+  end;
+end;
+
+end.

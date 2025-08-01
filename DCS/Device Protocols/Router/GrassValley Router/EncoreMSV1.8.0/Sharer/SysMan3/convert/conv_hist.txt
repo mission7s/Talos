@@ -1,0 +1,35 @@
+Applet to Upgrade System Manager Database.
+
+
+Version 3.61.00
+OmniBus Libraries 13.20
+Built with VC6
+Designed for use with System Manager 3.61
+
+Version 1.00.01
+OmniBus Libraries 13.17 BF_13_4
+Built with VC6
+
+Version 1
+OmniBus Libraries 13.17
+Designed for use with System Manager 3.60
+
+Please read the Sharer manual chapter on upgrading System Manager databases.
+A brief summary is presented here.
+
+0) Upgrade to Sharer 3.60. Enable System Manager 3.60. Back up 
+all data in \omn\sysdat.
+
+1) Copy "conv.exe" and "convprmpt" to a floppy disk. The floppy
+disk should be formatted for the native FS of the drive you will
+install from.
+2) Rename "conv.exe" to "omn_ix86" for Intel System Manager or "omnalpha" for Alpha system managers.
+3) Rename "convprmpt" to "omnprmpt".
+4) Do the equivalent of "dir /b a:\ > a:\omnlist" for your OS. For RISCOS use "enumdir :0.$ :0.$.omnlist"
+5) Put the floppy in the floppy drive of your OUI, the System Manager 3
+engine, or the Sharer.
+6) Select the relevent button from the System Manager 3 Install screen.
+
+Finally) Go through each engine, checking the engines have the correct 
+applications available. Send the logfile from the floppy disk to Omnibus 
+Support for checking.

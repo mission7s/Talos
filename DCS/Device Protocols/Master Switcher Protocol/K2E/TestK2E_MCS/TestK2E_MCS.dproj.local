@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.293,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.258,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.690,=D:\User Data\Git\APC\DCS\Device Units\Master Switcher\K2E\UnitK2ESwitcher.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.968,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\TestVTS.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.593,=D:\User Data\Git\APC\DCS\Device Units\Serial Protocol\Video Tron\UnitSerialVideoTronSwitcher.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.248,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.258,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.091,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\TestVTS.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\K2E\TestK2E_MCS.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.658,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.pas=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\K2E\UnitTestK2E_MCS.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.272,=D:\User Data\Git\APC\DCS\Device Units\Master Switcher\K2E\UnitK2ESwitcher.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.658,D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\Video Tron\TestVTS\UnitTestVTS.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Master Switcher Protocol\K2E\UnitTestK2E_MCS.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.257,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

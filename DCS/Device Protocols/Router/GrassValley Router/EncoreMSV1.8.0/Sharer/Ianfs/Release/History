@@ -1,0 +1,201 @@
+History file for TestFS utility
+===============================
+
+V 1.01 09-07-96
+===============
+
+Now can rebuild categories from parent categories of up to 10000 entries.
+
+----------------------------------------------------------------------------------
+
+V 1.2 17-07-96
+==============
+
+Outputs error information from rebuild.
+
+----------------------------------------------------------------------------------
+
+V 1.3 18-07-96
+==============
+
+NT error code returned if rebuild goes wrong.
+Static variable refs altered to allow up to 10000 items in a rebuild.
+
+----------------------------------------------------------------------------------
+
+V 1.4 20-11-96
+==============
+
+Convert utility added to convert from DEC to Acorn filing system and
+vice versa
+
+----------------------------------------------------------------------------------
+
+V 1.5 08-01-97
+==============
+
+REMOVE_NAME -  Removes an entry from a category by category path and item name
+TIDY_NAMES  -  Tidy the NAMES category
+
+----------------------------------------------------------------------------------
+
+V 1.6 Tuesday 18-02-97
+======================
+
+General tidy cat function altered to use TidyCategoryInSitu.
+This provides for tidying of any size category (instead of being limited to 1000)
+
+----------------------------------------------------------------------------------
+
+V 1.7 Wednesday 05-03-97
+========================
+
+TidyCategoryInSitu moved to the libraries.
+All listing functions altered to pause after
+each page so that users can see what's happening.
+
+----------------------------------------------------------------------------------
+
+V 1.8 Friday 11-04-97
+=====================
+
+Libs 035
+Contains fix to use of NTXFILE in ianfs_ii.c to stop corruption when run on the
+same machine as new Sharer
+
+----------------------------------------------------------------------------------
+
+V 1.9 Tuesday 28-4-97
+=====================
+
+Libs 36
+
+EMPTY function REMOVED.
+So that System Manager is only place to empty bin from.
+Release of new Sharer necessitated this :
+Old Sharer used to tag a file with "DUSTBIN" and untag the file from all its other categories,
+New Sharer simply tags a file with "DUSTBIN".
+Only System Manager copes with this change.
+
+----------------------------------------------------------------------------------
+
+V 1.10 08-05-97
+===============
+
+Libs 036 + ianfs_ii.c changed to lock NXTFILE instead of using a mutex.
+
+This version must be release with System Manager V 1.35, Librarian 1.12,
+Sharer V 1.33
+
+----------------------------------------------------------------------------------
+
+V 1.11 23-05-97
+===============
+
+Libs 041
+
+Acorn only : CONVERT command strips :n. from start of Acorn path (n is drive number)
+i.e.  ":4.$.omn.a.b.31.34" becomes "$.omn.a.b.31.34"
+
+----------------------------------------------------------------------------------
+
+V 1.12 23-06-97
+===============
+
+Libs 046
+
+Tested on   :  Intel NT 4.0 SP 3    OK
+               Acorn StrongArm      OK
+
+
+Acorn only :
+System paths modified.
+Root altered from "$.omn" to "<omn$>"
+Similar alterations made in Acorn CONFIG file
+NB.   All applications using filing provided by Ianfs utilities MUST
+      set omn$ to address OMN directory. Drive must be specified as
+      well - i.e. "ADFS::4.$.OMN"
+
+LIST command altered to list out categories of any size;
+used to only list out the first 1000 entries.
+
+REBUILD_FROM_CATS command added.
+This rebuilds a category by scanning all other user categories.
+It fixes a corrupt year category; REBUILD cannot do this.
+
+ALL_PATH_PREFIXES command added.
+Goes through every path in every category and alters the root prefix.
+i.e. from "$.OMN" to "<Omn$>"
+
+PATH_PREFIXES command added.
+Similar to ALL_PATH_PREFIXES but alters all the paths in just 1 category
+specified by its directory.
+
+----------------------------------------------------------------------------------
+
+V 1.13 15-08-97
+===============
+
+Libs 50 + changes to ianfs_ii.c and inter.c
+
+SORT command resorts a category into alphabetical order.
+SORT_BY_PATH resorts a category by its path into alphabetical order.
+SORT_ALL sorts all user categories into alphabetical order.
+
+----------------------------------------------------------------------------------
+
+V 1.14 01-10-97
+===============
+
+Libs 50 + changes to ianfs_ii.c, inter.c and ifs_util.c
+
+REBUILD_LOST_INDEX command rebuilds a category, assuming the INDEX file has been lost.
+
+----------------------------------------------------------------------------------
+
+Thursday  11-03-99 (not a release)
+      
+Altered to compile under clear case with the following considerations :
+      
+View rules are :
+         
+         element * CHECKEDOUT
+
+         # OldLibs holds libs for IanFS
+         element \OmniLibs\... RELEASE_13_LATEST -nocheckout
+         element \OldLibs\... OLD_LIBS_71 -nocheckout
+
+         # Sharer3Test holds IanFS code
+         element \Sharer3Test\... \main\LATEST
+
+Mount OmniLibs, Sharer3Test, and OldLibs
+
+This version is labelled TESTFS_1
+Commands SNIFFER and CHECK_MAIL removed
+----------------------------------------------------------------------------------
+
+V 1.15 07-05-99
+===============
+
+   Thursday  07-05-99
+      Altered to prevent corrupted entries crashing IanFS through string overwrites.
+      Changed %s format specifiers to %.30s if string came from FS.
+
+      FIX_LOST_INDEX added - allows corrupt entries to be removed from system categories
+      (the categories are not tidied in any way, so this can be used on e.g. Areas/Cats
+      indices where the refs are used throughout the system). Not for user cats.
+
+      FIX_CAT_INDICES added - does FIX_LOST_INDEX on the Master Category index, then
+      each category in turn. Additional checks are performed on user cats to ensure 
+      entries have at least 1 cross-reference.
+
+      These remove duff entries based on illegal refs, deleted/DEAD_JIM files, NULL
+      strings, strings which overflow the title and file_name fields of 
+      index_data_structs. Note that since it uses strlen to check the length of title
+      and file_name fields, so it's not foolproof. N.B. A flag enables checking of the
+      .ref[0] entry which must contain a valid category ref number for entries in the 
+      user cat system. This is why FIX_LOST_INDEX is intended for system cats, and 
+      FIX_CAT_INDICES is for user cats.
+
+   Labelled TESTFS_2
+

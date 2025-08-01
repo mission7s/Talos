@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/developer/2004/01/bootstrapper" Name="DisplayName" Culture="Culture">
+
+    <!-- Defines a localizable string table for error messages-->
+    <Strings>
+        <String Name="DisplayName">Visual C++ 런타임 라이브러리(x86)</String>
+        <String Name="Culture">ko</String>
+        <String Name="AdminRequired">Visual C++ 런타임 라이브러리(x86)를 설치하는 데 필요한 사용 권한이 없습니다. 관리자에게 문의하십시오.</String>
+        <String Name="InvalidPlatformWin9x">Windows 95에서는 Visual C++ 런타임 라이브러리(x86) 설치를 지원하지 않습니다. 응용 프로그램 공급업체에 문의하십시오.</String>
+        <String Name="InvalidPlatformWinNT">Windows NT 4.0에서는 Visual C++ 런타임 라이브러리(x86) 설치를 지원하지 않습니다. 응용 프로그램 공급업체에 문의하십시오.</String>
+        <String Name="GeneralFailure">Visual C++ 런타임 라이브러리(x86)를 설치하는 동안 오류가 발생했습니다.</String>
+    </Strings>
+
+</Package>

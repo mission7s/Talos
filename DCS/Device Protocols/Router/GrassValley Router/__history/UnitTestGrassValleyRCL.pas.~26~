@@ -1,0 +1,169 @@
+unit UnitTestGrassValleyRCL;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  UnitBaseSerial, UnitGrassValleyRCL;
+
+type
+  TForm12 = class(TForm)
+    Label1: TLabel;
+    edtServerIP: TEdit;
+    Label2: TLabel;
+    edtServerPort: TEdit;
+    mmDesc: TMemo;
+    edtSrcArea: TEdit;
+    Label3: TLabel;
+    Label4: TLabel;
+    edtDstIndex: TEdit;
+    Label5: TLabel;
+    edtLvlIndex: TEdit;
+    btnTake: TButton;
+    btnQueryDestination: TButton;
+    btnConnect: TButton;
+    btnDisconnect: TButton;
+    btnGetXPoint: TButton;
+    btnQueryAllXPoint: TButton;
+    Label6: TLabel;
+    edtSrcIndex: TEdit;
+    Label7: TLabel;
+    edtDstArea: TEdit;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnDisconnectClick(Sender: TObject);
+    procedure btnTakeClick(Sender: TObject);
+    procedure btnQueryDestinationClick(Sender: TObject);
+  private
+    { Private declarations }
+    FGrassValleyRCL: TGrassValleyRCL;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form12: TForm12;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm12.btnTakeClick(Sender: TObject);
+var
+  R: Integer;
+  DstEntry, SrcEntry: TFullQualEntry;
+  LvlIndex: Integer;
+begin
+  DstEntry.AreaIndex := StrToIntDef(edtDstArea.Text, 0);
+  DstEntry.Index     := StrToIntDef(edtDstIndex.Text, 0);
+
+  SrcEntry.AreaIndex := StrToIntDef(edtSrcArea.Text, 0);
+  SrcEntry.Index     := StrToIntDef(edtSrcIndex.Text, 0);
+
+  LvlIndex := StrToIntDef(edtLvlIndex.Text, 0);
+
+  R := FGrassValleyRCL.TakebyLevelIndex(DstEntry, SrcEntry, LvlIndex);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('TakebyLevelIndex Success, Dst = %d.%d, Src = %d.%d, Lvl = %d', [DstEntry.AreaIndex , DstEntry.Index, SrcEntry.AreaIndex, SrcEntry.Index, LvlIndex]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('TakebyLevelIndex Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.btnConnectClick(Sender: TObject);
+var
+  R: Integer;
+  SessionID: Word;
+begin
+  FGrassValleyRCL.ControlIP := edtServerIP.Text;
+  FGrassValleyRCL.ControlPort := StrToIntDef(edtServerPort.Text, 0);
+  FGrassValleyRCL.Connect;
+
+  if (FGrassValleyRCL.Connected) then
+  begin
+    mmDesc.Lines.Add(Format('Connect Success, IP = %s, Port = %d', [FGrassValleyRCL.ControlIP, FGrassValleyRCL.ControlPort]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add('Connect Error.');
+    exit;
+  end;
+
+  R := FGrassValleyRCL.RCLConnect(SessionID);
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('RCLConnect Success, SessionID = %d', [SessionID]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('RCLConnect Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.btnDisconnectClick(Sender: TObject);
+var
+  R: Integer;
+begin
+  R := FGrassValleyRCL.RCLDisconnect;
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add('RCLDisconnect Success');
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('RCLDisconnect Error = %d', [R]));
+  end;
+
+  FGrassValleyRCL.Disconnect;
+
+  if (not FGrassValleyRCL.Connected) then
+  begin
+    mmDesc.Lines.Add('Disconnect Success.');
+  end
+  else
+  begin
+    mmDesc.Lines.Add('Disconnect Error.');
+  end;
+end;
+
+procedure TForm12.btnQueryDestinationClick(Sender: TObject);
+var
+  R: Integer;
+  DstEntry, SrcEntry, ChpEntry: TFullQualEntry;
+  LvlIndex: Integer;
+  Protect, Chopping: Boolean;
+begin
+  DstEntry.AreaIndex := StrToIntDef(edtDstArea.Text, 0);
+  DstEntry.Index     := StrToIntDef(edtDstIndex.Text, 0);
+
+  R := FGrassValleyRCL.QueryDestinationStatusLevelByIndex(DstEntry, LvlIndex, Protect, Chopping, SrcEntry, ChpEntry);
+
+  if (R = D_OK) then
+  begin
+    mmDesc.Lines.Add(Format('QueryDestinationStatusLevelByIndex Success, Dst = %d.%d, Lvl = %d, Protect= %s, Chopping = %s, Src = %d.%d, Chop = %d.%d', [DstEntry.AreaIndex, DstEntry.Index, LvlIndex, BooltoStr(Protect, True), BooltoStr(Chopping, True), SrcEntry.AreaIndex, SrcEntry.Index, ChpEntry.AreaIndex, ChpEntry.Index]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('QueryDestinationStatusLevelByIndex Error = %d', [R]));
+  end;
+end;
+
+procedure TForm12.FormCreate(Sender: TObject);
+begin
+  FGrassValleyRCL := TGrassValleyRCL.Create(Self);
+  FGrassValleyRCL.ControlType := ctSocket;
+end;
+
+procedure TForm12.FormDestroy(Sender: TObject);
+begin
+  if (FGrassValleyRCL.Connected) then FGrassValleyRCL.Disconnect;
+  FreeAndNil(FGrassValleyRCL);
+end;
+
+end.

@@ -1,0 +1,422 @@
+unit UnitQuartz;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.SyncObjs, Generics.Collections,
+  UnitBaseSerial;
+
+const
+  QUARTZ_SOH = '.';
+  QUARTZ_EOT = #13;
+
+  QUARTZ_ERR = 'E';
+
+var
+  QUARTZ_LEVELS: array of AnsiChar =
+  ['V', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
+   'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+
+type
+  TOnConnectChanged = procedure(Sender: TComponent; AConnected: Boolean) of object;
+
+  TStatusThread = class;
+
+  TQuartz = class(TBaseSerial)
+  private
+    { Private declarations }
+    FStatusThread: TStatusThread;
+
+    FCaption: String;
+    FDeviceID: Word;
+    FCriticalSection: TCriticalSection;
+
+    FCMD: AnsiString;
+
+    FConnected: Boolean;
+    FAutoStatus: Boolean;
+    FAutoStatusInterval: Integer;
+
+    FOnConnectChanged: TOnConnectChanged;
+
+    procedure SetCaption(AValue: String);
+    procedure SetDeviceID(AValue: Word);
+    procedure SetAutoStatus(AValue: Boolean);
+    procedure SetAutoStatusInterval(AValue: Integer);
+
+    function SendCommand(ACMD: AnsiString; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+  protected
+    { Protected declarations }
+    procedure DataEvent; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+
+    function TransmitCommand(ACMD: AnsiString; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+
+    function SetXptMessage(ASrcIndex, ADstIndex: Integer; ALevelIndex: Integer = 0): Integer; overload;
+    function InterrogateRoute(ADstIndex: Integer; ALevelIndex: Integer; var ASrcIndex: Integer): Integer; overload;
+
+    function TestConnected(var AConnected: Boolean): Integer;
+  published
+    { Published declarations }
+    property Caption: String read FCaption write SetCaption;
+    property DeviceID: Word read FDeviceID write SetDeviceID;
+
+    property AutoStatus: Boolean read FAutoStatus write SetAutoStatus;
+    property AutoStatusInterval: Integer read FAutoStatusInterval write SetAutoStatusInterval;
+
+    property OnConnectChanged: TOnConnectChanged read FOnConnectChanged write FOnConnectChanged;
+  end;
+
+  TStatusThread = class(TThread)
+  private
+    FImagineLRC: TQuartz;
+    FExecuteEvent: THandle;
+    FCompleteEvent: THandle;
+    FSaveConnected: Boolean;
+
+    procedure DoStatus;
+    procedure DoControl;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AImagineLRC: TQuartz);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+{ TQuartz }
+
+constructor TQuartz.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  FCriticalSection := TCriticalSection.Create;
+  FLastResult := D_OK;
+//  if SyncMode then OnDataEvent := DataEvent;
+
+  FCMD := '';
+
+  FConnected  := False;
+  FAutoStatus := False;
+  FAutoStatusInterval := 30;
+end;
+
+destructor TQuartz.Destroy;
+begin
+  if Assigned(FStatusThread) then
+  begin
+    FStatusThread.Terminate;
+    FStatusThread.WaitFor;
+    FreeAndNil(FStatusThread);
+  end;
+
+  if (FCriticalSection <> nil) then
+  begin
+    FreeAndNil(FCriticalSection);
+  end;
+
+  inherited Destroy;
+end;
+
+procedure TQuartz.SetCaption(AValue: String);
+begin
+  if AValue <> FCaption then FCaption := AValue;
+end;
+
+procedure TQuartz.SetDeviceID(AValue: Word);
+begin
+  if not (AValue in [0..255]) then
+  begin
+    MessageDlg('Device ID must between 0 and 255', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if AValue <> FDeviceID then FDeviceID := AValue;
+end;
+
+procedure TQuartz.SetAutoStatus(AValue: Boolean);
+begin
+  if FAutoStatus <> AValue then
+  begin
+    FAutoStatus := AValue;
+    if FAutoStatus then
+    begin
+      FStatusThread := TStatusThread.Create(Self);
+      FStatusThread.Resume;
+    end
+    else if Assigned(FStatusThread) then
+    begin
+      FStatusThread.Terminate;
+      FStatusThread.WaitFor;
+      FreeAndNil(FStatusThread);
+    end;
+  end;
+end;
+
+procedure TQuartz.SetAutoStatusInterval(AValue: Integer);
+begin
+  if (FAutoStatusInterval <> AValue) then
+    FAutoStatusInterval := AValue;
+end;
+
+function TQuartz.SendCommand(ACMD: AnsiString; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  Buffer: PByte;
+  I: integer;
+  ErrCnt: Integer;
+begin
+  Result := D_FALSE;
+
+  Buffer := GetMemory(Length(ACMD) + ADataSize + 2);
+  try
+    Buffer[0] := Ord(QUARTZ_SOH);
+
+    for I := 1 to Length(ACMD) do
+      Buffer[I] := Ord(ACMD[I]);
+
+    for I := 1 to ADataSize do
+      Buffer[I + Length(ACMD)] := Ord(ADataBuf[I]);
+
+    Buffer[Length(ACMD) + ADataSize + 1] := Ord(QUARTZ_EOT);
+
+    ErrCnt := 0;
+    while ErrCnt < MAX_RETRY do
+    begin
+      if SendData(Pointer(Buffer), Length(ACMD) + ADataSize + 2) = D_FALSE then
+      begin
+        Inc(ErrCnt);
+        Continue;
+      end
+      else
+      begin
+        Result := D_OK;
+        break;
+      end;
+    end;
+  finally
+    FreeMemory(Buffer);
+  end;
+end;
+
+function TQuartz.TransmitCommand(ACMD: AnsiString; ADataBuf: AnsiString; ADataSize: Integer): Integer;
+var
+  R: DWORD;
+begin
+  Result := D_FALSE;
+
+  if Assigned(FStatusThread) then ResetEvent(FStatusThread.FExecuteEvent);
+  try
+    if Assigned(FStatusThread) then R := WaitForSingleObject(FStatusThread.FCompleteEvent, INFINITE);
+
+    FReceivedBuffer := '';
+    FReceivedData := '';
+
+    FCMD := ACMD;
+
+    FCriticalSection.Enter;
+    try
+      if (SendCommand(ACMD, ADataBuf, ADataSize) = D_OK) then
+      begin
+        ResetEvent(FSyncMsgEvent);
+        R := WaitForSingleObject(FSyncMsgEvent, FTimeOut);
+        case R of
+          WAIT_OBJECT_0:
+          begin
+            Result := FLastResult;
+          end;
+        else
+          Result := E_TIMEOUT;
+        end;
+      end;
+    finally
+      FCriticalSection.Leave;
+    end;
+  finally
+    if Assigned(FStatusThread) then SetEvent(FStatusThread.FExecuteEvent);
+  end;
+end;
+
+procedure TQuartz.DataEvent;
+var
+  SOHPos: Integer;
+  EOTPos: Integer;
+  CMD: AnsiString;
+
+  OP: AnsiChar;
+  ByteCount: Integer;
+label
+  ReParsing;
+begin
+  inherited;
+  if (Length(FReceivedBuffer) < 1) then exit;
+
+  ReParsing:
+
+  SOHPos := Pos(QUARTZ_SOH, FReceivedBuffer);
+  if (SOHPos >= 0) then
+  begin
+    EOTPos := Pos(QUARTZ_EOT, FReceivedBuffer);
+    if (EOTPos >= 0) then
+    begin
+      CMD := Copy(FReceivedBuffer, SOHPos + 1, 1);
+
+      if ((FCMD = 'S') and (CMD = 'U')) or
+         ((FCMD = 'I') and (CMD = 'A')) or
+         ((FCMD = '#01') and (CMD = 'A')) then
+      begin
+        FReceivedData := Copy(FReceivedBuffer, SOHPos + 3, EOTPos - SOHPos - 3);
+        FLastResult := D_OK;
+        SetEvent(FSyncMsgEvent);
+
+        FReceivedBuffer := Copy(FReceivedBuffer, EOTPos + 1, Length(FReceivedBuffer));
+        if (Length(FReceivedBuffer) > 0) then
+          goto ReParsing
+      end
+      else if (CMD = QUARTZ_ERR) then
+      begin
+        FLastResult := D_FALSE;
+        SetEvent(FSyncMsgEvent);
+      end;
+    end;
+  end;
+end;
+
+function TQuartz.SetXptMessage(ASrcIndex, ADstIndex: Integer; ALevelIndex: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+
+  if (ALevelIndex < 0) or (ALevelIndex > 15) then
+    exit;
+
+  Buffer := Format('%s%.3d,%.3d', [QUARTZ_LEVELS[ALevelIndex], ADstIndex + 1, ASrcIndex + 1]);
+
+  Result := TransmitCommand('S', Buffer, Length(Buffer));
+end;
+
+function TQuartz.InterrogateRoute(ADstIndex: Integer; ALevelIndex: Integer; var ASrcIndex: Integer): Integer;
+var
+  Buffer: AnsiString;
+begin
+  Result := D_FALSE;
+
+  ASrcIndex := 0;
+
+  if (ALevelIndex < 0) or (ALevelIndex > 15) then
+    exit;
+
+  Buffer := Format('%s%.3d', [QUARTZ_LEVELS[ALevelIndex], ADstIndex + 1]);
+
+  Result := TransmitCommand('I', Buffer, Length(Buffer));
+  if (Result = D_OK) then
+  begin
+    if (Length(FReceivedData) >= 7) then
+      ASrcIndex := StrToIntDef(Copy(FReceivedData, 5, 7), 0);
+  end;
+end;
+
+function TQuartz.TestConnected(var AConnected: Boolean): Integer;
+var
+  Buffer: AnsiString;
+begin
+  AConnected := False;
+
+  Buffer := '';
+  Result := TransmitCommand('#01', Buffer, Length(Buffer));
+end;
+
+{ TStatusThread }
+
+constructor TStatusThread.Create(AImagineLRC: TQuartz);
+begin
+  FImagineLRC := AImagineLRC;
+  FreeOnTerminate := False;
+
+  inherited Create(True);
+end;
+
+destructor TStatusThread.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TStatusThread.DoStatus;
+var
+  R: Integer;
+  Conn: Boolean;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+      FSaveConnected := FConnected;
+
+      if not (Connected) or (not Assigned(FAsyncThread) and not (FAsyncThread.Suspended)) then
+      begin
+        FConnected := False;
+        exit;
+      end;
+
+      R := TestConnected(Conn);
+      if (R = D_OK) and (Conn) then
+        FConnected := True
+      else
+        FConnected := False;
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.DoControl;
+begin
+  inherited;
+//  if not FImagineLRC.Connected then exit;
+
+  with FImagineLRC do
+  begin
+//    FCriticalSection.Enter;
+    try
+    if Assigned(FOnConnectChanged) then
+      if (FSaveConnected <> FConnected) then
+        FOnConnectChanged(FImagineLRC, FConnected);
+    finally
+//      FCriticalSection.Leave;
+    end;
+  end;
+end;
+
+procedure TStatusThread.Execute;
+var
+  R: Integer;
+begin
+  FExecuteEvent := CreateEvent(nil, True, True, nil);
+  FCompleteEvent := CreateEvent(nil, True, True, nil);
+  while not Terminated do
+  begin
+    if (WaitForSingleObject(FExecuteEvent, INFINITE) = WAIT_OBJECT_0) then
+    begin
+      ResetEvent(FCompleteEvent);
+      try
+        DoStatus;
+        DoControl;
+//        Synchronize(DoControl);
+      finally
+        SetEvent(FCompleteEvent);
+      end;
+    end;
+    Sleep(FImagineLRC.FAutoStatusInterval);
+  end;
+  CloseHandle(FCompleteEvent);
+  CloseHandle(FExecuteEvent);
+end;
+
+end.

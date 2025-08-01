@@ -1,0 +1,15 @@
+
+[ Guide to use TAPCrawl ]
+
+1. First, excute Tornado3D.exe to use TAPCrawl.
+2. Excute TAPCrawl.exe
+3. Verify Server Ip and Sever Port.
+4. Click 'Connect' Button to connect TAP Server.
+5. Click 'Browse' Button of TCFFile to open file named 'TAPCrawl.tcf'.
+6. Click 'Browse' Button of Text File to open file named 'Article.txt' which is article.
+7. If It is loaded Text File, you can look article at 'Article View'.
+8. Click 'Load' Button to load TAP Server.
+9. Click 'Prepare' Button.
+10. Click 'Play' Button. Article crawl to left from right in screen.
+11. If you want to stop playing, Click 'Clear' Button.
+12. Message of state info is displayed at 'Message View'

@@ -1,0 +1,125 @@
+*********************************
+* TLM V0.50  17th February 1997 *
+*********************************
+      
+Ensure tielines are configured in router config if not then
+===========================================================
+
+Configure sources and destinations with the same ID Name at the tieline endpoints
+Set the type of source/Destination to be System_tieline.
+Modify the Router Databases
+                           
+Either repower the tlm app or in the system menu selectivly reload the databases
+by listing the areas and selecting the required ones.
+
+===========================================================
+ 
+Directions.
+After RePower Wait at least 1 Min the database loading has been changed to stop too much data overpowering the
+tx buffers
+
+Log On
+    Enter the Tie config Menu
+	Enter the Status Menu
+    Enter the Browse Menu
+    
+A list of tielines active on the net will appear
+Go back to Tie Config Menu
+Use the '<' & '>' keys or List Tieline functions to
+scan through the tieline database you have just browsed
+To be able to use a tieline you must change its state from offline
+Click Ref. Name to name the tie line
+When Happy with the config Use Save to save the config settings
+
+When reactivating after a reboot/powerdown it is only neccessary to Use Load in the config menu
+You dont need to browse unless any more tielines have been set up on the system
+
+---------------------
+Tieline Status in config menu
+
+'Available' means the tlm has seen both src and dst for the tieline so it may be routed to
+'In Use' - Indicates if the Tie Line is in use
+'Dest User' Shows the current Top Owner of the tieline segment  (ie the destination (monitor etc) using the tieline)
+  Click this for a list of sharers
+'Final Src.'Shows the source that exists at the end of the whole tieline path (including other segments if they are routed to this one)
+'Router Src'Shows the current src routed to THIS segments input
+'Route Dest.'Shows the 1st user of this tieline segments Output
+*****NEW V0.08***** - Click this to show a list of all dests watching this src....
+
+Reserved / Fixed /Floating - Tieline types
+Floating       - Implemented and tested
+Fixed/Reserved - Implemented and tested
+Param pops up a dst.src for reserved/fixed tl types.
+
+Ref Name - The router Src/Dest Id as setup in the router database
+
+Src/Dest areas - Obvious
+
+------------------------
+Using it
+
+Goto 'ROUTE MENU'
+
+Select a router source and destination using 'Route Source' and 'Route Dest'
+
+To Try and FIND a path use 'Find Path' This will prompt if no path is possible
+  If a path can be found it will be displayed in the Slats to the left of the screen
+  The slats grow up from the bottom of the screen.
+  The bottom of the screen is towards the destination.
+  Slats show the tieline segment to be used and its status should you use it.
+  Status is:
+    Exclus :-you will have exclusive use of this tieline segment
+    Shared :- You will be sharing this segment with someone else
+    Owner  :- You already own this tieline segment
+    ShResv :- You will share a reserved tieline (this may be taken by the reservee without notice)
+
+To Make this path use 'Make Path'
+   This will connect the routes as shown in the status
+   You dont need to do 'Find Path' first -its just a nice diagnostic.
+   
+If you click on the Slats at a valid location :-
+   Extra Status can be obtained - this pops up a config status screen giving data similar to the config menu
+   
+   If you are only finding the path this may not tally until you make the path.
+   'Final Source' is a full tally Back from the system so you can check the
+   route on the tlm.
+ 
+Options - 'Exclusive'      - Form an exclusive path only (Do not share)**
+
+'Find Source'    - Walks the databases to find the current final source for the current dest.
+    
+-------------------------------
+Current Logic      
+
+You get a new tieline for every destination User -Unless the dest wants a source already available
+  in which case it will share the tieline**.
+Tieline now has a list of users so when a user releases or trys to make another tieline the other sharers
+will keep the tieline and the orig user will try for a new one***
+If there are no more tl's you are told.At this point the user still logged to its previous tieline
+
+When you change a destinations source that was using a tieline it releases its ownership
+  and tries from scratch to make a tieline.
+
+------------------------------
+System Menu
+
+Config in System Screen
+ a/'Share Reserved' - Allow tielines to be shared if they have correct src available for others
+ b/'Polite Mode'    - Top User cannot break a tieline in use (Shared by others)***
+ c/'Release all'    - Release all users ownership of tielines
+
+Overrides
+Release Users - Remove all users from all tie lines
+Disable Messages - Disable 'No path..' messages from network requests for tie lines
+Disable TLM - Remove TLM from the network
+
+------------------------------
+Status Menu
+
+Shows tie line usage between two areas (or all areas)
+Click on a row to get infomation about the tie line
+	Tie Line status pop-up
+	Click Dest. User to display a list of users using the tie line with the time they acquired it
+Click on In Use By column to remove all users from the tie line
+Click on Failures to display a list of route requests that have failed to obtain required tie lines.
+Click on Export Log to export a daily log file to floppy disk (c.s.v) format

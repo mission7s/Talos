@@ -1,0 +1,1984 @@
+--
+-- Common Object Definitions for a Grass Valley Routers
+--
+
+GVG-ENCORE-SCB-MIB DEFINITIONS ::= BEGIN
+
+	--  Relationship to Other MIBs
+	--
+	--
+	--  The objects defined in this MIB are located under the
+	--  private.enterprises subtree as shown below:
+	--
+	--               iso(1).org(3).dod(6).internet(1)
+	--                            |
+	--                         private(4)
+	--                            |
+	--                       enterprises(1)
+	--                            |
+	--                        gvg(4947)
+	--                            |
+	--                   gvgRegistrations(2)
+	--                           |
+	--			       		gvgRouters(4)
+	--
+	--
+	--  Object Synopsis
+	--  
+	--
+	--  All objects within this MIB are prefixed with the OBJECT
+	--  IDENTIFIER "p", where "p" is:
+	--
+	--  iso(1).org(3).dod(6).internet(1).private(4).enterprises(1).
+	--          gvg(4947).gvgRegistrations(2).gvgRouters(4)
+	--	
+	--  or, 1.3.6.1.4.1.4947.2.4
+	--
+	--
+	--  Object Name                               Object Id         
+	--  ===============================         ==============
+	--
+	--  encoreSCB 								   	p.1
+	--    scbSystem 							   	p.1.1
+	--		name									p.1.1.1
+	--		bootSwVer								p.1.1.2
+	--		appSwVer 								p.1.1.3
+	--		frameFan                                p.1.1.4
+	--    scbBoards                                	p.1.2
+	--		sio                                     p.1.2.1
+	--			sioBoard                            p.1.2.1.1
+	--			commTable                           p.1.2.1.2
+	--				commEntry                   	p.1.2.1.2.1
+	--					portNr						p.1.2.1.2.1.n
+	--					portName                    p.1.2.1.2.2.n
+	--					portStatus                  p.1.2.1.2.3.n
+	--		gsc      								p.1.2.2
+	--			gscBoard                            p.1.2.2.1
+	--		cpuMezz                                 p.1.2.3
+	--			cpuMezzBoard                        p.1.2.3.1
+	--			cpuTemp                             p.1.2.3.2
+	--			cpuTempLowThreshold					p.1.2.3.3
+	--			cpuTempHighThreshold                p.1.2.3.4
+	--			cpuFan                              p.1.2.3.5
+	--		xptBus                                  p.1.2.4
+	--			xptBusBoard                         p.1.2.4.1
+	--    scbLEDs       			           	   	p.1.3
+	--		syncTC                                  p.1.3.1
+	--		syncRF1                                 p.1.3.2
+	--		syncRF2                                 p.1.3.3
+	--		syncErr                                 p.1.3.4
+	--		error                                   p.1.3.5
+	--		busy                                    p.1.3.6
+	--		power                                   p.1.3.7
+	--		done                                    p.1.3.8
+	--    scbPowerSupply			           	    p.1.4
+	--		ps1                                     p.1.4.1
+	--		ps1AcInput                              p.1.4.2
+	--		ps1DcOutput                             p.1.4.3
+	--		ps1Fan                                  p.1.4.4
+	--		ps2                                     p.1.4.5
+	--		ps2AcInput                              p.1.4.6
+	--		ps2DcOutput                             p.1.4.7
+	--		ps2Fan                                  p.1.4.8
+	--    scbNetwork    			           	    p.1.5
+	--		nic1                                    p.1.5.1
+	--		nic1Name                                p.1.5.2
+	--		nic1InetAddress                         p.1.5.3
+	--		nic1InetMask                            p.1.5.4
+	--		nic1InetGateway                         p.1.5.5
+	--		nic2                                    p.1.5.6
+	--		nic2Name                                p.1.5.7
+	--		nic2InetAddress                         p.1.5.8
+	--		nic2InetMask                            p.1.5.8
+	--		nic2InetGateway                         p.1.5.10
+	--    scbGPIO       			           	   	p.1.6
+	--		relayTable                              p.1.6.1
+	--			relayEntry                          p.1.6.1.1.n
+	--			relayNumber                         p.1.6.1.2.n
+	--			relayName                           p.1.6.1.3.n
+	--			relayType                           p.1.6.1.4.n
+	--			relayStatus                         p.1.6.1.5.n
+	--    scbApplications       			        p.1.7
+	--		appTable                                p.1.7.1
+	--			appEntry                            p.1.7.1
+	--				appNumber                       p.1.7.1.1.n
+	--				appName                         p.1.7.1.2.n
+	--				appStatus                       p.1.7.1.3.n
+	--    scbFileSystem 						    p.1.8
+	--		flashCapacity                           p.1.8.1
+	--		flashFree                               p.1.8.2
+	--		flashSysStatus                          p.1.8.3
+	--    scbAlarms                                	p.1.9
+	--		scbPs1Error                             p.1.9.1
+	--		scbPs1NoAcInput                         p.1.9.2
+	--		scbPs1NoDcOutput                        p.1.9.3
+	--		scbPs1FanError                          p.1.9.4
+	--		scbPs2Error                             p.1.9.5
+	--		scbPs2NoAcInput                         p.1.9.6
+	--		scbPs2NoDcOutput                        p.1.9.7
+	--		scbPs2FanError                          p.1.9.8
+	--		scbTempOutofBound                       p.1.9.9
+	--		scbFanError                             p.1.9.10
+	--		scbFaultLedOn                           p.1.9.11
+	--		scbErrorLedOn                           p.1.9.12
+	--		scbOutOfSyncError                       p.1.9.13
+	--		scbSioBoardFault                        p.1.9.14
+	--		scbGscBoardFault                        p.1.9.15
+	--		xptBusBoardFault                        p.1.9.16
+	--		scbNIC1Failure                          p.1.9.17
+	--		scbNIC2Failure                          p.1.9.18
+	--		scbRelayStatusChange                    p.1.9.19
+	--		scbFileSysCleanup                       p.1.9.20
+	--		scbFileSysLockout                       p.1.9.21
+	--		scbRF1SyncError                         p.1.9.22
+	--		scbRF2SyncError                         p.1.9.23
+	--		scbTCError                              p.1.9.24
+	--		scbSerialClientDisconnects              p.1.9.25
+	--		scbEthernetClientDisconnects            p.1.9.26
+	--		scbPanelCommError                       p.1.9.27
+	--		scbMirrorPSAbsent                       p.1.9.28
+	--		scbMatrixCommError                      p.1.9.29
+	--		scbMirrorRCEAbsent                      p.1.9.30
+	--		scbREAbsent                             p.1.9.31 
+	--		scbWatchdogAction						p.1.9.32
+	--    scbAutomationClients						p.1.10  
+	--		serialClientTable                       p.1.10.1
+	--			serialClientEntry                   p.1.10.1.1
+	--				serialClientNumber              p.1.10.1.1.1.n
+	--				serialClientName                p.1.10.1.1.2.n
+	--				serialClientPortNumber          p.1.10.1.1.3.n
+	--				serialClientStatus              p.1.10.1.1.5.n
+	--		ethernetClientTable                     p.1.10.2
+	--			ethernetClientEntry                 p.1.10.2.1
+	--				ethernetClientNumber            p.1.10.2.1.1.n
+	--				ethernetClientName              p.1.10.2.1.2.n
+	--				ethernetClientIpAddress         p.1.10.2.1.3.n
+	--				ethernetClientStatus            p.1.10.2.1.4.n
+	--				ethernetTotalClient             p.1.10.2.1.5.n
+	--    scbPanels      							p.1.11   
+	--		panelTable                              p.1.11.1
+	--			panelEntry                          p.1.11.1.1
+	--				panelID                         p.1.11.1.1.1.n
+	--				panelName                       p.1.11.1.1.2.n
+	--				panelType                       p.1.11.1.1.3.n
+	--				panelIpAddress                  p.1.11.1.1.4.n
+	--				panelStatus                     p.1.11.1.1.5.n
+	--    scbMatrix      							p.1.12                        
+	--		matrixTable                             p.1.12.1
+	--			matrixEntry                         p.1.12.1.1
+	--				matrixID                        p.1.12.1.1.1.n
+	--				matrixType                      p.1.12.1.1.2.n
+	--				matrixAddress                   p.1.12.1.1.3.n
+	--				matrixStatus                    p.1.12.1.1.4.n
+	--    scbRedundancy								p.1.13
+	--		panelServer                             p.1.13.1
+	--			scbPanelServerIpAddress             p.1.13.1.1
+	--			scbPanelServerConfig                p.1.13.1.2
+	--			scbMirroringPanelServerIpAddress    p.1.13.1.3
+	--			scbMirroringPanelServerStatus       p.1.13.1.4
+	--		routerControlEngine                     p.1.13.2
+    --    scbRE										p.1.14
+	--		reTable                                 p.1.14.1
+	--			reEntry                             p.1.14.1.1
+	--				reID                            p.1.14.1.1.1.n
+	--				reIpAddress                     p.1.14.1.1.2.n
+	--				reArea                          p.1.14.1.1.3.n
+	--				reStatus                        p.1.14.1.1.4.n
+	--				reRedundancyConfig              p.1.14.1.1.5.n
+	--  notifyGroup				           		    p.3
+	--		msgClass                                p.3.1
+	--		msgSeverity                             p.3.2
+	--		msgBehavior                             p.3.3
+	--		faultDescriptionString                  p.3.4
+
+	IMPORTS
+		MODULE-IDENTITY, NOTIFICATION-TYPE,OBJECT-TYPE,Integer32,IpAddress
+			FROM SNMPv2-SMI
+		gvgElModel, gvgElSerialCode
+			FROM GVG-ELEMENT-MIB
+		gvgRegistrations, gvgRouters
+			FROM GVG-REG;		
+
+	encoreSCB MODULE-IDENTITY
+		LAST-UPDATED "200909101500Z"
+		ORGANIZATION "Grass Valley Group Inc."
+		CONTACT-INFO
+			"	Grass Valley Group Inc.
+				P.O. Box 1114,
+				Grass Valley, CA 95945, USA.
+				phone: +1 (530) 478-4148
+				email: support@grassvalleygroup.com
+				http://www.grassvalleygroup.com"
+	DESCRIPTION
+		"This MIB module describes various status and 
+		alarms generated by the System Controller 
+		Board. System Controller Board is a single 
+		board computer which has the standard
+		capability of a computer along with 
+		additional features tailored to our needs.
+		
+		This MIB does not describe the element
+		specific scbNetwork of the managed system, 
+		and augments MIB-2 in the identification 
+		of a Grass Valley managed element.
+		
+		This module will be extended, or modified 
+		as required.
+
+		Grass Valley Group Inc. reserves the right 
+		to make changes in specification and other 
+		information contained in this document 
+		without prior notice. The reader should consult 
+		Grass Valley Group Inc. to determine whether 
+		any such changes have been made.
+
+		In no event shall Grass Valley Group Inc. be 
+		liable for any, incidental, indirect, special, 
+		or consequential damages whatsoever (including 
+		but not limited to lost profits) arising out 
+		of or related to this document or the 
+		information contained in it, even if Grass 
+		Valley Group Inc. has been advised of, known, 
+		or should have known, the possibility of such 
+		damages.
+
+		Grass Valley Group grants vendors, end-users, 
+		and other interested parties a non-exclusive 
+		license to use this specification in connection 
+		with the management of its products.
+
+		Copyright Grass Valley Group Inc."                       
+		
+	REVISION 	  "200909101500Z"
+	DESCRIPTION
+		"Added new Notification type 'scbWatchdogAction'. This notification will be generated when
+		watchdog finds a suspended task in Encore system controller."		
+
+	REVISION 	  "200810171500Z"
+	DESCRIPTION
+		"Added new panel type(SCP,PXS,PSD,PXYE,GPI,SDP and Newton ) to panelType enumeration. "		
+		
+	REVISION 	  "200705071100Z"
+	DESCRIPTION
+		" Four attributes(scbRCEIpAddress,scbRCEServerConfig, scbMirroringRCEIpAddress &scbMirroringRCEStatus) 
+    	  are now obsolete from Encore 1.7.3 release onwards.
+    	  A new Table(scbRE) is added to this MIB. This table provides the details of the Router Engine(s) 
+    	  running in the system."
+
+	REVISION 	  "200703061500Z"
+	DESCRIPTION
+		"Added new panel type(Client, Server, KSD, KMD, Acappella and Unknown ) to panelType enumeration. "
+
+	REVISION 	  "200505011600Z"
+	DESCRIPTION
+		"Added new groups scbAutomationClients,scbPanels ,scbMatrix and scbRedundancy.
+			scbAutomationClients -- Contains all the NP and RCL Serial/Ethernet Automation Client information
+			scbPanels -- Contains all the Panel related information connected to Encore
+			scbMatrix -- Contains all the Matrix related information connected to Encore. 
+			scbRedundancy -- Conatins all the redundancy application information
+		Also added following new Notification type
+		 	scbSerialClientDisconnects
+		 	scbEthernetClientDisconnects
+		 	scbPanelCommError
+		 	scbMirrorPSAbsent
+		 	scbMatrixCommError
+		 	scbMatrixControllerSwitchoverError
+		 	scbMirrorRCEAbsent"    
+
+	REVISION 	  "200404051600Z"
+	DESCRIPTION
+		"The descriptions of the traps are changed from --This will be generated-- to --This is generated--"       
+		
+  	REVISION      "200403311200Z"
+	DESCRIPTION
+		"Three new traps have been added for Sync Reference 1, Sync Reference 2 and Time Code. They are
+		1.scbRF1SyncError
+		2.scbRF2SyncError
+		3.scbTCError. "
+
+	REVISION      "200207030721Z"
+	DESCRIPTION
+		"Initial Version"
+
+
+	::= { gvgRouters 1 }
+
+    -- imported from GVG Element MIB 
+	gvgRegistrations	OBJECT IDENTIFIER ::= {iso(1) org(3) dod(6) internet(1) private(4) 	enterprises(1) gvg(4947) 2}
+	gvgElementMIB		OBJECT IDENTIFIER ::= {gvgRegistrations 1}
+	gvgElGeneral		OBJECT IDENTIFIER ::= {gvgElementMIB 2}
+	gvgElSeverityLevel	OBJECT IDENTIFIER ::= {gvgElGeneral 6}
+	gvgElModel			OBJECT IDENTIFIER ::= {gvgElGeneral 1}
+	gvgElSerialCode		OBJECT IDENTIFIER ::= {gvgElGeneral 2}	
+	--  Routers MIB - top-level groups
+	
+	notifyGroup				OBJECT IDENTIFIER ::= { gvgRouters 3 }
+
+	--  Encore System Controller 
+	
+    scbSystem 				OBJECT IDENTIFIER ::= { encoreSCB 1 }
+    scbBoards               OBJECT IDENTIFIER ::= { encoreSCB 2 }
+    scbLEDs       			OBJECT IDENTIFIER ::= { encoreSCB 3 }
+    scbPowerSupply			OBJECT IDENTIFIER ::= { encoreSCB 4 }
+    scbNetwork    			OBJECT IDENTIFIER ::= { encoreSCB 5 }
+    scbGPIO       			OBJECT IDENTIFIER ::= { encoreSCB 6 }
+    scbApplications       	OBJECT IDENTIFIER ::= { encoreSCB 7 }
+    scbFileSystem 			OBJECT IDENTIFIER ::= { encoreSCB 8 }
+    scbAlarms               OBJECT IDENTIFIER ::= { encoreSCB 9 }
+    scbAutomationClients	OBJECT IDENTIFIER ::= { encoreSCB 10 }    
+    scbPanels      			OBJECT IDENTIFIER ::= { encoreSCB 11 }    
+	scbMatrix      			OBJECT IDENTIFIER ::= { encoreSCB 12 }                                                                          
+	scbRedundancy			OBJECT IDENTIFIER ::= { encoreSCB 13 }
+	scbRE					OBJECT IDENTIFIER ::= { encoreSCB 14 }
+                                                                      
+    
+    
+    name OBJECT-TYPE
+        SYNTAX             OCTET STRING
+        MAX-ACCESS         read-write
+        STATUS             current
+        DESCRIPTION        "This attribute gives the name of the system controller"
+    ::= { scbSystem 1}
+
+
+    bootSwVer OBJECT-TYPE
+        SYNTAX             OCTET STRING
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives boot software version"
+    ::= { scbSystem 2}
+
+    appSwVer OBJECT-TYPE
+        SYNTAX             OCTET STRING
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives application software (or encore image) version"
+    ::= { scbSystem 3}
+    
+	frameFan  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					        running(1),
+					    	halt(2)
+ 	  				     }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+   		DESCRIPTION        "This attribute gives the status of the CPU fan."
+    ::= { scbSystem 4}
+    -- Note the model number and serial number are imported from GVG ELEMENT MIB
+    
+    
+    -- Boards on the System Controller 
+    
+	sio 		OBJECT IDENTIFIER ::= { scbBoards 1 }
+	gsc 		OBJECT IDENTIFIER ::= { scbBoards 2 }
+	cpuMezz 	OBJECT IDENTIFIER ::= { scbBoards 3 }
+	xptBus	 	OBJECT IDENTIFIER ::= { scbBoards 4 }
+	
+	
+	-- SIO board and port status
+        
+    sioBoard OBJECT-TYPE
+        SYNTAX  INTEGER {
+   		   				  running(1),
+   		   				  halt(2), 
+   		   				  notPresent(3)
+   		   				}
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives the current status of the SIO ISA board"
+    ::= { sio 1}
+    
+   	
+   	commTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF CommEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing Comm port details"
+	::= { sio 2}
+	
+	commEntry OBJECT-TYPE               
+    	SYNTAX	CommEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular comm port on SCB."
+		INDEX	{portNr}
+	::=	{  commTable 1}   
+		
+	CommEntry	::= SEQUENCE{ portNr 			Integer32,
+							  portName			OCTET STRING,									  
+							  portStatus 		INTEGER}
+		                            
+    portNr  OBJECT-TYPE
+    	SYNTAX      Integer32 (1..32767)
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the Communication port id"
+    ::= { commEntry 1}    
+
+    portName  OBJECT-TYPE
+    	SYNTAX             OCTET STRING
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the led name of the com port such as com1."
+    ::= { commEntry 2}    
+        
+    portStatus	 OBJECT-TYPE
+    	SYNTAX       INTEGER {
+        					   active(1),
+        					   notActive(2)
+        					 }
+    	MAX-ACCESS       read-only
+    	STATUS           current
+    	DESCRIPTION      "This attribute gives the com port status such as in-use or not in-use "
+    ::= { commEntry 3}    
+        
+   -- GSC Board and its status
+   
+    gscBoard OBJECT-TYPE
+        SYNTAX  INTEGER {
+   		   				  running(1),
+   		   				  halt(2), 
+   		   				  notPresent(3)
+   		   				}
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives the current status of the SIO ISA board"
+    ::= { gsc 1}
+
+   -- CPU Mezzannine Board and its status
+   
+    cpuMezzBoard OBJECT-TYPE
+        SYNTAX  INTEGER {
+   		   				  running(1),
+   		   				  halt(2), 
+   		   				  notPresent(3)
+   		   				}
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives the current status of the SIO ISA board"
+    ::= { cpuMezz 1}
+    
+
+    cpuTemp  OBJECT-TYPE
+    	SYNTAX      Integer32
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION ""
+    ::= { cpuMezz 2}    
+    
+    cpuTempLowThreshold  OBJECT-TYPE
+    	SYNTAX      Integer32
+    	MAX-ACCESS  read-only
+    	STATUS      current
+		DESCRIPTION    "This attribute used for to set the low  threshold temperature of the CPU "
+    ::= { cpuMezz 3}    
+    
+    cpuTempHighThreshold  OBJECT-TYPE
+    	SYNTAX      Integer32
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION    "This attribute used for to set the high threshold temperature of the CPU "
+    ::= { cpuMezz 4}    
+    
+    cpuFan  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					        running(1),
+					    	halt(2)
+ 	  				     }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+   		DESCRIPTION        "This attribute gives the status of the CPU fan."
+    ::= { cpuMezz 5}
+    
+    
+   -- XPTBus board and its status CPU Mezzannine Board and its status
+   
+    xptBusBoard OBJECT-TYPE
+        SYNTAX  INTEGER {
+   		   				  running(1),
+   		   				  halt(2), 
+   		   				  notPresent(3)
+   		   				}
+        MAX-ACCESS         read-only 
+        STATUS             current
+        DESCRIPTION        "This attribute gives the current status of the SIO ISA board"
+    ::= { xptBus 1}
+    
+
+   -- System Controller LEDs 
+   
+    syncTC  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the sync TC LED"
+    ::= { scbLEDs 1}        
+    
+    
+    syncRF1  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the sync RF1 LED"
+    ::= { scbLEDs 2}         
+    
+    syncRF2  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the sync RF2 LED"
+    ::= { scbLEDs 3}         
+    
+    syncErr  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the sync error LED"
+    ::= { scbLEDs 4}         
+    
+    error  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the error LED"
+    ::= { scbLEDs 5}         
+
+    busy  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the busy LED"
+    ::= { scbLEDs 6}         
+
+
+    power  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the power LED"
+    ::= { scbLEDs 7}         
+    
+	done  OBJECT-TYPE
+    	SYNTAX             INTEGER {
+				    			  	 on(1),
+				    				 off(2)
+			  					   }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the Status of the Done LED"
+    ::= { scbLEDs 8}         
+
+                            
+   -- SCB Power Supplies, Fan and Temperature
+   
+    ps1 OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the status of the power supply 1."
+    ::= { scbPowerSupply 1}
+
+  	ps1AcInput OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION        	"This attribute gives the status of the Ac Input to power supply 1"
+    ::= { scbPowerSupply 2}
+    
+    ps1DcOutput OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the Dc output status of the power supply 1,that is
+        			    the status is ok or faulty"
+    ::= { scbPowerSupply 3}
+    
+    ps1Fan  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					        running(1),
+					    	halt(2)
+ 	  				     }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+   		DESCRIPTION        "This attribute gives the status of the power supply 1 fan."
+    ::= { scbPowerSupply 4}
+
+    -- Redundant power supply status
+        
+    ps2 OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the status of the power supply 2."
+    ::= { scbPowerSupply 5 }
+
+  	ps2AcInput OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION        	"This attribute gives the status of the Ac Input to power supply 2"
+    ::= { scbPowerSupply 6}
+    
+    ps2DcOutput OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					    	present(1),
+					    	notPresent(2)
+					     }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the Dc output status of the power supply 2,that is
+        		    	the status is ok or faulty"
+    ::= { scbPowerSupply 7}
+    
+    ps2Fan  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+					        running(1),
+					    	halt(2)
+ 	  				     }
+    	MAX-ACCESS         read-only
+    	STATUS             current
+   		DESCRIPTION        "This attribute gives the status of the power supply 1 fan."
+    ::= { scbPowerSupply 8}
+
+    
+    -- Network Configuration 
+    
+    nic1  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+				    	   active(1),
+				    	   notActive(2)
+			    		 }
+    	MAX-ACCESS       read-only
+    	STATUS           current
+    	DESCRIPTION      "This attribute gives the Status of the NIC 1"
+    ::= { scbNetwork 1}         
+
+    nic1Name  OBJECT-TYPE
+    	SYNTAX             OCTET STRING
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the name of the first NIC on the SCB"
+    ::= { scbNetwork 2}                 
+                                     
+	nic1InetAddress OBJECT-TYPE
+    	SYNTAX             IpAddress
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the NIC1 IP address"
+    ::= { scbNetwork 3}         
+                
+    nic1InetMask	   OBJECT-TYPE
+    	SYNTAX             IpAddress
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the NIC1 sub-net mask"
+    ::= { scbNetwork 4}         
+        
+    nic1InetGateway 	OBJECT-TYPE
+    	SYNTAX             		IpAddress
+    	MAX-ACCESS         		read-only
+    	STATUS             		current
+    	DESCRIPTION        		"This attribute gives the NIC1 Gateway"
+    ::= { scbNetwork 5}                                            
+    
+	-- Secondary network interface Status (for Panel or Matrix lan)
+	
+    nic2  OBJECT-TYPE
+    	SYNTAX   INTEGER {
+				    	   active(1),
+				    	   notActive(2)
+			    		 }
+    	MAX-ACCESS       read-only
+    	STATUS           current
+    	DESCRIPTION      "This attribute gives the Status of the NIC 2"
+    ::= { scbNetwork 6}         
+
+    nic2Name  OBJECT-TYPE
+    	SYNTAX             OCTET STRING
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the name of the second NIC on the SCB"
+    ::= { scbNetwork 7}                 
+                                     
+	nic2InetAddress OBJECT-TYPE
+    	SYNTAX             IpAddress
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the NIC2 IP address"
+    ::= { scbNetwork 8}         
+                
+    nic2InetMask	   OBJECT-TYPE
+    	SYNTAX             IpAddress
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the NIC2 sub-net mask"
+    ::= { scbNetwork 9}         
+        
+    nic2InetGateway 	OBJECT-TYPE
+    	SYNTAX             		IpAddress
+    	MAX-ACCESS         		read-only
+    	STATUS             		current
+    	DESCRIPTION        		"This attribute gives the NIC2 Gateway"
+    ::= { scbNetwork 10}                                           
+
+
+    -- GPIO Relays    
+    
+    -- General purpose input output Relays
+	------------------------------------------------------------------------------	
+	--	RelayNumber		RelayName	RelayType	RelayStatus                                     
+	------------------------------------------------------------------------------	
+	--	  1				GP1			Output		Closed				    
+	------------------------------------------------------------------------------	
+	--	  1				GP2			Input		Open				    
+	------------------------------------------------------------------------------	
+	    
+    relayTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF RelayEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing Relay-specific information"
+	::= { scbGPIO 1}
+                    
+	relayEntry OBJECT-TYPE
+		SYNTAX	RelayEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a perticular Relay"
+		INDEX	{relayNumber, relayType}
+	::=	{  relayTable 1}   
+		
+	RelayEntry	::= SEQUENCE{ relayNumber 	Integer32,
+							  relayName		OCTET STRING,									  
+							  relayType	 	INTEGER,
+							  relayStatus 	INTEGER}
+		
+	relayNumber	   OBJECT-TYPE
+    	SYNTAX         Integer32 (1..32767)
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the Relay number of the SCB"
+    ::= { relayEntry 1}    
+        
+    relayName	   OBJECT-TYPE
+    	SYNTAX         OCTET STRING
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the name of the Relay"
+    ::= { relayEntry 2}      
+        
+    relayType	OBJECT-TYPE
+    	SYNTAX      INTEGER {
+					    	  input(1),
+					    	  output(2)
+					  		}
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the Type of the Relay that is In or Out"
+    ::= { relayEntry 3} 
+        
+    relayStatus	   OBJECT-TYPE
+    	SYNTAX         INTEGER {
+					    	     open(1),
+					    		 close(2)
+					  		   }
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the status of the Relay that is either
+        				open or close"
+    ::= { relayEntry 4}         
+    
+    -- Applications 
+	------------------------------------------------------------
+	--	appNumber			appName					appStatus                   
+	------------------------------------------------------------
+	--		1			 Control Panel Server         running
+	------------------------------------------------------------
+	--		2			 Tie Line Manager         	  disable   
+	------------------------------------------------------------
+	--		3			 Router Controller            running   
+	------------------------------------------------------------
+
+    appTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF AppEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing Relay-specific information"
+	::= { scbApplications 1 }
+                    
+	appEntry OBJECT-TYPE
+		SYNTAX	AppEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a perticular application present on SCB"
+		INDEX	{appNumber}
+	::=	{  appTable 1}   
+		
+	AppEntry	::= SEQUENCE{ appNumber 	Integer32,
+							  appName		OCTET STRING,									  
+							  appStatus 	INTEGER}
+		                            
+    appNumber	   OBJECT-TYPE
+    	SYNTAX         Integer32 (1..32767)
+    	MAX-ACCESS     read-only
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the application number present on SCB"
+    ::= { appEntry 1}    
+        
+    appName	   	OBJECT-TYPE
+    	SYNTAX      OCTET STRING
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the name of the application"
+    ::= { appEntry 2}      
+        
+	appStatus	   OBJECT-TYPE
+    	SYNTAX         INTEGER{
+					    		running(1),
+					    		disable(2),
+					    		notResponding(3)
+				  			 }
+    	MAX-ACCESS     read-write
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the status of the application 
+    					that is either on or off"
+    ::= { appEntry 3}         
+
+    
+    -- File System 
+    
+    flashCapacity	OBJECT-TYPE
+    	SYNTAX             	Integer32
+    	MAX-ACCESS          read-only
+    	STATUS              current
+    	DESCRIPTION         "This attribute gives the total memory capacity of the flash."
+    ::= { scbFileSystem 1}      	
+    
+    flashFree		OBJECT-TYPE
+    	SYNTAX             	Integer32
+    	MAX-ACCESS          read-only
+    	STATUS              current
+    	DESCRIPTION         "This attribute gives the free memory availble on flash."
+    ::= { scbFileSystem 2}      	
+                                                                     
+
+	flashSysStatus OBJECT-TYPE
+    	SYNTAX         INTEGER {
+					    		 reading(1),
+					    		 writing(2),
+					    		 idle(3),
+				    			 locked-out(4)
+				  			   }
+    	MAX-ACCESS     read-only 
+    	STATUS         current
+    	DESCRIPTION    "This attribute gives the status of file system"
+    ::= { scbFileSystem 3}         
+                                                                     
+                                                                     
+	-- General Notification information - to standandize Alarm information 
+	
+	msgClass	OBJECT-TYPE
+    	SYNTAX          INTEGER{
+        	                    communication(1),
+            	                equipment(2),
+                	            environment(3),
+                    	        processing(4)
+                        	   }
+    	MAX-ACCESS      read-only
+    	STATUS          current
+    	DESCRIPTION     "This attribute gives the message class type of an alarm, suppose if an
+       					 alarm is of type communication ,then it gives the message class as 
+       					 communication "
+    ::= { notifyGroup 1}        
+
+    msgSeverity     OBJECT-TYPE
+    	SYNTAX          INTEGER{
+        	                     major(1),
+            	                 minor(2),
+	  				   			 warning(3),
+                    	         critical(4),
+                        	     information(5),
+			 					 indeterminant(6),
+			 				 	 cleared(7)
+                            	}
+    	MAX-ACCESS      read-only
+    	STATUS          current
+    	DESCRIPTION     "This attribute gives the message Severity of an alarm such as major/minor etc.,"
+    ::= { notifyGroup 2}
+
+    msgBehavior	OBJECT-TYPE
+    	SYNTAX          INTEGER{        
+	 				   			clearedbyuser(1),
+            	                clearedbysyetem(2),
+			    	     	  	notpending(3)                                        
+                    	       }
+    	MAX-ACCESS      read-only
+    	STATUS          current
+    	DESCRIPTION     "This attribute gives the message Behaviour of an alarm."
+    ::= { notifyGroup 3}
+
+    faultDescriptionString   OBJECT-TYPE
+    	SYNTAX             OCTET STRING
+    	MAX-ACCESS         read-only
+    	STATUS             current
+    	DESCRIPTION        "This attribute gives the description of an alarm."
+    ::= { notifyGroup 4}
+
+-- All Newly added attribute for Encore 1.7 release   
+
+    -- Serial Client Table 
+	-----------------------------------------------------------------------------------------
+	--	serialClientNumber	serialClientName	serialClientPortNumber  serialClientStatus                 
+	-----------------------------------------------------------------------------------------
+	--		1					Encoda1				1						active
+	-----------------------------------------------------------------------------------------
+	--		2					M2100				2						notConnected
+	-----------------------------------------------------------------------------------------
+	--		3					Kalypso				3						active
+	-----------------------------------------------------------------------------------------
+
+    serialClientTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF SerialClientEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing RCL Serial Client connected to Encore"
+	::= { scbAutomationClients 1 }
+                    
+	serialClientEntry OBJECT-TYPE
+		SYNTAX	SerialClientEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular RCL Serial Client present on SCB"
+		INDEX	{serialClientNumber}
+	::=	{  serialClientTable 1}   
+		
+	SerialClientEntry	::= SEQUENCE{serialClientNumber 	Integer32,
+							  		 serialClientName		OCTET STRING,									  
+							  		 serialClientPortNumber Integer32,
+							  		 serialClientStatus 	INTEGER}
+		                            
+    serialClientNumber	OBJECT-TYPE
+    	SYNTAX         	Integer32 (1..32767)
+    	MAX-ACCESS     	read-only
+    	STATUS         	current
+    	DESCRIPTION    	"This attribute gives the RCL Serial Client number Connected to the Encore"
+    ::= { serialClientEntry 1}    
+        
+    serialClientName	OBJECT-TYPE
+    	SYNTAX      	OCTET STRING
+    	MAX-ACCESS  	read-only
+    	STATUS      	current
+    	DESCRIPTION 	"This attribute gives the name of the RCL Serial Client Connceted to the Encore"
+    ::= { serialClientEntry 2}      
+        
+    serialClientPortNumber	OBJECT-TYPE
+    	SYNTAX         		Integer32
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Serial Port numbers in the Encore used by the
+    						 RCL Serial Client."
+    ::= { serialClientEntry 3}    
+
+
+	serialClientStatus	   	OBJECT-TYPE
+    	SYNTAX         		INTEGER{
+					    			active(1),
+					    			notConnected(2),
+					    			notConfigured(3),
+					    			deleted(4)					    			
+				  			 		}
+    	MAX-ACCESS     		read-write
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the status of the RCL Serial Client."
+    ::= { serialClientEntry 4}         
+
+
+    -- Ethrenet Client Table
+	-----------------------------------------------------------------------------------------------------------------
+	--	ethernetClientNumber	ethernetClientName	ethernetClientIpAddress  ethernetClientStatus ethernetTotalClient                 
+	-----------------------------------------------------------------------------------------------------------------
+	--			1					Encoda1				10.255.104.100			active                20
+	-----------------------------------------------------------------------------------------------------------------
+	--			2					M2100				10.255.104.120			notConnected 		  10
+	-----------------------------------------------------------------------------------------------------------------
+	
+    ethernetClientTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF EthernetClientEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing RCL Ethernet Clients connected to Encore"
+	::= { scbAutomationClients 2 }
+                    
+	ethernetClientEntry OBJECT-TYPE
+		SYNTAX	EthernetClientEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular RCL Ethernet Client connected to Encore"
+		INDEX	{ethernetClientNumber}
+	::=	{  ethernetClientTable 1}   
+		
+	EthernetClientEntry	::= SEQUENCE{ethernetClientNumber 		Integer32,
+							  		 ethernetClientName			OCTET STRING,									  
+							  		 ethernetClientIpAddress 	IpAddress,
+							  		 ethernetClientStatus 		INTEGER,
+							  		 ethernetTotalClient		Integer32}
+		                            
+    ethernetClientNumber	OBJECT-TYPE
+    	SYNTAX         		Integer32 (1..32767)
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the RCL Ethernet Client number connected to Encore"
+    ::= { ethernetClientEntry 1}    
+        
+    ethernetClientName	OBJECT-TYPE
+    	SYNTAX      	OCTET STRING
+    	MAX-ACCESS  	read-only
+    	STATUS      	current
+    	DESCRIPTION 	"This attribute gives the name of the RCL Ethernet Client Connected to Encore"
+    ::= { ethernetClientEntry 2}      
+        
+    ethernetClientIpAddress		OBJECT-TYPE
+    	SYNTAX    	     		IpAddress
+    	MAX-ACCESS  	   		read-only
+    	STATUS         			current
+    	DESCRIPTION    			"This attribute gives the Ethernet Client IP Address."
+    ::= { ethernetClientEntry 3}    
+
+
+	ethernetClientStatus	OBJECT-TYPE
+    	SYNTAX         		INTEGER{
+					    			active(1),
+					    			notConnected(2),
+					    			notConfigured(3),
+					    			deleted(4)					    			
+				  			 		}
+    	MAX-ACCESS     		read-write
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the status of the RCL Ethernet Client  
+    						 connected to Encore"
+    ::= { ethernetClientEntry 4}    
+    
+    ethernetTotalClient		OBJECT-TYPE
+    	SYNTAX         		Integer32
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Total Client connection 
+    						 connected to the Ethernet Client"
+    ::= { ethernetClientEntry 5}  
+    
+           
+    -- panel Table
+	---------------------------------------------------------------------------
+	--	panelID		panelName	panelType  	panelIpAddress   	panelStatus              
+	---------------------------------------------------------------------------
+	--		1		 R6Pmb1		 PMB		 192.168.1.150		 active
+	---------------------------------------------------------------------------
+	--		1		 R6XY1		 RXY		 192.168.1.156		 notConnected
+	---------------------------------------------------------------------------
+	--		1		 R648b1		 48B		 192.168.1.160		 active
+	---------------------------------------------------------------------------
+
+    panelTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF PanelEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing  Panels connected to Encore"
+	::= { scbPanels 1 }
+                    
+	panelEntry OBJECT-TYPE
+		SYNTAX	PanelEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular Panel connected to Encore"
+		INDEX	{panelID}
+	::=	{  panelTable 1}   
+		
+	PanelEntry	::= SEQUENCE{panelID 			Integer32,
+							 panelName			OCTET STRING,									  
+							 panelType          INTEGER,
+							 panelIpAddress 	IpAddress,
+							 panelStatus 		INTEGER}
+		                            
+    panelID	OBJECT-TYPE
+    	SYNTAX         		Integer32 (1..32767)
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Panel ID of the Panel connected to Encore"
+    ::= { panelEntry 1}    
+        
+    panelName	OBJECT-TYPE
+    	SYNTAX      	OCTET STRING
+    	MAX-ACCESS  	read-only
+    	STATUS      	current
+    	DESCRIPTION 	"This attribute gives the name of the Panel Connected to Encore"
+    ::= { panelEntry 2}      
+        
+	 panelType		OBJECT-TYPE
+    	SYNTAX  	INTEGER
+    				  {
+						bps(1),
+						xy(2),
+						pmb(3),
+						fortyeightB(4),
+						ucp(5),
+						edp(6),
+					    p48(7),
+					    bps32(8),
+					    mb8(9),
+					    mb4(10),
+					    cos(11),
+					    mco(12),	
+					    client(13),
+						server(14),
+						ksd(15),
+						kmd(16),
+						acappella(17),  
+						jep(18),
+						scp(19),
+						pxs(20),
+						pxd(21),
+						pxye(22),
+						gpi(23),
+						sdp(24),
+						newton(25),
+						unknown(100)
+				  	  }
+    	MAX-ACCESS    read-only
+    	STATUS        current
+    	DESCRIPTION   "This attribute gives the type of Panel connected to Encore"
+    ::= { panelEntry 3}         
+    
+    panelIpAddress		OBJECT-TYPE
+    	SYNTAX    	    IpAddress
+    	MAX-ACCESS  	read-only
+    	STATUS         	current
+    	DESCRIPTION    	"This attribute gives the Panel IP Address."
+    ::= { panelEntry 4}    
+
+
+	panelStatus		OBJECT-TYPE
+    	SYNTAX      INTEGER{
+							active(1),
+							notConnected(2)					    								    			
+				  	 		}
+    	MAX-ACCESS  read-write
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the status of the Panel connected to Encore"
+    ::= { panelEntry 5}         
+    
+    -- matrix Table
+	---------------------------------------------------------------------
+	--	matrixID	matrixType		matrixAddress		matrixStatus              
+	---------------------------------------------------------------------
+	--		1		 7500NB		 	 192.168.1.100		 active
+	---------------------------------------------------------------------
+	--		2		 7500WB		 	 	1		 		 active
+	---------------------------------------------------------------------
+	--		3		 Concerto	 	 192.168.1.120		 active
+	---------------------------------------------------------------------
+
+    matrixTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF MatrixEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"A table containing  Matrix connected to Encore"
+	::= { scbMatrix 1 }
+                    
+	matrixEntry OBJECT-TYPE
+		SYNTAX	MatrixEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular Matrix connected to Encore"
+		INDEX	{matrixID}
+	::=	{  matrixTable 1}   
+		
+	MatrixEntry	::= SEQUENCE{matrixID 			Integer32,
+							 matrixType         INTEGER,
+							 matrixAddress 		OCTET STRING,
+							 matrixStatus 		INTEGER}
+		                            
+    matrixID			OBJECT-TYPE
+    	SYNTAX         	Integer32 (1..32767)
+    	MAX-ACCESS     	read-only
+    	STATUS         	current
+    	DESCRIPTION    	"This attribute gives the matrix ID connected to Encore"
+    ::= { matrixEntry 1}    
+        
+	matrixType		OBJECT-TYPE
+    	SYNTAX  	INTEGER
+    				  {
+						nb7500(1),
+						wb7500(2),
+						concerto(3),
+						trinix(4),
+						apex(5),
+						unKnown(6)
+				  	  }
+    	MAX-ACCESS    read-only
+    	STATUS        current
+    	DESCRIPTION   "This attribute gives the type of matrix connected to Encore"
+    ::= { matrixEntry 2}         
+    
+    matrixAddress		OBJECT-TYPE
+    	SYNTAX    	    OCTET STRING
+    	MAX-ACCESS  	read-only
+    	STATUS         	current
+    	DESCRIPTION    	"This attribute gives the matrix Address. The Matrix address is
+    					 IP address or appropriate Serial connector number that is used  
+    					 by the matrix to connect to Encore. "
+    ::= { matrixEntry 3}    
+
+	matrixStatus	OBJECT-TYPE
+    	SYNTAX      INTEGER{
+							active(1),
+							disconnected(2),
+							redundant(3),
+							notAvailable(4)					    								    			
+				  	 		}
+    	MAX-ACCESS  read-write
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the status of the matrix connected to Encore"
+    ::= { matrixEntry 4}         
+    
+-- Redundancy Status
+    panelServer 			OBJECT IDENTIFIER ::= { scbRedundancy 1 }
+	routerControlEngine 	OBJECT IDENTIFIER ::= { scbRedundancy 2 }
+
+-- Mirror PanelServer
+    scbPanelServerIpAddress	OBJECT-TYPE
+    	SYNTAX         		IpAddress 
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Panel Sever IP Address running on SCB."
+    ::= { panelServer 1}          
+
+    scbPanelServerConfig	OBJECT-TYPE
+    	SYNTAX         		INTEGER { 
+    								 mirror(1),
+									 master(2),
+									 standalone(3)
+    							 	}
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Panel Sever Configuration 
+    						running on SCB."
+    ::= { panelServer 2}          
+
+    scbMirroringPanelServerIpAddress	OBJECT-TYPE
+    	SYNTAX             				IpAddress
+    	MAX-ACCESS     					read-only
+    	STATUS         					current
+    	DESCRIPTION    					"This attribute gives the Mirroring Panel Sever IP 
+    									 Address running on redundant SCB."
+    ::= { panelServer 3}          
+    
+   scbMirroringPanelServerStatus	OBJECT-TYPE
+    	SYNTAX         		INTEGER { 
+									 present(1),
+									 absent(2),
+									 unknown(3)
+    							 	}
+    	MAX-ACCESS     		read-only
+    	STATUS         		current
+    	DESCRIPTION    		"This attribute gives the Mirroring Panel Sever Configuration 
+    						running on redundant SCB."
+    ::= { panelServer 4}          
+    
+	-- Following 4 attributes(scbRCEIpAddress,scbRCEServerConfig, scbMirroringRCEIpAddress &scbMirroringRCEStatus) 
+    -- obsolete from Encore 1.7.3 release onwards.
+    -- Instead of this please use scbRCE table defined below, to get the full details of the RCE(s) running in the system.
+    scbRCEIpAddress		OBJECT-TYPE
+    	SYNTAX         	IpAddress 
+    	MAX-ACCESS     	read-only
+    	STATUS         	obsolete
+    	DESCRIPTION    	"This attribute gives the RCE IP Address running on SCB."
+    ::= { routerControlEngine 1}          
+
+    scbRCEServerConfig	OBJECT-TYPE
+    	SYNTAX         	INTEGER { 
+    							 mirror(1),
+								 master(2),
+								 standalone(3)
+    						 	}
+    	MAX-ACCESS     	read-only
+    	STATUS         	obsolete
+    	DESCRIPTION    	"This attribute gives the RCE Configuration running on SCB."
+    ::= { routerControlEngine 2}          
+
+    scbMirroringRCEIpAddress	OBJECT-TYPE
+    	SYNTAX     				IpAddress
+    	MAX-ACCESS				read-only
+    	STATUS    				obsolete
+    	DESCRIPTION 			"This attribute gives the Mirroring RCE IP 
+    							 Address running on redundant SCB."
+    ::= { routerControlEngine 3}          
+    
+   scbMirroringRCEStatus	OBJECT-TYPE
+    	SYNTAX         		INTEGER { 
+									 present(1),
+									 absent(2),
+									 unknown(3),
+									 notSupported(4)									 
+    							 	}
+    	MAX-ACCESS     		read-only
+    	STATUS         		obsolete
+    	DESCRIPTION    		"This attribute gives the Mirroring RCE Configuration 
+    						running on redundant SCB."
+    ::= { routerControlEngine 4}          
+
+	-- Router Engine(RE) Table
+	---------------------------------------------------------------------------------------
+	--	reID		reIpAddress			  reArea		 reStatus 		reRedundancyConfig              
+	---------------------------------------------------------------------------------------
+	--	  1			10.255.105.170		Production	 	Available	 		Master
+	---------------------------------------------------------------------------------------
+	--	  2			10.255.105.171		Production	 	Absent		 		Mirror
+	---------------------------------------------------------------------------------------
+	--	  3			10.255.105.150		Sports		 	Available	 		Stand Alone
+	---------------------------------------------------------------------------------------
+
+    reTable OBJECT-TYPE
+		SYNTAX	SEQUENCE OF ReEntry
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"The table containing status of Router Engine’s present in system"
+	::= { scbRE 1 }
+                    
+	reEntry OBJECT-TYPE
+		SYNTAX	ReEntry  
+		MAX-ACCESS	not-accessible
+		STATUS	current
+		DESCRIPTION	"Information about a particular Router Engine present in the network"
+		INDEX	{reID}
+	::=	{  reTable 1}   
+		
+	ReEntry	::= SEQUENCE{reID 					Integer32,
+						 reIpAddress			IpAddress,									  
+						 reArea          		OCTET STRING,
+						 reStatus 				INTEGER,
+						 reRedundancyConfig 	INTEGER}
+		                            
+    reID				OBJECT-TYPE
+    	SYNTAX         	Integer32 (1..32767)
+    	MAX-ACCESS     	read-only
+    	STATUS         	current
+    	DESCRIPTION    	"This attribute gives the ID of the Router Engine present in the network."
+    ::= { reEntry 1}    
+        
+    reIpAddress		OBJECT-TYPE
+    	SYNTAX      	IpAddress
+    	MAX-ACCESS  	read-only
+    	STATUS      	current
+    	DESCRIPTION 	"This attribute gives the IP Address of the Router Engine."
+    ::= { reEntry 2}      
+        
+	 reArea			OBJECT-TYPE
+    	SYNTAX  		OCTET STRING
+    	MAX-ACCESS    	read-only
+    	STATUS        	current
+    	DESCRIPTION   	"This attribute gives the Area in which Router Engine is running."
+    ::= { reEntry 3}         
+    
+	reStatus		OBJECT-TYPE
+    	SYNTAX      INTEGER{
+							available(1),
+							absent(2),
+							unknown(3)					    								    			
+				  	 		}
+    	MAX-ACCESS  read-only
+    	STATUS      current
+    	DESCRIPTION "This attribute gives the current status of the Router Engine."
+    ::= { reEntry 4}         
+
+	reRedundancyConfig		OBJECT-TYPE
+    	SYNTAX      		INTEGER{
+									master(1),
+									mirror(2),
+									standalone(3),
+									unknown(4)
+				  	 				}
+    	MAX-ACCESS  		read-only
+    	STATUS      		current
+    	DESCRIPTION 		"This attribute gives the redundancy configuration of the Router Engine"
+    ::= { reEntry 5}         
+	
+  	--Alarms or Notifications generated by SCB
+  	
+	scbPs1Error		NOTIFICATION-TYPE
+    OBJECTS         
+	{                      
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps1 
+	}
+    STATUS          current
+    DESCRIPTION     "This alarm is generated when  there is an error in powersupply 1."
+    ::= { scbAlarms 1 }
+
+
+	scbPs1NoAcInput		NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps1
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is no AC input to the  
+			 power supply 1. "
+        ::= { scbAlarms 2 }
+
+
+	scbPs1NoDcOutput	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps1AcInput
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is a No DC
+			 output from the power supply 1 "
+        ::= { scbAlarms 3 }
+
+
+	scbPs1FanError	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps1AcInput,
+		ps1DcOutput
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated if power supply 1
+			 fan is not working."
+        ::= { scbAlarms 4 }
+
+	scbPs2Error		NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps2
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when  
+			 power supply 2 is removed."
+        ::= { scbAlarms 5 }
+
+
+	scbPs2NoAcInput		NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps2
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is no AC input to the second 
+			 power supply  "
+        ::= { scbAlarms 6 }
+
+
+	scbPs2NoDcOutput	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps2AcInput
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is a No DC
+			 output from the power supply 2 "
+        ::= { scbAlarms 7 }
+
+
+	scbPs2FanError		NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ps2AcInput,
+		ps2DcOutput
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated if power supply 2
+			 fan is not working."
+        ::= { scbAlarms 8 }
+
+
+	scbTempOutofBound	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		cpuTemp
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when temperature goes out of bound. "
+        ::= { scbAlarms 9 }
+
+
+	scbFanError	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		frameFan
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the SCB
+			  fan is not working."
+        ::= { scbAlarms 10 }
+
+	scbFaultLedOn	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the Fault LED is on."
+        ::= { scbAlarms 11 }
+
+	scbErrorLedOn	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the Error LED is on."
+        ::= { scbAlarms 12 }
+	
+	scbOutOfSyncError	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the Sync Error LED is on."
+        ::= { scbAlarms 13 }
+
+
+	scbSioBoardFault	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		sioBoard
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is any fault in the SIO ISA board"
+        ::= { scbAlarms 14 }
+        
+	scbGscBoardFault	NOTIFICATION-TYPE               
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		gscBoard
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is any fault in the GSC ISA board"
+        ::= { scbAlarms 15 }
+        
+	xptBusBoardFault	NOTIFICATION-TYPE         
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		xptBusBoard
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when there is any fault in the XPTBus board"
+        ::= { scbAlarms 16 }
+
+	scbNIC1Failure	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		nic1InetAddress,
+		nic1InetMask,
+		nic1InetGateway
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the LAN1 of SCB
+				  is not working."
+        ::= { scbAlarms 17 }
+
+	scbNIC2Failure	NOTIFICATION-TYPE
+        OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		nic2InetAddress,
+		nic2InetMask,
+		nic2InetGateway
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the LAN2 of SCB
+				  is not working."
+        ::= { scbAlarms 18 }
+       
+
+	scbRelayStatusChange	NOTIFICATION-TYPE
+	OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		relayType,
+		relayNumber,
+	  	relayName,									  
+	  	relayStatus
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when  
+        				 there is any change in the status of the Relay."
+        ::= { scbAlarms 19 }       
+        
+                             
+	scbFileSysCleanup NOTIFICATION-TYPE
+	OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		flashCapacity,
+		flashFree	
+	}
+	STATUS          current
+	DESCRIPTION     "This alarm is generated when the system crosses 90% flash utilization"
+    ::= { scbAlarms 20 }  
+        
+
+	scbFileSysLockout NOTIFICATION-TYPE
+	OBJECTS         
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		flashCapacity,
+		flashFree,
+		flashSysStatus
+	}
+	STATUS          current
+	DESCRIPTION     "This alarm is generated when the file system locked-out"
+    ::= { scbAlarms 21 }  
+
+    scbRF1SyncError NOTIFICATION-TYPE
+	OBJECTS
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the Reference 1 NOT identified or failed."
+        ::= { scbAlarms 22 }
+	
+	scbRF2SyncError NOTIFICATION-TYPE
+	OBJECTS
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the Reference 2 NOT identified or failed."
+        ::= { scbAlarms 23 }
+
+	scbTCError NOTIFICATION-TYPE
+	OBJECTS
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated when the time code signals NOT identified or failed."
+        ::= { scbAlarms 24 }                 
+
+	scbSerialClientDisconnects NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		serialClientNumber
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever any Serial SCB Client
+        				 disconnected from the Encore."
+        ::= { scbAlarms 25 }                 
+
+
+	scbEthernetClientDisconnects NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		ethernetClientNumber
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever any Ethernet SCB Client
+        				 disconnected from the Encore."
+        ::= { scbAlarms 26 }                 
+
+
+	scbPanelCommError NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		panelID
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever any Panel loses communication
+        				 with the Panel Server."
+        ::= { scbAlarms 27 }                 
+
+	scbMirrorPSAbsent NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever Panel Server detects there is 
+        				 no Mirroring partner Panel Server."
+        ::= { scbAlarms 28 }                 
+
+	scbMatrixCommError NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		matrixID
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever any Matrix lost the communication
+        				 from Encore."
+        ::= { scbAlarms 29 }                 
+
+	scbMirrorRCEAbsent NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever RCE detects there is no 
+        				 mirroring partner RCE."
+        ::= { scbAlarms 30 }                                 
+
+   	scbREAbsent NOTIFICATION-TYPE
+	OBJECTS
+	{
+        gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString,
+		reID
+	}
+        STATUS          current
+        DESCRIPTION     "This alarm is generated whenever any Router Engine status becomes absent."
+        ::= { scbAlarms 31 }  
+        
+    scbWatchdogAction NOTIFICATION-TYPE
+	OBJECTS
+	{
+		name,
+		gvgElModel,
+		gvgElSerialCode,
+		msgClass,
+		msgSeverity,
+		msgBehavior,
+		faultDescriptionString
+	}
+        STATUS          current
+        DESCRIPTION     "This information is generated whenever the task watchdog finds a suspended key
+        				 task in Encore System Controller. The 'faultDescriptionString' shall carry the
+        				 name of the task that got suspended."
+        ::= { scbAlarms 32 }                                 
+
+END

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2020-03-07 14:31:46.779,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas</Transaction>
+    <Transaction>2020-03-07 14:52:23.858,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.pas=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas</Transaction>
+    <Transaction>2020-03-07 14:52:23.858,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.dfm=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.dfm</Transaction>
+    <Transaction>2020-03-07 14:52:33.818,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\TestImaginLRC.dproj=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project12.dproj</Transaction>
+    <Transaction>2020-03-07 14:54:28.433,=D:\User Data\Git\APC\DCS\Device Units\Router\Imagine Router\UnitImagineLRC.pas</Transaction>
+    <Transaction>2020-03-07 14:54:47.985,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+  </Transactions>
+</BorlandProject>

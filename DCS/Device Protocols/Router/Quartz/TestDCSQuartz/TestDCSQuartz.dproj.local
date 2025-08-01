@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.629,D:\User Data\Git\APC\Common\UnitCommons.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.818,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project12.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\TestImaginLRC.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.456,=D:\User Data\Git\APC\Common\UnitDCSDLL.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.659,D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\UnitTestDCSImagineLRC.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\UnitTestDCSQuartz.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.441,=D:\User Data\Git\APC\Common\UnitCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.197,=D:\User Data\Git\APC\Common\UnitCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.433,=D:\User Data\Git\APC\DCS\Device Units\Router\Imagine Router\UnitImagineLRC.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.600,D:\User Data\Git\APC\DCS\Device Units\Router\Imagine Router\UnitImagineLRC.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.791,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.pas=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImagineLRC.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.882,D:\User Data\Git\APC\Common\UnitBaseSerial.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.419,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.985,=D:\User Data\Git\APC\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.824,D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\TestDCSImagineLRC.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\TestDCSQuartz.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.405,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestDCSImagineLRC\UnitTestDCSImagineLRC.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImagineLRC.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.659,D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\UnitTestDCSImagineLRC.pas=D:\User Data\Git\APC\DCS\Device Protocols\Router\Quartz\TestDCSQuartz\UnitTestDCSQuartz.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.805,D:\User Data\Git\APC\Common\UnitTypeConvert.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.454,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\TestImaginLRC.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\TestImagineLRC.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.791,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImagineLRC.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.784,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestDCSImagineLRC\TestDCSImagineLRC.dproj=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\TestImagineLRC.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.779,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.405,D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestDCSImagineLRC\UnitTestDCSImagineLRC.pas=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImagineLRC.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.858,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.dfm=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.457,=D:\User Data\Git\APC\Common\UnitTypeConvert.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.643,=D:\User Data\Git\APC\Common\UnitTypeConvert.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.858,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit12.pas=D:\User Data\Git\APC\DCS\Device Protocols\Router\IMAGINE Router\TestImagineLRC\UnitTestImaginLRC.pas</Transaction>
+  </Transactions>
+</BorlandProject>

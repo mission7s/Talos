@@ -1,0 +1,42 @@
+unit UnitCISXmlConsts;
+
+interface
+
+const
+  // CueSheet List XML Node & Attribute Name'
+  CIS_XML_CHANNEL_NAME      = 'CHName';
+  XML_ONAIR_DATE      = 'onairdate';
+  XML_ONAIR_FLAG      = 'onairflag';
+  XML_ONAIR_NO        = 'onairno';
+
+  XML_EVENT_COUNT     = 'eventcount';
+  XML_EVENTS          = 'events';
+  XML_EVENT           = 'event';
+  XML_SERIAL_NO       = 'serialno';
+  XML_PROGRAM_NO      = 'programno';
+  XML_GROUP_NO        = 'groupno';
+  XML_EVENT_MODE      = 'eventmode';
+  XML_START_MODE      = 'startmode';
+  XML_START_TIME      = 'starttime';
+  XML_INPUT           = 'input';
+  XML_OUTPUT          = 'output';
+  XML_TITLE           = 'title';
+  XML_SUB_TITLE       = 'subtitle';
+  XML_SOURCE          = 'source';
+  XML_MEDIA_ID        = 'mediaid';
+  XML_DURATION_TC     = 'durationtc';
+  XML_IN_TC           = 'intc';
+  XML_OUT_TC          = 'outtc';
+  XML_TRANSITION_TYPE = 'transitiontype';
+  XML_TRANSITION_RATE = 'transitionrate';
+  XML_VIDEO_TYPE      = 'videotype';
+  XML_AUDIO_TYPE      = 'audiotype';
+  XML_CLOSED_CAPTION  = 'closedcaption';
+  XML_VOICE_ADD       = 'voiceadd';
+  XML_PROGRAM_TYPE    = 'programtype';
+  XML_NOTES           = 'notes';
+
+
+implementation
+
+end.

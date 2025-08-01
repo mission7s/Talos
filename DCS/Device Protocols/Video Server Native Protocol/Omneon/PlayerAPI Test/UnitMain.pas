@@ -1,0 +1,804 @@
+unit UnitMain;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, UnitOmPlrDefs, UnitOmPlrClnt, UnitOmMediaDefs, UnitOmTcData;
+
+const
+  CLIP_NAME_LEN = 80;
+
+  OmPlrStateNames: array[TOmPlrState] of String =
+  (
+    'omPlrStateStopped',
+    'omPlrStateCuePlay',
+    'omPlrStatePlay',
+    'omPlrStateCueRecord',
+    'omPlrStateRecord'
+  );
+
+  OmFrameRateNames: array[TOmFrameRate] of String =
+  (
+    'omFrmRateInvalid',   // Invalid, unsupported or unknown.
+    'omFrmRate24Hz',      // 24Hz
+    'omFrmRate25Hz',      // 25Hz
+    'omFrmRate29_97Hz',   // 29.97Hz
+    'omFrmRate30Hz',      // 30Hz
+    'omFrmRate50Hz',      // 50Hz
+    'omFrmRate59_94Hz',   // 59.94Hz
+    'omFrmRate60Hz',      // 60Hz
+    'omFrmRate23_976Hz'   // 23.976Hz
+  );
+
+type
+  TForm7 = class(TForm)
+    Button1: TButton;
+    mmDesc: TMemo;
+    btnOpen: TButton;
+    btnGetPlayerStatus: TButton;
+    btnPlayCue: TButton;
+    btnPlay: TButton;
+    btnSetPos: TButton;
+    edtPos: TEdit;
+    btnStep: TButton;
+    edtStep: TEdit;
+    btnStop: TButton;
+    btnAttach: TButton;
+    edtAttach: TEdit;
+    btnGetClipList: TButton;
+    btnClipExist: TButton;
+    btnDetachAll: TButton;
+    btnDetach: TButton;
+    btnSetMinMaxPosToClip: TButton;
+    btnSetMaxPosMax: TButton;
+    btnSetMinPosMin: TButton;
+    edtDirectorName: TEdit;
+    Label1: TLabel;
+    edtPlayerName: TEdit;
+    Label2: TLabel;
+    btnGetPlayerTime: TButton;
+    btnGetPlayerStatus1: TButton;
+    btnGetPlayerStatus2: TButton;
+    btnGetPlayerStatus3: TButton;
+    btnGetPlayerStatus4: TButton;
+    btnGetPlayerStatus5: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure btnOpenClick(Sender: TObject);
+    procedure btnGetPlayerStatusClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnPlayCueClick(Sender: TObject);
+    procedure btnPlayClick(Sender: TObject);
+    procedure btnSetPosClick(Sender: TObject);
+    procedure btnStepClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
+    procedure btnAttachClick(Sender: TObject);
+    procedure btnGetClipListClick(Sender: TObject);
+    procedure btnClipExistClick(Sender: TObject);
+    procedure btnDetachAllClick(Sender: TObject);
+    procedure btnDetachClick(Sender: TObject);
+    procedure btnSetMinMaxPosToClipClick(Sender: TObject);
+    procedure btnSetMaxPosMaxClick(Sender: TObject);
+    procedure btnSetMinPosMinClick(Sender: TObject);
+    procedure btnGetPlayerTimeClick(Sender: TObject);
+    procedure btnGetPlayerStatus1Click(Sender: TObject);
+    procedure btnGetPlayerStatus2Click(Sender: TObject);
+    procedure btnGetPlayerStatus3Click(Sender: TObject);
+    procedure btnGetPlayerStatus4Click(Sender: TObject);
+    procedure btnGetPlayerStatus5Click(Sender: TObject);
+  private
+    { Private declarations }
+    FPlayerHandle: TOmPlrHandle;
+    FClipAttachHandle: TOmPlrClipHandle;
+    FErrorCode: TOmPlrError;
+
+    FFirstAttachHandle: TOmPlrClipHandle;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form7: TForm7;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm7.btnAttachClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrAttach(FPlayerHandle, PChar(edtAttach.Text), omPlrClipDefaultIn, omPlrClipDefaultOut, 0, omPlrShiftModeAfter, FClipAttachHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrAttach Success, ClipAttachHandle = %d', [FClipAttachHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrAttach Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+{  FErrorCode := OmPlrSetMinPosMin(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+  FErrorCode := OmPlrSetMaxPosMax(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end; }
+
+  if (FFirstAttachHandle = 0) then FFirstAttachHandle := FClipAttachHandle;
+end;
+
+procedure TForm7.btnClipExistClick(Sender: TObject);
+var
+  ClipExists: Boolean;
+begin
+  FErrorCode := OmPlrClipExists(FPlayerHandle, PChar(edtAttach.Text), ClipExists);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipExists Success, Exists = %s', [BoolToStr(ClipExists, True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipExists Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnDetachAllClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrDetachAllClips(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrDetachAllClips Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrDetachAllClips Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+{  FErrorCode := OmPlrSetMinPosMin(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+  FErrorCode := OmPlrSetMaxPosMax(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end; }
+
+  FFirstAttachHandle := 0;
+end;
+
+procedure TForm7.btnDetachClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrDetach(FPlayerHandle, FFirstAttachHandle, omPlrShiftModeAuto);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrDetach Success, ClipDetachHandle = %d', [FFirstAttachHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrDetach Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+{  FErrorCode := OmPlrSetMinPosMin(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+  FErrorCode := OmPlrSetMaxPosMax(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end; }
+end;
+
+procedure TForm7.btnGetClipListClick(Sender: TObject);
+var
+  ClipName: array [0..omPlrMaxClipNameLen - 1] of Char;
+begin
+  FErrorCode := OmPlrClipGetFirst(FPlayerHandle, ClipName, omPlrMaxClipNameLen);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipGetFirst Success, Clip = %s', [ClipName]));
+
+    while FErrorCode = omPlrOK do
+    begin
+      FErrorCode := OmPlrClipGetNext(FPlayerHandle, ClipName, omPlrMaxClipNameLen);
+      if (FErrorCode = omPlrOk) then
+        mmDesc.Lines.Add(Format('OmPlrClipGetNext Success, Clip = %s', [ClipName]))
+      else
+        mmDesc.Lines.Add(Format('OmPlrClipGetNext Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    end;
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipGetFirst Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatus1Click(Sender: TObject);
+var
+  Status: TOmPlrStatus1;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus1), #0);
+  FErrorCode := OmPlrGetPlayerStatus1(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus1 Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - DropFrame = %s', [BoolToStr(Status.DropFrame, True)]));
+    mmDesc.Lines.Add(Format('  - TcgPlayInsert = %s', [BoolToStr(Status.TcgPlayInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgRecordInsert = %s', [BoolToStr(Status.TcgRecordInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgMode = %d', [Integer(Status.TcgMode)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus1 Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatus2Click(Sender: TObject);
+var
+  Status: TOmPlrStatus2;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus2), #0);
+  FErrorCode := OmPlrGetPlayerStatus2(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus2 Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - DropFrame = %s', [BoolToStr(Status.DropFrame, True)]));
+    mmDesc.Lines.Add(Format('  - TcgPlayInsert = %s', [BoolToStr(Status.TcgPlayInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgRecordInsert = %s', [BoolToStr(Status.TcgRecordInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgMode = %d', [Integer(Status.TcgMode)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+    mmDesc.Lines.Add(Format('  - PortDown = %s', [BoolToStr(Status.PortDown, True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus2 Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatus3Click(Sender: TObject);
+var
+  Status: TOmPlrStatus3;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus3), #0);
+  FErrorCode := OmPlrGetPlayerStatus3(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus3 Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - DropFrame = %s', [BoolToStr(Status.DropFrame, True)]));
+    mmDesc.Lines.Add(Format('  - TcgPlayInsert = %s', [BoolToStr(Status.TcgPlayInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgRecordInsert = %s', [BoolToStr(Status.TcgRecordInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgMode = %d', [Integer(Status.TcgMode)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+    mmDesc.Lines.Add(Format('  - PortDown = %s', [BoolToStr(Status.PortDown, True)]));
+    mmDesc.Lines.Add(Format('  - RefLocked = %s', [BoolToStr(Status.RefLocked, True)]));
+    mmDesc.Lines.Add(Format('  - RecBlackCount = %d', [Status.RecBlackCount]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus3 Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatus4Click(Sender: TObject);
+var
+  Status: TOmPlrStatus4;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus4), #0);
+  FErrorCode := OmPlrGetPlayerStatus4(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus4 Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - DropFrame = %s', [BoolToStr(Status.DropFrame, True)]));
+    mmDesc.Lines.Add(Format('  - TcgPlayInsert = %s', [BoolToStr(Status.TcgPlayInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgRecordInsert = %s', [BoolToStr(Status.TcgRecordInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgMode = %d', [Integer(Status.TcgMode)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+    mmDesc.Lines.Add(Format('  - PortDown = %s', [BoolToStr(Status.PortDown, True)]));
+    mmDesc.Lines.Add(Format('  - RefLocked = %s', [BoolToStr(Status.RefLocked, True)]));
+    mmDesc.Lines.Add(Format('  - RecBlackCount = %d', [Status.RecBlackCount]));
+    mmDesc.Lines.Add(Format('  - ptype = %d', [Integer(Status.ptype)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus4 Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatus5Click(Sender: TObject);
+var
+  Status: TOmPlrStatus5;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus5), #0);
+  FErrorCode := OmPlrGetPlayerStatus5(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus5 Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - DropFrame = %s', [BoolToStr(Status.DropFrame, True)]));
+    mmDesc.Lines.Add(Format('  - TcgPlayInsert = %s', [BoolToStr(Status.TcgPlayInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgRecordInsert = %s', [BoolToStr(Status.TcgRecordInsert, True)]));
+    mmDesc.Lines.Add(Format('  - TcgMode = %d', [Integer(Status.TcgMode)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+    mmDesc.Lines.Add(Format('  - PortDown = %s', [BoolToStr(Status.PortDown, True)]));
+    mmDesc.Lines.Add(Format('  - RefLocked = %s', [BoolToStr(Status.RefLocked, True)]));
+    mmDesc.Lines.Add(Format('  - RecBlackCount = %d', [Status.RecBlackCount]));
+    mmDesc.Lines.Add(Format('  - ptype = %d', [Integer(Status.ptype)]));
+    mmDesc.Lines.Add(Format('  - currClipIsCached = %s', [BoolToStr(Status.currClipIsCached, True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus5 Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerStatusClick(Sender: TObject);
+var
+  Status: TOmPlrStatus;
+begin
+  FillChar(Status, SizeOf(TOmPlrStatus), #0);
+  FErrorCode := OmPlrGetPlayerStatus(FPlayerHandle, Status);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetPlayerStatus Success.');
+    mmDesc.Lines.Add('- PlayerStatus');
+    mmDesc.Lines.Add(Format('  - Size = %d', [Status.Version]));
+    mmDesc.Lines.Add(Format('  - State = %s', [OmPlrStateNames[Status.State]]));
+    mmDesc.Lines.Add(Format('  - Pos = %d', [Status.Pos]));
+    mmDesc.Lines.Add(Format('  - Rate = %f', [Status.Rate]));
+    mmDesc.Lines.Add(Format('  - MinPos = %d', [Status.MinPos]));
+    mmDesc.Lines.Add(Format('  - MaxPos = %d', [Status.MaxPos]));
+    mmDesc.Lines.Add(Format('  - NumClips = %d', [Status.NumClips]));
+    mmDesc.Lines.Add(Format('  - ClipListVersion = %d', [Status.ClipListVersion]));
+    mmDesc.Lines.Add(Format('  - CurrClipNum = %d', [Status.CurrClipNum]));
+    mmDesc.Lines.Add(Format('  - CurrClipStartPos = %d', [Status.CurrClipStartPos]));
+    mmDesc.Lines.Add(Format('  - CurrClipIn = %d', [Status.CurrClipIn]));
+    mmDesc.Lines.Add(Format('  - CurrClipOut = %d', [Status.CurrClipOut]));
+    mmDesc.Lines.Add(Format('  - CurrClipLen = %d', [Status.CurrClipLen]));
+    mmDesc.Lines.Add(Format('  - CurrClipFirstFrame = %d', [Status.CurrClipFirstFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipLastFrame = %d', [Status.CurrClipLastFrame]));
+    mmDesc.Lines.Add(Format('  - CurrClipName = %s', [Status.CurrClipName]));
+    mmDesc.Lines.Add(Format('  - FirstClipStartPos = %d', [Status.FirstClipStartPos]));
+    mmDesc.Lines.Add(Format('  - LastClipEndPos = %d', [Status.LastClipEndPos]));
+    mmDesc.Lines.Add(Format('  - LoopMin = %d', [Status.LoopMin]));
+    mmDesc.Lines.Add(Format('  - LoopMax = %d', [Status.LoopMax]));
+    mmDesc.Lines.Add(Format('  - PlayEnabled = %s', [BoolToStr(Status.PlayEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - RecordEnabled = %s', [BoolToStr(Status.RecordEnabled, True)]));
+    mmDesc.Lines.Add(Format('  - FrameRate = %s', [OmFrameRateNames[Status.FrameRate]]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetPlayerStatus Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnGetPlayerTimeClick(Sender: TObject);
+var
+  Position: Integer;
+  SysFrame: Cardinal;
+  SysframeFrac: Cardinal;
+  RefVitc: TOmTcData;
+  Tcg: TOmTcData;
+  VideoTc: TOmTcData;
+begin
+  SysFrame := 0;
+  SysframeFrac := 0;
+
+  FillChar(RefVitc, SizeOf(TOmTcData), #0);
+  FillChar(Tcg, SizeOf(TOmTcData), #0);
+  FillChar(VideoTc, SizeOf(TOmTcData), #0);
+
+  FErrorCode := OmPlrGetTime(FPlayerHandle, Position, SysFrame, SysframeFrac, RefVitc, Tcg, VideoTc);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add('OmPlrGetTime Success.');
+    mmDesc.Lines.Add('- PlayerTime');
+    mmDesc.Lines.Add(Format('  - Position = %d', [Position]));
+    mmDesc.Lines.Add(Format('  - SysFrame = %u', [SysFrame]));
+    mmDesc.Lines.Add(Format('  - SysframeFrac = %u', [SysframeFrac]));
+    mmDesc.Lines.Add(Format('  - RefVitc = %s', [BoolToStr(RefVitc.IsValid, True)]));
+    mmDesc.Lines.Add(Format('  - Tcg = %s', [BoolToStr(Tcg.IsValid, True)]));
+    mmDesc.Lines.Add(Format('  - VideoTc = %s', [BoolToStr(VideoTc.IsValid, True)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetTime Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnOpenClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrOpen(PChar(edtDirectorName.Text), PChar(edtPlayerName.Text), FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrOpen Success, PlayerHandle = %p', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrOpen Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnPlayClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrPlay(FPlayerHandle, 1.0);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrPlay Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrPlay Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnPlayCueClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrCuePlay(FPlayerHandle, 1.0);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrCuePlay Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrCuePlay Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnSetMaxPosMaxClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrSetMaxPosMax(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMaxPosMax Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnSetMinMaxPosToClipClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrSetMinMaxPosToClip(FPlayerHandle, FClipAttachHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinMaxPosToClip Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinMaxPosToClip Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnSetMinPosMinClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrSetMinPosMin(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetMinPosMin Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnSetPosClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrSetPos(FPlayerHandle, StrToIntDef(edtPos.Text, 0));
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetPos Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrSetPos Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.Button1Click(Sender: TObject);
+var
+  PlayerName: array [0..omPlrMaxPlayerNameLen - 1] of Char;
+
+  FrameRate: TOmFrameRate;
+  Rate: double;
+
+  ClipDirectory: array [0..omPlrMaxClipDirLen - 1] of Char;
+begin
+  FErrorCode := OmPlrOpen('192.168.104.17', '1_PLAY_1_S', FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrOpen Success, PlayerHandle = %p', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrOpen Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+
+{  FErrorCode := OmPlrGetRate(FPlayerHandle, Rate);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetRate Success, Rate = %f', [Rate]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetRate Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end; }
+
+{  ClipDirectory := '/fs0/clip.dir';
+  FErrorCode := OmPlrClipSetDirectory(FPlayerHandle, ClipDirectory);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipSetDirectory Success, ClipDir = %s', [ClipDirectory]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipSetDirectory Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end; }
+
+  FErrorCode := OmPlrClipGetDirectory(FPlayerHandle, ClipDirectory, omPlrMaxClipDirLen);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipGetDirectory Success, ClipDir = %s', [ClipDirectory]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrClipGetDirectory Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+  FErrorCode := OmPlrGetFrameRate(FPlayerHandle, FrameRate);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetFrameRate Success, FrameRate = %d', [Integer(FrameRate)]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetFrameRate Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+
+
+  FErrorCode := OmPlrGetFirstPlayer(FPlayerHandle, PlayerName, omPlrMaxPlayerNameLen);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetFirstPlayer Success, PlayerName = %s', [String(PlayerName)]));
+    while (FErrorCode = omPlrOk) do
+    begin
+      FErrorCode := OmPlrGetNextPlayer(FPlayerHandle, PlayerName, omPlrMaxPlayerNameLen);
+      if (FErrorCode = omPlrOk) then
+      begin
+        mmDesc.Lines.Add(Format('OmPlrGetNextPlayer Success, PlayerName = %s', [String(PlayerName)]));
+      end
+      else
+      begin
+        mmDesc.Lines.Add(Format('OmPlrGetNextPlayer Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+        break;
+      end;
+    end;
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrGetFirstPlayer Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnStepClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrStep(FPlayerHandle, StrToIntDef(edtStep.Text, 0));
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrStep Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrStep Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.btnStopClick(Sender: TObject);
+begin
+  FErrorCode := OmPlrStop(FPlayerHandle);
+  if (FErrorCode = omPlrOk) then
+  begin
+    mmDesc.Lines.Add(Format('OmPlrStop Success', [FPlayerHandle]));
+  end
+  else
+  begin
+    mmDesc.Lines.Add(Format('OmPlrStop Error = %s', [OmPlrGetErrorString(FErrorCode)]));
+    exit;
+  end;
+end;
+
+procedure TForm7.FormCreate(Sender: TObject);
+var
+  O: TOmMediaSummary;
+begin
+  FFirstAttachHandle := 0;
+
+//O.GopLength := 0;
+//ShowMessage(IntToStr(SizeOf(TOmMediaSummary)));
+
+
+end;
+
+end.
