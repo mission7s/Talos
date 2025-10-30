@@ -10,8 +10,7 @@ object Form18: TForm18
   Font.Height = -21
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  PixelsPerInch = 96
+  OnCreate = FormCreate
   TextHeight = 25
   object Label1: TLabel
     Left = 200
@@ -86,6 +85,20 @@ object Form18: TForm18
   object Label11: TLabel
     Left = 432
     Top = 429
+    Width = 142
+    Height = 25
+    Caption = 'End event time'
+  end
+  object Label12: TLabel
+    Left = 200
+    Top = 533
+    Width = 151
+    Height = 25
+    Caption = 'Start event time'
+  end
+  object Label13: TLabel
+    Left = 432
+    Top = 533
     Width = 142
     Height = 25
     Caption = 'End event time'
@@ -256,6 +269,38 @@ object Form18: TForm18
     Width = 217
     Height = 33
     TabOrder = 20
+    Text = '20230101 12:00:00:00'
+  end
+  object btnCalc6: TButton
+    Left = 8
+    Top = 564
+    Width = 177
+    Height = 33
+    Caption = 'Plus event time'
+    TabOrder = 21
+    OnClick = btnCalc6Click
+  end
+  object edtBase6: TEdit
+    Left = 200
+    Top = 564
+    Width = 217
+    Height = 33
+    TabOrder = 22
+    Text = '20230101 12:00:00:00'
+  end
+  object edtResult6: TEdit
+    Left = 897
+    Top = 564
+    Width = 217
+    Height = 33
+    TabOrder = 23
+  end
+  object edtValue6: TEdit
+    Left = 432
+    Top = 564
+    Width = 217
+    Height = 33
+    TabOrder = 24
     Text = '20230101 12:00:00:00'
   end
 end

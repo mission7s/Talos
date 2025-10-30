@@ -197,7 +197,8 @@ type
     function DCSClearEvent(AHostIP, ABuffer: AnsiString): Integer;      // 0X50.02
     function DCSTakeEvent(AHostIP, ABuffer: AnsiString): Integer;       // 0X50.10
     function DCSHoldEvent(AHostIP, ABuffer: AnsiString): Integer;       // 0X50.11
-    function DCSChangeEventDuration(AHostIP, ABuffer: AnsiString): Integer; // 0X04.12
+    function DCSChangeEventStartTime(AHostIP, ABuffer: AnsiString): Integer; // 0X50.12
+    function DCSChangeEventDuration(AHostIP, ABuffer: AnsiString): Integer;  // 0X50.13
     function DCSGetOnAirEventID(AHostIP, ABuffer: AnsiString; var AOnAirEventID, ANextEventID: TEventID): Integer; // 0X50.20
     function DCSGetEventInfo(AHostIP, ABuffer: AnsiString; var AStartTime: TEventTime; var ADurationTC: TTimecode): Integer; // 0X50.21
     function DCSGetEventStatus(AHostIP, ABuffer: AnsiString; var AEventStatus: TEventStatus): Integer; // 0X50.22
@@ -1466,7 +1467,11 @@ begin
                   begin
                     R := DCSHoldEvent(ABindingIP, FRecvData);
                   end;
-                  $12: // OnAir Event Change Duration
+                  $12: // OnAir Event Change Start Time
+                  begin
+                    R := DCSChangeEventStartTime(ABindingIP, FRecvData);
+                  end;
+                  $13: // OnAir Event Change Duration
                   begin
                     R := DCSChangeEventDuration(ABindingIP, FRecvData);
                   end;
@@ -1567,8 +1572,9 @@ begin
                     $01,
                     $02,
                     $10,
+                    $11,
                     $12,
-                    $11: TransmitAck(ABindingIP, FUDPOut.Port);
+                    $13: TransmitAck(ABindingIP, FUDPOut.Port);
                     $20,
                     $21,
                     $22,
@@ -2076,6 +2082,26 @@ begin
   begin
     Move(ABuffer[5], EventID, SizeOf(TEventID));
     Result := D.HoldEvent(AHostIP, EventID);
+  end;
+end;
+
+function TfrmDCS.DCSChangeEventStartTime(AHostIP, ABuffer: AnsiString): Integer;
+var
+  DeviceHandle: TDeviceHandle;
+  D: TDeviceThread;
+  EventID: TEventID;
+  StartTime: TEventTime;
+begin
+  Result := D_FALSE;
+
+  DeviceHandle := PAnsiCharToInt(@ABuffer[1]);
+  D := GetDeviceThreadByHandle(DeviceHandle);
+  if (D <> nil) then
+  begin
+    Move(ABuffer[5], EventID, SizeOf(TEventID));
+    StartTime.T := PAnsiCharToDWord(@ABuffer[5 + SizeOf(TEventID)]);
+    StartTime.D := PAnsiCharToDouble(@ABuffer[5 + SizeOf(TEventID) + SizeOf(TTimecode)]);
+    Result := D.ChangeStartTimeEvent(AHostIP, EventID, StartTime);
   end;
 end;
 

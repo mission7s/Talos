@@ -208,6 +208,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_LOG_COMMON_FiXED_COLOR;
+
       FixedRows := CNT_LOG_COMMON_HEADER;
       RowCount  := CNT_LOG_COMMON_HEADER + 1;
       ColCount  := CNT_LOG_COMMON_COLUMNS;

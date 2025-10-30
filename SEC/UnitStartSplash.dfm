@@ -13,7 +13,6 @@ object frmStartSplash: TfrmStartSplash
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -21,7 +20,6 @@ object frmStartSplash: TfrmStartSplash
   DesignSize = (
     500
     300)
-  PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
     Left = 0
@@ -1472,7 +1470,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -20
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end
@@ -1487,7 +1485,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 12105912
     Font.Height = -12
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end
@@ -1502,7 +1500,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 12105912
     Font.Height = -12
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end
@@ -1534,7 +1532,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 12105912
     Font.Height = -12
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end
@@ -1549,7 +1547,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 12105912
     Font.Height = -12
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end
@@ -1564,7 +1562,7 @@ object frmStartSplash: TfrmStartSplash
     Font.Charset = DEFAULT_CHARSET
     Font.Color = 12105912
     Font.Height = -12
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ParentFont = False
   end

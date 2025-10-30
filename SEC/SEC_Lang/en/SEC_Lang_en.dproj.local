@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.394,C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\User Data\Git\Talos\SEC\SEC_Lang\SEC_Lang_en.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.627,C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit2.pas=C:\Gemiso\SEC\Lang\UnitSEC_Lang_en.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.002,=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.960,=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

@@ -95,6 +95,9 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent; ACombine: Boolean; ALeft, ATop, AWidth, AHeight: Integer); overload;
+
+    procedure ApplyUpdateLanguage;
+
     procedure AdjustAllChannelsChannel;
 
     procedure PopulatePlayListTimeline(AItem: PCuesheetItem);
@@ -443,6 +446,31 @@ begin
   inherited Create(AOwner, ACombine, ALeft, ATop, AWidth, AHeight);
 end;
 
+procedure TfrmAllChannels.ApplyUpdateLanguage;
+var
+  I: Integer;
+  Panel: TfrmAllChannelsPanel;
+begin
+  if (FChannelPanelList = nil) then exit;
+
+  if (FChannelPanelList.Count <= 0) then exit;
+
+  for I := 0 to FChannelPanelList.Count - 1 do
+  begin
+    if (FChannelPanelList[I] = nil) then Continue;
+
+    Panel := FChannelPanelList[I];
+    with Panel do
+    begin
+      // Time
+      lblTitlePlayedTime.Caption := GetLanguageStr(SUTimePlayed);
+      lblTitleRemainingTime.Caption := GetLanguageStr(SUTimeRemaining);
+      lblTitleNextStart.Caption := GetLanguageStr(SUTimeNextStart);
+      lblTitleNextDuration.Caption := GetLanguageStr(SUTimeNextDuration);
+    end;
+  end;
+end;
+
 procedure TfrmAllChannels.Initialize;
 begin
   FChannelPanelList := TList<TfrmAllChannelsPanel>.Create;
@@ -512,6 +540,8 @@ begin
   begin
     with TimeZoneProperty do
     begin
+      Font.Color := COLOR_TX_TIMECODE_COLOR;
+
       FrameDayReset := True;
 //      FrameRate := FrameRate29_97;
       FrameRate := GetFrameRateValueByType(GV_SettingOption.TimelineFrameRateType);
@@ -1199,8 +1229,10 @@ begin
       Track.OutPoint := Track.InPoint + TimecodeToFrame(AItem^.DurationTC, GV_SettingOption.TimelineFrameRateType);
       Track.Duration := Track.OutPoint - Track.InPoint;
 
-      Track.Color        := GetProgramTypeColorByCode(AItem^.ProgramType);
-      Track.ColorCaption := GetProgramTypeColorByCode(AItem^.ProgramType);
+      Track.Color        := AItem^.BkColor;
+      Track.ColorCaption := AItem^.BkColor;
+{      Track.Color        := GetProgramTypeColorByCode(AItem^.ProgramType);
+      Track.ColorCaption := GetProgramTypeColorByCode(AItem^.ProgramType); }
     //          Track.ColorSelected  := Track.Color;
     //          Track.ColorHighLight := $000E0607;
     //          Track.ColorShadow    := $000E0607;

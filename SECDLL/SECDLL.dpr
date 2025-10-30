@@ -8,21 +8,25 @@ library SECDLL;
   are nested in records and classes. ShareMem is the interface unit to
   the BORLNDMM.DLL shared memory manager, which must be deployed along
   with your DLL. To avoid using BORLNDMM.DLL, pass string information
-  using PChar or ShortString parameters. }
+  using PChar or ShortString parameters.
+
+  Important note about VCL usage: when this DLL will be implicitly
+  loaded and this DLL uses TWicImage / TImageCollection created in
+  any unit initialization section, then Vcl.WicImageInit must be
+  included into your library's USES clause. }
 
 uses
   System.SysUtils,
   System.Classes,
   Winapi.Windows,
-  Vcl.Forms,
   DLLConsts in 'DLLConsts.pas',
   SECMgr in 'SECMgr.pas',
-  UnitUDPIn in '..\UDP\UnitUDPIn.pas',
-  UnitUDPOut in '..\UDP\UnitUDPOut.pas',
   UnitCommons in '..\Common\UnitCommons.pas',
-  UnitTypeConvert in '..\Common\UnitTypeConvert.pas',
   UnitBaseSerial in '..\Common\UnitBaseSerial.pas',
-  UnitUDPCommons in '..\UDP\UnitUDPCommons.pas';
+  UnitTypeConvert in '..\Common\UnitTypeConvert.pas',
+  UnitUDPCommons in '..\UDP\UnitUDPCommons.pas',
+  UnitUDPIn in '..\UDP\UnitUDPIn.pas',
+  UnitUDPOut in '..\UDP\UnitUDPOut.pas';
 
 {$R *.res}
 

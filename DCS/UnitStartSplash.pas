@@ -61,6 +61,7 @@ begin
   lblCheck.Caption   := '';
   lblStatus.Caption  := '';
   lblVersion.Caption := 'Version ' + GetFileVersionStr(Application.ExeName);
+  lblCompany.Caption := Format('¨Ï %s Geminisoft All rights reserved', [FormatDateTime('YYYY', Date)]);
 end;
 
 end.

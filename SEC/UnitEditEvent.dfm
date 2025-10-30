@@ -29,26 +29,26 @@ inherited frmEditEvent: TfrmEditEvent
       object Label1: TLabel
         Left = 44
         Top = 65
-        Width = 70
+        Width = 65
         Height = 17
         Caption = 'Start mode:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label2: TLabel
         Left = 51
         Top = 97
-        Width = 62
+        Width = 58
         Height = 17
         Caption = 'Start time:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -61,72 +61,72 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label4: TLabel
         Left = 67
         Top = 276
-        Width = 45
+        Width = 42
         Height = 17
         Caption = 'Source:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label5: TLabel
         Left = 58
         Top = 307
-        Width = 55
+        Width = 50
         Height = 17
         Caption = 'Media id:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label6: TLabel
         Left = 60
         Top = 338
-        Width = 54
+        Width = 51
         Height = 17
         Caption = 'Duration:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label7: TLabel
         Left = 22
         Top = 387
-        Width = 88
+        Width = 85
         Height = 17
         Caption = 'Transition type:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label8: TLabel
         Left = 73
         Top = 542
-        Width = 38
+        Width = 36
         Height = 17
         Caption = 'Notes:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -134,12 +134,12 @@ inherited frmEditEvent: TfrmEditEvent
         Left = 246
         Top = 339
         Width = 13
-        Height = 15
+        Height = 17
         Caption = 'In:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16760237
         Font.Height = -12
-        Font.Name = #47569#51008' '#44256#46357
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -147,77 +147,77 @@ inherited frmEditEvent: TfrmEditEvent
         Left = 388
         Top = 339
         Width = 23
-        Height = 15
+        Height = 17
         Caption = 'Out:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16760237
         Font.Height = -12
-        Font.Name = #47569#51008' '#44256#46357
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label11: TLabel
         Left = 80
         Top = 417
-        Width = 31
+        Width = 29
         Height = 17
         Caption = 'Rate:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label12: TLabel
         Left = 38
         Top = 34
-        Width = 75
+        Width = 69
         Height = 17
         Caption = 'Event mode:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label13: TLabel
         Left = 81
         Top = 127
-        Width = 33
+        Width = 31
         Height = 17
         Caption = 'Input:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label14: TLabel
         Left = 69
         Top = 159
-        Width = 45
+        Width = 41
         Height = 17
         Caption = 'Output:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label15: TLabel
         Left = 62
         Top = 233
-        Width = 52
+        Width = 48
         Height = 17
         Caption = 'Sub title:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -425,20 +425,20 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clSilver
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ShowCaption = True
       end
       object Label16: TLabel
         Left = 27
         Top = 514
-        Width = 83
+        Width = 80
         Height = 17
         Caption = 'Program type:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -452,13 +452,13 @@ inherited frmEditEvent: TfrmEditEvent
       object Label17: TLabel
         Left = 35
         Top = 464
-        Width = 76
+        Width = 73
         Height = 17
         Caption = 'Finish action:'
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -472,7 +472,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -497,7 +497,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = 16760237
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -511,7 +511,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -528,7 +528,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -550,7 +550,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -566,7 +566,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -581,7 +581,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -597,7 +597,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -620,7 +620,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentCtl3D = False
@@ -641,7 +641,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -658,7 +658,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -674,7 +674,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -690,7 +690,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         MaxLength = 11
         ParentFont = False
@@ -707,7 +707,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         MaxLength = 11
         ParentFont = False
@@ -724,7 +724,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         MaxLength = 11
         ParentFont = False
@@ -804,7 +804,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = 10262422
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ShowCaption = True
         FocusedRectColor = clNone
@@ -886,7 +886,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = 10262422
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ShowCaption = True
         FocusedRectColor = clNone
@@ -905,7 +905,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -922,7 +922,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         MaxLength = 11
         ParentFont = False
@@ -939,7 +939,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False
@@ -960,7 +960,7 @@ inherited frmEditEvent: TfrmEditEvent
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ImeName = 'Microsoft IME 2010'
         ParentFont = False

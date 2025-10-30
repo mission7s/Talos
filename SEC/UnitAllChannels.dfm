@@ -67,7 +67,7 @@ inherited frmAllChannels: TfrmAllChannels
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWhite
           Font.Height = -12
-          Font.Name = 'Century Gothic'
+          Font.Name = 'Noto Sans KR DemiLight'
           Font.Style = []
           ParentFont = False
           OnMouseWheel = wmtlPlaylistMouseWheel
@@ -91,7 +91,7 @@ inherited frmAllChannels: TfrmAllChannels
           TimeZoneProperty.Font.Charset = ANSI_CHARSET
           TimeZoneProperty.Font.Color = 16765315
           TimeZoneProperty.Font.Height = -12
-          TimeZoneProperty.Font.Name = 'Century Gothic'
+          TimeZoneProperty.Font.Name = 'Noto Sans KR DemiLight'
           TimeZoneProperty.Font.Style = []
           TimeZoneProperty.RailImage.Data = {
             0954506E67496D61676589504E470D0A1A0A0000000D49484452000000090000
@@ -172,8 +172,6 @@ inherited frmAllChannels: TfrmAllChannels
           OnTrackCustomDrawEvent = wmtlPlaylistTrackCustomDrawEvent
           OnTrackHintEvent = wmtlPlaylistTrackHintEvent
           OnDataGroupVertScrollEvent = wmtlPlaylistDataGroupVertScrollEvent
-          ExplicitTop = 43
-          ExplicitHeight = 338
         end
       end
       object pnlChannel: TWMPanel
@@ -263,8 +261,6 @@ inherited frmAllChannels: TfrmAllChannels
           ParentColor = True
           ParentDoubleBuffered = False
           TabOrder = 1
-          ExplicitTop = 75
-          ExplicitHeight = 306
         end
       end
     end

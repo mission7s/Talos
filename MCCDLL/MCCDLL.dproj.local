@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.089,=C:\User Data\Git\Talos\UDP\UnitUDPCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.154,=C:\User Data\Git\Talos\Common\UnitTypeConvert.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.994,=C:\User Data\Git\Talos\Common\UnitBaseSerial.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.104,=C:\User Data\Git\Talos\Common\UnitCommons.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.269,=C:\Users\BONG\OneDrive\문서\Embarcadero\Studio\Projects\Unit4.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.213,=C:\User Data\Git\Talos\MCCDLL\MCCMgr.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.154,=C:\User Data\Git\Talos\UDP\UnitUDPIn.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.978,C:\User Data\Git\Talos\MCCDLL\MCCDLL.dproj=C:\Users\BONG\OneDrive\문서\Embarcadero\Studio\Projects\Project3.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.204,=C:\User Data\Git\Talos\UDP\UnitUDPOut.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.136,=C:\User Data\Git\Talos\MCCDLL\DLLConsts.pas</Transaction>
+  </Transactions>
+</BorlandProject>

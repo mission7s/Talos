@@ -2,10 +2,9 @@ inherited frmChannel: TfrmChannel
   Caption = 'frmChannel'
   ClientHeight = 869
   ClientWidth = 1400
-  Font.Name = 'Tahoma'
   ExplicitWidth = 1400
   ExplicitHeight = 869
-  TextHeight = 14
+  TextHeight = 17
   inherited WMPanel: TWMPanel
     Width = 1400
     Height = 869
@@ -71,7 +70,7 @@ inherited frmChannel: TfrmChannel
         Font.Charset = ANSI_CHARSET
         Font.Color = 12105912
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         GradientEndColor = 788230
         GradientStartColor = 788230
@@ -226,10 +225,10 @@ inherited frmChannel: TfrmChannel
           'Clear')
         FixedColWidth = 36
         FixedRowHeight = 26
-        FixedFont.Charset = ANSI_CHARSET
+        FixedFont.Charset = DEFAULT_CHARSET
         FixedFont.Color = clBlack
         FixedFont.Height = -14
-        FixedFont.Name = 'Century Gothic'
+        FixedFont.Name = 'Noto Sans KR DemiLight'
         FixedFont.Style = []
         Flat = True
         FloatFormat = '%.2f'
@@ -313,7 +312,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'NO'
             HeaderAlignment = taCenter
@@ -360,7 +359,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Start type'
             HeaderAlignment = taCenter
@@ -407,7 +406,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Start Time'
             HeaderAlignment = taCenter
@@ -454,7 +453,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Duration'
             HeaderAlignment = taCenter
@@ -501,7 +500,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Title'
             HeaderAlignment = taCenter
@@ -548,7 +547,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Media'
             HeaderAlignment = taCenter
@@ -595,7 +594,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Device'
             HeaderAlignment = taCenter
@@ -642,7 +641,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Status'
             HeaderAlignment = taCenter
@@ -689,14 +688,14 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Transition'
             HeaderAlignment = taCenter
             HeaderFont.Charset = ANSI_CHARSET
             HeaderFont.Color = 16765315
             HeaderFont.Height = -14
-            HeaderFont.Name = 'Century Gothic'
+            HeaderFont.Name = 'Noto Sans KR DemiLight'
             HeaderFont.Style = []
             MinSize = 0
             MaxSize = 0
@@ -736,7 +735,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Finish action'
             HeaderAlignment = taCenter
@@ -783,7 +782,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'SOM'
             HeaderAlignment = taCenter
@@ -830,7 +829,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -14
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             Header = 'Description'
             HeaderAlignment = taCenter
@@ -2881,28 +2880,28 @@ inherited frmChannel: TfrmChannel
           end
           object lblPlayedTime: TLabel
             Left = 7
-            Top = 25
+            Top = 22
             Width = 157
-            Height = 27
+            Height = 39
             AutoSize = False
             Caption = '00:00:00'
             Font.Charset = ANSI_CHARSET
             Font.Color = 9485642
             Font.Height = -27
-            Font.Name = 'Crystal'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
-          object Label2: TLabel
+          object lblTitlePlayedTime: TLabel
             Left = 7
             Top = 3
-            Width = 70
+            Width = 66
             Height = 17
             Caption = 'Played time'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 9485642
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
@@ -3000,28 +2999,28 @@ inherited frmChannel: TfrmChannel
           end
           object lblRemainingTime: TLabel
             Left = 4
-            Top = 26
+            Top = 22
             Width = 157
-            Height = 27
+            Height = 39
             AutoSize = False
             Caption = '00:00:00'
             Font.Charset = ANSI_CHARSET
             Font.Color = 2649285
             Font.Height = -27
-            Font.Name = 'Crystal'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
-          object Label3: TLabel
+          object lblTitleRemainingTime: TLabel
             Left = 7
             Top = 3
-            Width = 92
+            Width = 88
             Height = 17
             Caption = 'Remaining time'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 2649285
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
@@ -3115,28 +3114,28 @@ inherited frmChannel: TfrmChannel
           end
           object lblNextStart: TLabel
             Left = 7
-            Top = 25
-            Width = 127
-            Height = 27
+            Top = 22
+            Width = 157
+            Height = 39
             AutoSize = False
             Caption = '00:00:00:00'
             Font.Charset = ANSI_CHARSET
             Font.Color = 830136
             Font.Height = -27
-            Font.Name = 'Crystal'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
-          object Label5: TLabel
+          object lblTitleNextStart: TLabel
             Left = 7
             Top = 3
-            Width = 61
+            Width = 58
             Height = 17
             Caption = 'Next start '
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 830136
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
@@ -3224,28 +3223,28 @@ inherited frmChannel: TfrmChannel
           end
           object lblNextDuration: TLabel
             Left = 7
-            Top = 25
-            Width = 127
-            Height = 27
+            Top = 22
+            Width = 157
+            Height = 39
             AutoSize = False
             Caption = '00:00:00:00'
             Font.Charset = ANSI_CHARSET
             Font.Color = 830136
             Font.Height = -27
-            Font.Name = 'Crystal'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
-          object Label7: TLabel
+          object lblTitleNextDuration: TLabel
             Left = 3
             Top = 3
-            Width = 81
+            Width = 76
             Height = 17
             Caption = 'Next duration'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 830136
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
@@ -3492,34 +3491,34 @@ inherited frmChannel: TfrmChannel
           end
           object lblRemainingTargetTime: TLabel
             Left = 7
-            Top = 25
-            Width = 94
-            Height = 27
+            Top = 22
+            Width = 157
+            Height = 39
             AutoSize = False
             Caption = '00:00:00'
             Font.Charset = ANSI_CHARSET
             Font.Color = 11239251
             Font.Height = -27
-            Font.Name = 'Crystal'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
-          object lblRemainingTargetEvent: TLabel
+          object lblTitleRemainingTargetTime: TLabel
             Left = 7
             Top = 3
-            Width = 96
+            Width = 90
             Height = 17
             Caption = 'Remainig target'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 11239251
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
           object lblTargetEventNo: TLabel
             Left = 114
-            Top = 31
+            Top = 38
             Width = 58
             Height = 17
             Alignment = taRightJustify
@@ -3528,7 +3527,7 @@ inherited frmChannel: TfrmChannel
             Font.Charset = DEFAULT_CHARSET
             Font.Color = 11239251
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ParentFont = False
           end
@@ -3671,7 +3670,7 @@ inherited frmChannel: TfrmChannel
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWhite
           Font.Height = -12
-          Font.Name = 'Century Gothic'
+          Font.Name = 'Noto Sans KR DemiLight'
           Font.Style = []
           ParentFont = False
           OnMouseWheel = wmtlPlaylistMouseWheel
@@ -3695,7 +3694,7 @@ inherited frmChannel: TfrmChannel
           TimeZoneProperty.Font.Charset = ANSI_CHARSET
           TimeZoneProperty.Font.Color = 16765315
           TimeZoneProperty.Font.Height = -12
-          TimeZoneProperty.Font.Name = 'Century Gothic'
+          TimeZoneProperty.Font.Name = 'Noto Sans KR DemiLight'
           TimeZoneProperty.Font.Style = []
           TimeZoneProperty.RailImage.Data = {
             0954506E67496D61676589504E470D0A1A0A0000000D49484452000000090000
@@ -3778,5 +3777,23 @@ inherited frmChannel: TfrmChannel
         end
       end
     end
+  end
+  object wmoChannel: TWMOleDrag
+    AllExt = False
+    Filter.Strings = (
+      'MXF'
+      'MOV'
+      'MP4'
+      'AVI'
+      'MPG'
+      'MPEG'
+      'WMV'
+      'FLV'
+      'TS'
+      'WAV')
+    SourceDragTypes = [dtLink]
+    OnDragDropFile = wmoChannelDragDropFile
+    Left = 1336
+    Top = 160
   end
 end

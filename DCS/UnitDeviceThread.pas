@@ -196,6 +196,7 @@ type
     function ClearEvent(AHostIP: AnsiString; AChannelID: Word): Integer; virtual;
     function TakeEvent(AHostIP: AnsiString; AEventID: TEventID; AStartTime: TEventTime): Integer; virtual;
     function HoldEvent(AHostIP: AnsiString; AEventID: TEventID): Integer; virtual;
+    function ChangeStartTimeEvent(AHostIP: AnsiString; AEventID: TEventID; AStartTime: TEventTime): Integer; virtual;
     function ChangeDurationEvent(AHostIP: AnsiString; AEventID: TEventID; ADuration: TTimecode): Integer; virtual;
     function GetOnAirEventID(AHostIP: AnsiString; var AOnAirEventID, ANextEventID: TEventID): Integer; virtual;
     function GetEventInfo(AHostIP: AnsiString; AEventID: TEventID; var AStartTime: TEventTime; var ADurationTC: TTimecode): Integer; virtual;
@@ -986,10 +987,24 @@ begin
 //    FEventLock.Enter;
     try
       if (EventNext = nil) or
-         ((EventNext <> nil) and {(EventNext^.Status.State <> esError) and }(EventNext^.Status.State <= esLoaded)) then
+//         ((EventNext <> nil) and {(EventNext^.Status.State <> esError) and }(EventNext^.Status.State <= esLoaded)) then
+         (EventNext <> nil) then
       begin
 //        FNumCued := 0;
-        EventNext := GetNextEvent;
+
+//        EventNext := GetNextEvent;
+
+        E := GetNextEvent;
+
+        if (E <> EventNext) then
+        begin
+          if (EventNext <> nil) then
+          begin
+            SetEventStatus(EventNext, esLoaded);
+          end;
+
+          EventNext := E;
+        end;
       end;
     finally
 //      FEventLock.Leave;
@@ -2575,6 +2590,15 @@ begin
 
         Dispose(E);
 
+      if (HasMainControl) then
+        SetEvent(FEventSchedule)
+      else
+      begin
+        SetEventCurrNotify(FEventCurrID);
+        SetEventNextNotify(FEventNextID);
+        SetEventFiniNotify(FEventFiniID);
+      end;
+
         FEventOverall.NumEventInQueue := FEventQueue.Count;
   finally
     FEventLock.Leave;
@@ -2759,8 +2783,8 @@ begin
 //        Assert(False, GetLogDevice(lsNormal, AHostIP, D.EventNext^.EventID.ChannelID,
 //                                   Format('Take event1, devicehandle = %d, id = %s, start = %s, duration = %s',
 //                                          [D.Device^.Handle, EventIDToString(D.EventNext^.EventID),
-//                                           EventTimeToDateTimecodeStr(D.EventNext^.StartTime, True),
-//                                           TimecodeToString(D.EventNext^.DurTime)])));
+//                                           EventTimeToDateTimecodeStr(D.EventNext^.StartTime, D.ControlFrameRateType, True),
+//                                           TimecodeToString(D.EventNext^.DurTime, D.ControlIsDropFrame)])));
             if (D <> nil) and (D <> Self) and
                (D.ControlChannel = ControlChannel) and
                (D.EventNext <> nil) then
@@ -2769,8 +2793,8 @@ begin
 //        Assert(False, GetLogDevice(lsNormal, AHostIP, D.EventNext^.EventID.ChannelID,
 //                                   Format('Take event2, devicehandle = %d, id = %s, start = %s, duration = %s',
 //                                          [D.Device^.Handle, EventIDToString(D.EventNext^.EventID),
-//                                           EventTimeToDateTimecodeStr(D.EventNext^.StartTime, True),
-//                                           TimecodeToString(D.EventNext^.DurTime)])));
+//                                           EventTimeToDateTimecodeStr(D.EventNext^.StartTime, D.ControlFrameRateType, True),
+//                                           TimecodeToString(D.EventNext^.DurTime, D.ControlIsDropFrame)])));
               Index := D.EventQueue.IndexOf(D.EventNext);
 
 //      D.EventControlThread.ResetExecute;
@@ -2874,6 +2898,145 @@ begin
       end;
 
       Result := D_OK;
+    end;
+  finally
+    FEventLock.Leave;
+  end;
+end;
+
+function TDeviceThread.ChangeStartTimeEvent(AHostIP: AnsiString; AEventID: TEventID; AStartTime: TEventTime): Integer;
+var
+  E, P: PEvent;
+  DurTime, EndTime: TEventTime;
+  SaveStartTime: TEventTime;
+  DurTC: TTimecode;
+  ChannelForm: TfrmChannelEvents;
+
+  LockList: TList;
+  I: Integer;
+  D: TDeviceThread;
+  Index: Integer;
+begin
+  Result := D_FALSE;
+
+  FEventLock.Enter;
+  try
+    E := GetEventByID(AEventID);
+    if (E <> nil) then
+    begin
+      // 현재 이벤트와 시작 시각이 같으면 처리하지 않음
+      if (CompareEventTime(E^.StartTime, AStartTime, ControlFrameRateType) = 0) then exit;
+
+//      FEventControlThread.ResetExecute;
+      try
+        WaitForEventCompleted(INFINITE);
+
+//        WaitForSingleObject(FEventCompleted, DEVICE_WAIT_TIMEOUT);
+//        WaitForSingleObject(FEventCompleted, INFINITE);
+
+        // 현재 이벤트의 변경하는시작 시각의 길이를 구함
+        DurTime := GetDurEventTime(E^.StartTime, AStartTime, ControlFrameRateType);
+
+        // 현재 이벤트의 종료 시각을 구함
+        EndTime := GetEventEndTime(E^.StartTime, E^.DurTime, ControlFrameRateType);
+
+        // 현재 이벤트의 다음 모든 이벤트의 길이를 조정
+        Index := FEventQueue.IndexOf(E) + 1;
+        if (CompareEventTime(E^.StartTime, AStartTime, ControlFrameRateType) <= 0) then
+        begin
+          ResetStartTimePlus(Index, DurTime, ControlFrameRateType);
+        end
+        else
+        begin
+          ResetStartTimeMinus(Index, DurTime, ControlFrameRateType);
+        end;
+
+        // 현재 이벤트의 시작 시각을 저장하고 변경된 시작 시각으로 적용
+        SaveStartTime := E^.StartTime;
+        E^.StartTime  := AStartTime;
+
+
+      if (HasMainControl) then
+        SetEvent(FEventSchedule)
+      else
+      begin
+        SetEventCurrNotify(FEventCurrID);
+        SetEventNextNotify(FEventNextID);
+        SetEventFiniNotify(FEventFiniID);
+      end;
+
+        // 현재 이벤트의 채널 리프레쉬
+        if (E^.EventType = ET_PLAYER) then
+        begin
+          ChannelForm := frmDCS.GetChannelFormByID(E^.EventID.ChannelID);
+          if (ChannelForm <> nil) then
+          begin
+            ChannelForm.ChangeStartTime(E, Device);
+          end;
+        end;
+
+        // 같은 채널의 다른 Device의 시작시각을 조정
+        LockList := GV_DeviceThreadList.LockList;
+        try
+          for I := 0 to LockList.Count - 1 do
+          begin
+            D := LockList[I];
+            if (D <> nil) and (D <> Self) and
+               (D.ControlChannel = ControlChannel) then
+            begin
+              // 현재 이벤트의 종료시각 이후의 같은 채널의 다른 디바이스의 이벤트를 구함
+              P := D.GetEventByStartTime(EndTime);
+              if (P <> nil) then
+              begin
+                // 같은 채널의 다른 디바이스의 시작 시각을 조정
+                Index := D.FEventQueue.IndexOf(P);
+
+                if (CompareEventTime(SaveStartTime, AStartTime, ControlFrameRateType) <= 0) then
+                begin
+                  D.ResetStartTimePlus(Index, DurTime, ControlFrameRateType);
+                end
+                else
+                begin
+                  D.ResetStartTimeMinus(Index, DurTime, ControlFrameRateType);
+                end;
+
+
+      if (HasMainControl) then
+        SetEvent(D.FEventSchedule)
+      else
+      begin
+        SetEventCurrNotify(D.FEventCurrID);
+        SetEventNextNotify(D.FEventNextID);
+        SetEventFiniNotify(D.FEventFiniID);
+      end;
+
+                // 다른 디바이스의 이벤트 채널 리프레쉬
+                if (P^.EventType = ET_PLAYER) then
+                begin
+                  ChannelForm := frmDCS.GetChannelFormByID(P^.EventID.ChannelID);
+                  if (ChannelForm <> nil) then
+                  begin
+                    ChannelForm.ChangeStartTime(P, D.Device);
+                  end;
+                end;
+              end;
+            end;
+          end;
+        finally
+          GV_DeviceThreadList.UnLockList;
+        end;
+
+
+        Assert(False, GetLogDevice(lsNormal, AHostIP, E^.EventID.ChannelID,
+                                   Format('Change start time event, id = %s, new start = %s, duration = %s',
+                                          [EventIDToString(E^.EventID),
+                                           EventTimeToDateTimecodeStr(E^.StartTime, ControlFrameRateType),
+                                           TimecodeToString(E^.DurTime, ControlIsDropFrame)])));
+
+      finally
+//        FEventControlThread.SetExecute;
+      end;
+    Result := D_OK;
     end;
   finally
     FEventLock.Leave;
@@ -3024,7 +3187,7 @@ begin
         Assert(False, GetLogDevice(lsNormal, AHostIP, E^.EventID.ChannelID,
                                    Format('Change duration event, id = %s, start = %s, new duration = %s',
                                           [EventIDToString(E^.EventID),
-                                           EventTimeToDateTimecodeStr(E^.StartTime, ControlFrameRateType, True),
+                                           EventTimeToDateTimecodeStr(E^.StartTime, ControlFrameRateType),
                                            TimecodeToString(E^.DurTime, ControlIsDropFrame)])));
 
       finally
@@ -3086,7 +3249,7 @@ exit;
         Assert(False, GetLogDevice(lsNormal, AHostIP, E^.EventID.ChannelID,
                                    Format('Change duration event, id = %s, start = %s, new duration = %s',
                                           [EventIDToString(E^.EventID),
-                                           EventTimeToDateTimecodeStr(E^.StartTime, ControlFrameRateType, True),
+                                           EventTimeToDateTimecodeStr(E^.StartTime, ControlFrameRateType),
                                            TimecodeToString(E^.DurTime, ControlIsDropFrame)])));
       finally
 //        FEventControlThread.SetExecute;

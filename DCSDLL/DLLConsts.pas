@@ -112,6 +112,7 @@ function DCSDeleteEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): 
 function DCSClearEvent(AID: Word; AHandle: TDeviceHandle; AChannelID: Word): Integer; stdcall;
 function DCSTakeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; stdcall;
 function DCSHoldEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): Integer; stdcall;
+function DCSChangetStartTimeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; stdcall;
 function DCSChangetDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer; stdcall;
 function DCSOnAirCatchEvent(AID: Word; AHandle: TDeviceHandle): Integer; stdcall;
 function DCSGetOnAirEventID(AID: Word; AHandle: TDeviceHandle; var AOnAirEventID, ANextEventID: TEventID): Integer; stdcall;
@@ -203,6 +204,7 @@ exports // exports 절이 추가된다.
   DCSClearEvent name 'DCSClearEvent',
   DCSTakeEvent name 'DCSTakeEvent',
   DCSHoldEvent name 'DCSHoldEvent',
+  DCSChangetStartTimeEvent name 'DCSChangetStartTimeEvent',
   DCSChangetDurationEvent name 'DCSChangetDurationEvent',
   DCSOnAirCatchEvent name 'DCSOnAirCatchEvent',
   DCSGetOnAirEventID name 'DCSGetOnAirEventID',
@@ -859,6 +861,11 @@ end;
 function DCSHoldEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): Integer;
 begin
   Result := VDCSMgr.HoldEvent(AID, AHandle, AEventID);
+end;
+
+function DCSChangetStartTimeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; stdcall;
+begin
+  Result := VDCSMgr.ChangeStartTimeEvent(AID, AHandle, AEventID, AStartTime);
 end;
 
 function DCSChangetDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer; stdcall;

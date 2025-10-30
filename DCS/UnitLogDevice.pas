@@ -240,6 +240,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_LOG_DEVICE_FiXED_COLOR;
+
       FixedRows := CNT_LOG_DEVICE_HEADER;
       RowCount  := CNT_LOG_DEVICE_HEADER + 1;
       ColCount  := CNT_LOG_DEVICE_COLUMNS;

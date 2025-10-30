@@ -158,27 +158,25 @@ inherited frmSEC: TfrmSEC
         ExplicitLeft = 722
       end
       object lblSECName: TLabel
-        Left = 740
-        Top = 18
-        Width = 66
-        Height = 19
+        Left = 748
+        Top = 14
+        Width = 43
+        Height = 26
         Anchors = [akTop, akRight]
         AutoSize = False
         Caption = 'SEC1'
-        EllipsisPosition = epEndEllipsis
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWhite
         Font.Height = -18
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
-        ExplicitLeft = 727
       end
       object lblCurrentTime: TLabel
         Left = 364
-        Top = 13
-        Width = 242
-        Height = 37
+        Top = 5
+        Width = 267
+        Height = 44
         Alignment = taCenter
         Anchors = [akTop]
         AutoSize = False
@@ -186,15 +184,14 @@ inherited frmSEC: TfrmSEC
         Color = 788230
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
-        Font.Height = -28
-        Font.Name = 'Crystal'
+        Font.Height = -30
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentColor = False
         ParentFont = False
         Transparent = True
         OnMouseDown = WMTitleBarMouseDown
         OnMouseMove = lblCurrentTimeMouseMove
-        ExplicitLeft = 357
       end
     end
     inherited pnlDesc: TWMPanel
@@ -227,14 +224,16 @@ inherited frmSEC: TfrmSEC
         Top = 1
         Width = 967
         Height = 25
+        UseSystemFont = False
         ActionManager = actManager
         AllowHiding = True
         Caption = 'actMainMenuSEC'
+        Color = 2432025
         ColorMap = XPColorMap
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
+        Font.Color = 16760237
         Font.Height = -15
-        Font.Name = 'Segoe UI'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         Spacing = 2
         OnGetControlClass = actMainMenuSECGetControlClass
@@ -587,7 +586,7 @@ inherited frmSEC: TfrmSEC
           TabAppearance.Font.Charset = ANSI_CHARSET
           TabAppearance.Font.Color = 12105912
           TabAppearance.Font.Height = -16
-          TabAppearance.Font.Name = 'Century Gothic'
+          TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
           TabAppearance.Font.Style = []
           TabAppearance.Gradient = ggVertical
           TabAppearance.GradientMirror = ggVertical
@@ -766,7 +765,7 @@ inherited frmSEC: TfrmSEC
             Font.Charset = ANSI_CHARSET
             Font.Color = 12105912
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ExplicitLeft = 703
           end
@@ -864,7 +863,7 @@ inherited frmSEC: TfrmSEC
             Font.Charset = ANSI_CHARSET
             Font.Color = clSilver
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ExplicitLeft = 826
           end
@@ -960,7 +959,7 @@ inherited frmSEC: TfrmSEC
             Font.Charset = ANSI_CHARSET
             Font.Color = clSilver
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ExplicitLeft = 859
           end
@@ -1058,7 +1057,7 @@ inherited frmSEC: TfrmSEC
             Font.Charset = ANSI_CHARSET
             Font.Color = clSilver
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ExplicitLeft = 908
           end
@@ -1188,7 +1187,7 @@ inherited frmSEC: TfrmSEC
             Font.Charset = ANSI_CHARSET
             Font.Color = clSilver
             Font.Height = -12
-            Font.Name = 'Century Gothic'
+            Font.Name = 'Noto Sans KR DemiLight'
             Font.Style = []
             ExplicitLeft = 1052
           end
@@ -1538,7 +1537,7 @@ inherited frmSEC: TfrmSEC
           TabAppearance.Font.Charset = ANSI_CHARSET
           TabAppearance.Font.Color = 12105912
           TabAppearance.Font.Height = -16
-          TabAppearance.Font.Name = 'Century Gothic'
+          TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
           TabAppearance.Font.Style = []
           TabAppearance.Gradient = ggVertical
           TabAppearance.GradientMirror = ggVertical
@@ -1602,7 +1601,7 @@ inherited frmSEC: TfrmSEC
           TabAppearance.Font.Charset = ANSI_CHARSET
           TabAppearance.Font.Color = 12105912
           TabAppearance.Font.Height = -16
-          TabAppearance.Font.Name = 'Century Gothic'
+          TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
           TabAppearance.Font.Style = []
           TabAppearance.Gradient = ggVertical
           TabAppearance.GradientMirror = ggVertical
@@ -1666,7 +1665,7 @@ inherited frmSEC: TfrmSEC
           TabAppearance.Font.Charset = ANSI_CHARSET
           TabAppearance.Font.Color = 12105912
           TabAppearance.Font.Height = -16
-          TabAppearance.Font.Name = 'Century Gothic'
+          TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
           TabAppearance.Font.Style = []
           TabAppearance.Gradient = ggVertical
           TabAppearance.GradientMirror = ggVertical
@@ -1730,7 +1729,7 @@ inherited frmSEC: TfrmSEC
           TabAppearance.Font.Charset = ANSI_CHARSET
           TabAppearance.Font.Color = 12105912
           TabAppearance.Font.Height = -16
-          TabAppearance.Font.Name = 'Century Gothic'
+          TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
           TabAppearance.Font.Style = []
           TabAppearance.Gradient = ggVertical
           TabAppearance.GradientMirror = ggVertical
@@ -1827,7 +1826,7 @@ inherited frmSEC: TfrmSEC
     TabAppearance.Font.Charset = ANSI_CHARSET
     TabAppearance.Font.Color = 12105912
     TabAppearance.Font.Height = -16
-    TabAppearance.Font.Name = 'Century Gothic'
+    TabAppearance.Font.Name = 'Noto Sans KR DemiLight'
     TabAppearance.Font.Style = []
     TabAppearance.Gradient = ggVertical
     TabAppearance.GradientMirror = ggVertical
@@ -1891,7 +1890,7 @@ inherited frmSEC: TfrmSEC
               end
               item
                 Action = actFileClose
-                Caption = 'Close'
+                ImageIndex = 5
               end>
             Caption = 'File'
           end
@@ -1922,6 +1921,50 @@ inherited frmSEC: TfrmSEC
                 ShortCut = 16466
               end>
             Caption = 'Edit'
+          end
+          item
+            Items.AutoHotKeys = False
+            Items = <
+              item
+                Action = actControlStartOnair
+              end
+              item
+                Action = actControlFreezeOnAir
+              end
+              item
+                Action = actControlBreakOnair
+              end
+              item
+                Action = actControlFinishOnAir
+              end
+              item
+                Action = actControlCatchOnair
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actControlAssignNextEvent
+              end
+              item
+                Action = actControlStartNextEventImmediately
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actControlIncrease1Second
+              end
+              item
+                Action = actControlDecrease1Second
+              end
+              item
+                Caption = '-'
+              end
+              item
+                Action = actControlAssignTargetEvent
+              end>
+            Caption = 'Control'
           end
           item
             Items.AutoHotKeys = False
@@ -1969,50 +2012,6 @@ inherited frmSEC: TfrmSEC
                 Action = actEventSourceExchange
               end>
             Caption = 'Event'
-          end
-          item
-            Items.AutoHotKeys = False
-            Items = <
-              item
-                Action = actControlStartOnair
-              end
-              item
-                Action = actControlFreezeOnAir
-              end
-              item
-                Action = actControlBreakOnair
-              end
-              item
-                Action = actControlFinishOnAir
-              end
-              item
-                Action = actControlCatchOnair
-              end
-              item
-                Caption = '-'
-              end
-              item
-                Action = actControlAssignNextEvent
-              end
-              item
-                Action = actControlStartNextEventImmediately
-              end
-              item
-                Caption = '-'
-              end
-              item
-                Action = actControlIncrease1Second
-              end
-              item
-                Action = actControlDecrease1Second
-              end
-              item
-                Caption = '-'
-              end
-              item
-                Action = actControlAssignTargetEvent
-              end>
-            Caption = 'Control'
           end
           item
             Items = <
@@ -2142,6 +2141,7 @@ inherited frmSEC: TfrmSEC
     object actFileClose: TAction
       Category = 'File(&F)'
       Caption = '&Close'
+      ImageIndex = 5
       OnExecute = actFileCloseExecute
     end
     object actControlStartOnair: TAction
@@ -2232,20 +2232,22 @@ inherited frmSEC: TfrmSEC
       ShortCut = 16470
       OnExecute = actEditPasteEventExecute
     end
-    object actEditClearClipboard: TAction
-      Category = 'Edit(&E)'
-      Caption = 'Clear clipboard'
-      OnExecute = actEditClearClipboardExecute
-    end
     object actEditFindEvent: TAction
       Category = 'Edit(&E)'
       Caption = 'Find event'
       ShortCut = 16454
+      OnExecute = actEditFindEventExecute
     end
     object actEditReplaceEvent: TAction
       Category = 'Edit(&E)'
       Caption = 'Replace event'
       ShortCut = 16466
+      OnExecute = actEditReplaceEventExecute
+    end
+    object actEditClearClipboard: TAction
+      Category = 'Edit(&E)'
+      Caption = 'Clear clipboard'
+      OnExecute = actEditClearClipboardExecute
     end
     object actEventInspectEvent: TAction
       Category = 'Event(&T)'
@@ -2474,9 +2476,24 @@ inherited frmSEC: TfrmSEC
       0000000000000000000000000000}
   end
   object XPColorMap: TXPColorMap
-    HighlightColor = clWhite
-    BtnSelectedColor = clBtnFace
-    UnusedColor = clWhite
+    Color = 2432025
+    DisabledFontColor = clMedGray
+    DisabledFontShadow = clBlack
+    FontColor = 16760237
+    HighlightColor = 15660791
+    HotColor = clWhite
+    HotFontColor = clWhite
+    MenuColor = -1
+    FrameTopLeftInner = 5915967
+    FrameTopLeftOuter = 2432025
+    FrameBottomRightInner = 5915967
+    FrameBottomRightOuter = 2432025
+    BtnFrameColor = 5915967
+    BtnSelectedColor = 6376003
+    BtnSelectedFont = clWhite
+    SelectedColor = 6376003
+    SelectedFontColor = clWhite
+    UnusedColor = 15717318
     Left = 910
     Top = 176
   end

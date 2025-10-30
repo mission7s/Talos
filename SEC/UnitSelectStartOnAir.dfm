@@ -28,106 +28,106 @@ inherited frmSelectStartOnAir: TfrmSelectStartOnAir
       object Label5: TLabel
         Left = 73
         Top = 22
-        Width = 480
-        Height = 19
+        Width = 431
+        Height = 20
         Caption = 'DCS has an ongoing event. Please choose how you want to proceed.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clSilver
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label2: TLabel
         Left = 73
         Top = 44
-        Width = 512
-        Height = 19
+        Width = 473
+        Height = 20
         Caption = 
           'If you start again, start at least 10 seconds before the next ev' +
           'ent start time.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clSilver
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label1: TLabel
         Left = 20
         Top = 90
-        Width = 99
-        Height = 19
+        Width = 91
+        Height = 20
         Caption = 'Current event:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clSilver
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object Label3: TLabel
         Left = 36
         Top = 146
-        Width = 79
-        Height = 19
+        Width = 73
+        Height = 20
         Caption = 'Next event:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clSilver
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object lblCurrentEvent1: TLabel
         Left = 126
         Top = 90
-        Width = 323
-        Height = 19
+        Width = 302
+        Height = 20
         Caption = #44277#51061#44305#44256'-'#54620#44397#48169#49569#44305#44256#51652#55141#44277#49324' '#52789#44036#45236#47532#49324#46993' 30'#52488
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 9485642
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object lblCurrentEvent2: TLabel
         Left = 126
         Top = 110
-        Width = 424
-        Height = 19
+        Width = 407
+        Height = 20
         Caption = 'Source = DEC1, Start time = 09:00:00:00, Duration = 00:00:30:00'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 9485642
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object lblNextEvent1: TLabel
         Left = 126
         Top = 146
-        Width = 323
-        Height = 19
+        Width = 302
+        Height = 20
         Caption = #44277#51061#44305#44256'-'#54620#44397#48169#49569#44305#44256#51652#55141#44277#49324' '#52789#44036#45236#47532#49324#46993' 20'#52488
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 2649285
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
       object lblNextEvent2: TLabel
         Left = 126
         Top = 165
-        Width = 424
-        Height = 19
+        Width = 407
+        Height = 20
         Caption = 'Source = DEC1, Start time = 09:00:30:00, Duration = 00:00:20:00'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 2649285
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -231,7 +231,7 @@ inherited frmSelectStartOnAir: TfrmSelectStartOnAir
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
         TabOrder = 0
@@ -253,7 +253,7 @@ inherited frmSelectStartOnAir: TfrmSelectStartOnAir
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -14
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
         TabOrder = 1
@@ -341,7 +341,7 @@ inherited frmSelectStartOnAir: TfrmSelectStartOnAir
     Font.Charset = ANSI_CHARSET
     Font.Color = 12105912
     Font.Height = -14
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ShowCaption = True
     FocusedRectColor = clNone
@@ -423,7 +423,7 @@ inherited frmSelectStartOnAir: TfrmSelectStartOnAir
     Font.Charset = ANSI_CHARSET
     Font.Color = clSilver
     Font.Height = -14
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ShowCaption = True
     FocusedRectColor = clNone

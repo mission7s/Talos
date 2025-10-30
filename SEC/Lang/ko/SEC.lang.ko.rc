@@ -1,0 +1,417 @@
+
+/* Action 1101~ */
+/* SEC */
+/* File action */
+#define SAFile 1101
+#define SAFileNewPlaylist 1102
+#define SAFileOpenPlaylist 1103
+#define SAFileOpenAddPlaylist 1104
+#define SAFileSavePlaylist 1105
+#define SAFileSaveAsPlaylist 1106
+#define SAFileClose 1107
+
+/* Edit action */
+#define SAEdit 1201
+#define SAEditCopyEvent 1202
+#define SAEditCutEvent 1203
+#define SAEditPasteEvent 1204
+#define SAEditFindEvent 1205
+#define SAEditReplaceEvent 1206
+#define SAEditClearClipboard 1207
+#define SAEditSelectMedia 1208
+#define SAEditTimelineZoomIn 1209
+#define SAEditTimelineZoomOut 1210
+#define SAEditTimelineMoveLeft 1211
+#define SAEditTimelineMoveRight 1212
+#define SAEditTimelineGotoCurrent 1213
+
+/* Control action */
+#define SAControl 1301
+#define SAControlStartOnAir 1302
+#define SAControlFreezeOnAir 1303
+#define SAControlBreakOnair 1304
+#define SAControlFinishOnAir 1305
+#define SAControlCatchOnair 1306
+#define SAControlAssignNextEvent 1307
+#define SAControlStartNextEventImmediately 1308
+#define SAControlIncrease1Second 1309
+#define SAControlDecrease1Second 1310
+#define SAControlAssignTargetEvent 1311
+#define SAControlGotoCurrentEvent 1312
+
+/* Event action */
+#define SAEvent 1401
+#define SAEventInsert 1402
+#define SAEventInsertProgram 1403
+#define SAEventInsertMainEvent 1404
+#define SAEventInsertJoinEvent 1405
+#define SAEventInsertSubEvent 1406
+#define SAEventInsertCommentEvent 1407
+#define SAEventUpdateEvent 1408
+#define SAEventDeleteEvent 1409
+#define SAEventInspectEvent 1410
+#define SAEventSourceExchange 1411
+
+
+/* UI 2101~ */
+/* SEC */
+/* Pages */
+#define SUTabChannelAll 2101
+#define SUTabDeviceList 2102
+
+/* Channel form */
+/* Time */
+#define SUTimePlayed 2201
+#define SUTimeRemaining 2202
+#define SUTimeNextStart 2203
+#define SUTimeNextDuration 2204
+#define SUTimeRemainigTarget 2205
+
+/* CueSheet grid title */
+#define SUCueSheetNo 2211
+#define SUCueSheetEventMode 2212
+#define SUCueSheetEventStatus 2213
+#define SUCueSheetStartMode 2214
+#define SUCueSheetStartDate 2215
+#define SUCueSheetStartTime 2216
+#define SUCueSheetDuration 2217
+#define SUCueSheetMediaID 2218
+#define SUCueSheetTitle 2219
+#define SUCueSheetSubTitle 2220
+#define SUCueSheetSource 2221
+#define SUCueSheetMediaStaus 2222
+#define SUCueSheetInTC 2223
+#define SUCueSheetOutTC 2224
+#define SUCueSheetInput 2225
+#define SUCueSheetOutput 2226
+#define SUCueSheetTrType 2227
+#define SUCueSheetTrRate 2228
+#define SUCueSheetFinishAction 2229
+#define SUCueSheetVideoType 2230
+#define SUCueSheetAudioType 2231
+#define SUCueSheetClosedCaption 2232
+#define SUCueSheetVoiceAdd 2233
+#define SUCueSheetProgramType 2234
+#define SUCueSheetNotes 2235
+
+/* Device form */
+/* Device grid title */
+#define SUDeviceNo 2301
+#define SUDeviceName 2302
+#define SUDeviceStatus 2303
+#define SUDeviceTimecode 2304
+#define SUDeviceControl 2305
+
+
+
+
+/* Information message 4101~ */
+/* SEC */
+#define SSECStart 4101
+#define SLookingForSEC 4102
+#define SLookingForAllComponentAndDevice 4103
+#define SNotFoundComponentAndContinue 4104
+
+#define SLookingForMCC 4105
+#define SEInvalidSettinMCC 4106
+
+#define SLookingForDCS 4107
+#define SEInvalidSettinDCS 4108
+
+/* Device */
+#define SLookingForDevice 4201
+#define SLookingForAllDevice 4202
+#define SNotFoundDeviceAndContinue 4203
+
+/* Edit Event */
+#define SEnterEventMode 4301
+#define SEnterStartMode 4302
+#define SEnterInput 4303
+#define SEnterOutput 4304
+#define SEnterTitle 4305
+#define SEnterSource 4306
+#define SEnterSourceLayer 4307
+#define SEnterTransitionType 4308
+#define SEnterTransitionRate 4309
+#define SEnterFinishAction 4310
+#define SEnterProgramType 4311
+#define SEnterCompletedFileFolder 4312
+#define SEnterCompletedFileStoredDays 4313
+
+/* CheSheet */
+#define SLoadingCuesheetFile 4401
+#define SUpdatingCuesheet 4402
+#define SCompletedLoadingCuesheetFile 4403
+#define SInvalidTimeocde 4404
+#define SStartTimeGreaterThenBeforeEndTime 4405
+#define SSubStartTimeGreaterThenParentStartTime 4406
+#define SSubStartTimeLessThenParentEndTime 4407
+#define SDurationTCGreaterThenMinDuration 4408
+#define SDurationTCLessThenMaxDuration 4409
+#define SInTCLessThenDurationTC 4410
+#define SInTCLessThenOutTC 4411
+#define SOutTCLessThenDurationTC 4412
+#define SOutTCGreaterThenInTC 4413
+#define SQDeleteEvent 4414
+
+/* OnAir */
+#define SChannelAlreadyRunning 4501
+#define SFreezeOnAirTimeout 4502
+#define SBreakCurrentTimeout 4503
+#define SSetNextTimeout 4504
+#define SEnqueueTimeout 4505
+#define SQStartOnAirByManual 4506
+#define SQFinishtOnAirAndPreserveEvent 4507
+#define SQFinishtOnAirAndClearEvent 4508
+#define SQSourceExchange 4509
+
+
+/* Error message 5101~*/
+/* SEC */
+#define SEInvalidSettinSEC 5101
+#define SEInvalidSettinProgramType 5102
+
+/* Device */
+#define SEInvalidSettinXpt 5201
+#define SEInvalidSettinMCS 5202
+
+/* CheSheet */
+#define SEPasteLocationIncorrect 5401
+#define SEPasteHasProgramLocationIncorrect 5402
+#define SEPasteHasMainLocationIncorrect 5403
+#define SEPasteJoinSubLocationIncorrect 5404
+#define SESourceExchangeLocationIncorrect 5405
+#define SENoCreateCuesheetWhileChannelOnair 5406
+#define SENoOpenCuesheetWhileChannelOnair 5407
+
+/* OnAir */
+#define SENextEventNotReady 5501
+#define SEChangedOnAirEvent 5502
+#define SENotPossibleEditLockTime 5503
+#define SENotPossibleEditBeforeLocationIncorrect 5504
+#define SENotInsertProgramLocationIncorrect 5505
+#define SENotInsertMainLocationIncorrect 5506
+#define SENotInsertJoinSubLocationIncorrect 5507
+
+
+/* Warning message 6101~ */
+/* Device */
+#define SWDeviceCommError 6201
+#define SWDeviceStatusNotConnect 6202
+
+/* CheSheet */
+#define SWNotExistNextEvent 6401
+
+
+STRINGTABLE
+BEGIN
+        /* Action 1101~ */
+        /* SEC */
+        /* File action */
+        SAFile, "파일(&F)"
+        SAFileNewPlaylist, "새 재생목록"
+        SAFileOpenPlaylist, "재생목록 열기"
+        SAFileOpenAddPlaylist, "추가 재생목록 열기"
+        SAFileSavePlaylist, "재생목록 저장"
+        SAFileSaveAsPlaylist, "재생목록 다른 이름으로 저장"
+        SAFileClose, "종료(&C)"
+
+        /* Edit action */
+        SAEdit, "편집(&E)"
+        SAEditCopyEvent, "이벤트 복사"
+        SAEditCutEvent, "이벤트 잘라내기"
+        SAEditPasteEvent, "이벤트 붙여넣기"
+        SAEditFindEvent, "이벤트 찾기"
+        SAEditReplaceEvent, "이벤트 바꾸기"
+        SAEditClearClipboard, "이벤트 클립보드 지우기"
+        SAEditSelectMedia, "미디어 파일 선택"
+        SAEditTimelineZoomIn, "-"
+        SAEditTimelineZoomOut, "+"
+        SAEditTimelineMoveLeft, "<"
+        SAEditTimelineMoveRight, ">"
+        SAEditTimelineGotoCurrent, "현재 시간"
+
+        /* Control action */
+        SAControl, "제어(&C)"
+        SAControlStartOnAir, "온에어 시작"
+        SAControlFreezeOnAir, "온에어 멈춤"
+        SAControlBreakOnair, "긴급 이벤트 삽입"
+        SAControlFinishOnAir, "온에어 종료"
+        SAControlCatchOnair, "온에어 캐치 "
+        SAControlAssignNextEvent, "다음 이벤트 설정"
+        SAControlStartNextEventImmediately, "다음 이벤트 즉시 시작"
+        SAControlIncrease1Second, "이벤트 1초 늘임"
+        SAControlDecrease1Second, "이벤트 1초 줄임"
+        SAControlAssignTargetEvent, "목적 이벤트 지정"
+        SAControlGotoCurrentEvent, "현재 이벤트로 이동"
+
+        /* Event action */
+        SAEvent, "이벤트(&T)"
+        SAEventInsert, "이벤트 삽입"
+        SAEventInsertProgram, "프로그램 이벤트"
+        SAEventInsertMainEvent, "메인 이벤트"
+        SAEventInsertJoinEvent, "조인 이벤트"
+        SAEventInsertSubEvent, "서브 이벤트"
+        SAEventInsertCommentEvent, "코멘트 이벤트"
+        SAEventUpdateEvent, "이벤트 수정"
+        SAEventDeleteEvent, "이벤트 삭제"
+        SAEventInspectEvent, "이벤트 검사"
+        SAEventSourceExchange, "메인/백업 이벤트 교체"
+
+
+        /* UI 2101~ */
+        /* SEC */
+        /* Pages */
+        SUTabChannelAll, "전체 채널"
+        SUTabDeviceList, "장치"
+
+        /* Channel form */
+        /* Time */
+        SUTimePlayed, "진행시간"
+        SUTimeRemaining, "남은시간"
+        SUTimeNextStart, "다음시작"
+        SUTimeNextDuration, "다음길이"
+        SUTimeRemainigTarget, "목적이벤트"
+
+        /* CueSheet grid title */
+        SUCueSheetNo, "NO"
+        SUCueSheetEventMode, "T"
+        SUCueSheetEventStatus, "상태"
+        SUCueSheetStartMode, "시작유형"
+        SUCueSheetStartDate, "시작일자"
+        SUCueSheetStartTime, "시작시간"
+        SUCueSheetDuration, "길이"
+        SUCueSheetMediaID, "미디어ID"
+        SUCueSheetTitle, "제목"
+        SUCueSheetSubTitle, "부제"
+        SUCueSheetSource, "장치"
+        SUCueSheetMediaStaus, "미디어상태"
+        SUCueSheetInTC, "SOM"
+        SUCueSheetOutTC, "EOM"
+        SUCueSheetInput, "입력"
+        SUCueSheetOutput, "출력"
+        SUCueSheetTrType, "TT"
+        SUCueSheetTrRate, "TR"
+        SUCueSheetFinishAction, "종료후제어"
+        SUCueSheetVideoType, "비디오"
+        SUCueSheetAudioType, "오디오"
+        SUCueSheetClosedCaption, "자막"
+        SUCueSheetVoiceAdd, "부음성"
+        SUCueSheetProgramType, " 프로그램"
+        SUCueSheetNotes, "설명"
+
+        /* Device form */
+        /* Device grid title */
+        SUDeviceNo, "NO"
+        SUDeviceName, "장치명"
+        SUDeviceStatus, "상태"
+        SUDeviceTimecode, "타임코드"
+        SUDeviceControl, "제어정보"
+
+
+
+
+
+        /* Information message */
+        /* SEC */
+        SSECStart, "SEC 시작중..."
+        SLookingForSEC, "다른 SEC를 찾고 있습니다."
+        SLookingForAllComponentAndDevice, "나머지 구성 요소나 장치를 모두 찾고 싶으신가요?"
+        SNotFoundComponentAndContinue, "구성 요소를 찾을 수 없습니다. [Name=%s]\r\n나머지 구성 요소나 장치를 찾고 싶습니까??"
+
+        SLookingForMCC, "다른 MCC를 찾고 있습니다."
+        SEInvalidSettinMCC, "MCC 설정정보가 잘못 되었습니다."
+
+        SLookingForDCS, "다른 DCS를 찾고 있습니다."
+        SEInvalidSettinDCS, "DCS 설정정보가 잘못 되었습니다."
+
+        /* Device */
+        SLookingForDevice, "장치룰 찾고 있는중..."
+        SLookingForAllDevice, "나머지 모든 장치를 찾아보시겠습니까?"
+        SNotFoundDeviceAndContinue, "장치를 찾을 수 없습니다. [Device=%s, DCS=%s]\r\n나머지 장치를 계속 찾을까요?"
+
+        /* Edit Event */
+        SEnterEventMode, "''Event mode''는 필수 입력 항목입니다."
+        SEnterStartMode, "''Start mode''는 필수 입력 항목입니다."
+        SEnterInput, "''Input''은 필수 입력 항목입니다."
+        SEnterOutput, "''Output''은 필수 입력 항목입니다."
+        SEnterTitle, "''Title''은 필수 입력 항목입니다."
+        SEnterSource, "''Source''는 필수 입력 항목입니다."
+        SEnterSourceLayer, "''Source layer''는 필수 입력 항목입니다."
+        SEnterTransitionType, "''Transition type''은 필수 입력 항목입니다."
+        SEnterTransitionRate, "''Transition rate''은 필수 입력 항목입니다."
+        SEnterFinishAction, "''Finish action''은 필수 입력 항목입니다."
+        SEnterProgramType, "''Program type''은 필수 입력 항목입니다."
+
+        SEnterCompletedFileFolder, "캡춰 완료파일 폴더를 입력하십시오."
+        SEnterCompletedFileStoredDays, "캡춰 완료파일 보관 일 수를 입력하십시오."
+
+        /* CheSheet */
+        SLoadingCuesheetFile, "재생 목록 파일 로딩 중..."
+        SUpdatingCuesheet, "재생 목록 업데이트 중..."
+        SCompletedLoadingCuesheetFile, "재생 목록 파일이 로딩 완료되었습니다."
+        SInvalidTimeocde, "''%s'' 타임코드가 잘못 되었습니다."
+        SStartTimeGreaterThenBeforeEndTime, "시작 시간은 이전 이벤트의 종료 시간보다 커야 합니다."
+        SSubStartTimeGreaterThenParentStartTime, "서브 이벤트 시작 시간은 상위 이벤트 시작 시간보다 커야 합니다."
+        SSubStartTimeLessThenParentEndTime, "서브 이벤트 시작 시간 + 길이는 상위 이벤트의 종료 시간보다 짧아야 합니다."
+        SDurationTCGreaterThenMinDuration, "''%s''은 ''%s'' 보다 커야 합니다."
+        SDurationTCLessThenMaxDuration, "''%s''은 ''%s'' 보다 작아야 합니다."
+        SInTCLessThenDurationTC, "타임코드는 길이보다 작아야 합니다."
+        SInTCLessThenOutTC, "시작 타임코드는 종료 타임코드보다 작아야 합니다."
+        SOutTCLessThenDurationTC, "종료 타임코드는 길이 타임코드보다 작아야 합니다."
+        SOutTCGreaterThenInTC, "종료 타임코드는 시작 타임코드보다 커야 합니다."
+        SQDeleteEvent, "선택한 이벤트와 하위 이벤트가 삭제됩니다.\r\n방송 중이거나 큐 상태인 이벤트는 삭제되지 않습니다.\r\n아래 이벤트를 삭제하시겠습니까?"
+
+        /* OnAir */
+        SChannelAlreadyRunning, "채널이 이미 운행 중입니다. [%s]"
+        SFreezeOnAirTimeout, "다음 이벤트까지 남은 시간이 방송 정지 시간보다 짧습니다."
+        SBreakCurrentTimeout, "현재 이벤트 남은 시간이 제한 시간보다 짧아 긴급 이벤트를 삽입할 수 없습니다."
+        SSetNextTimeout, "현재 이벤트까지 남은 시간이 제한 시간보다 짧아 다음 이벤트를 설정할 수 없습니다."
+        SEnqueueTimeout, "다음 이벤트까지 남은 시간이 입력 제한 시간보다 짧씁니다."
+
+        SQStartOnAirByManual, "방송 시작을 준비할 시간이 충분하지 않습니다.\r\n현재 시간 이후의 첫 번째 이벤트를 수동으로 시작하시겠습니까?"
+        SQFinishtOnAirAndPreserveEvent, "운행 종료 후 방송을 재개할 수 있도록 이벤트 대기열을 보존하시겠습니까?"
+        SQFinishtOnAirAndClearEvent, "이벤트 대기열을 지우고 현재 채널을 완전히 운행 종료하시겠습니까?"
+        SQSourceExchange, "%s\r\n\r\n현재 선택된 이벤트의 모든 이벤트에 대해 메인 이벤트와 백업 이벤트의 소스를 교환하시겠습니까?"
+
+
+
+
+        /* Error message */
+        /* SEC */
+        SEInvalidSettinSEC, "SEC 설정 정보가 잘못 되었습니다."
+        SEInvalidSettinProgramType, "프로그램 유형 설정 정보가 잘못 되었습니다."
+
+        /* Device */
+        SEInvalidSettinXpt, "라우터 설정 정보가 잘못 되었습니다."
+        SEInvalidSettinMCS, "마스터 스위치 설정 정보가 잘못 되었습니다."
+
+        /* CheSheet */
+        SEPasteLocationIncorrect, "붙여넣기 위치를 하나만 지정하고 다시 붙여넣으세요."
+        SEPasteHasProgramLocationIncorrect, "프로그램 이벤트가 클립보드에 포함되어 있습니다.\r\n프로그램 이벤트나 메인 이벤트에 붙여넣기 할 수 있습니다."
+        SEPasteHasMainLocationIncorrect, "메인 이벤트가 클립보드에 포함되어 있습니다.\r\n메인 이벤트에 붙여넣기 할 수 있습니다."
+        SEPasteJoinSubLocationIncorrect, "조인이나 서브 이벤트는 메인 이벤트나 하위 이벤트에 붙여넣기 할 수 있습니다."
+        SESourceExchangeLocationIncorrect, "현재 또는 다음 이벤트 이전에는 메인/백업 소스를 교환할 수 없습니다."
+        SENoCreateCuesheetWhileChannelOnair, "채널 운행 중에는 새로운 재생목록을 만들 수 없습니다."
+        SENoOpenCuesheetWhileChannelOnair, "채널 운행 중에는 다른 재생목목을 열 수 없습니다."
+
+        /* OnAir */
+        SENextEventNotReady, "다음 이벤트가 아직 준비되지 않았습니다. 나중에 다시 시도해 주십시오."
+        SEChangedOnAirEvent, "온에어 이벤트가 변경되었습니다. 운행을 다시 시작해 주십시오."
+        SENotPossibleEditLockTime, "현재 시간이 편집 잠금 시간보다 작기 때문에 편집할 수 없습니다."
+        SENotPossibleEditBeforeLocationIncorrect, "현재 또는 다음 이벤트 이전 이벤트는 편집할 수 없습니다."
+        SENotInsertProgramLocationIncorrect, "프로그램 이벤트는 프로그램 이벤트나 독립적인 메인 이벤트에만 삽입할 수 있습니다."
+        SENotInsertMainLocationIncorrect, "메인 이벤트는 프로그램이나 메인 또는 독립적인 코멘트 이벤트에만 삽입할 수 있습니다."
+        SENotInsertJoinSubLocationIncorrect, "조인 또는 서브 이벤트는 메인 이벤트 아래에만 삽입할 수 있습니다."
+
+
+
+        /* Warning message */
+        /* Device */
+        SWDeviceCommError, "장치가 DCS와 연결이 되지 않습니다."
+        SWDeviceStatusNotConnect, "장치의 상태 정보를 가져올 수 없습니다."
+
+        /* CheSheet */
+        SWNotExistNextEvent, "재생할 다음 이벤트가 없습니다. [채널=%s]"
+
+END

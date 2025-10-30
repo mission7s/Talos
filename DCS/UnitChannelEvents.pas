@@ -76,6 +76,7 @@ type
     function ClearEvent(ADevice: PDevice): Integer;
     function TakeEvent(AEventNext, AEventCurr: PEvent; ADevice: PDevice): Integer;
     function HoldEvent(AEvent: PEvent; ADevice: PDevice): Integer;
+    function ChangeStartTime(AEvent: PEvent; ADevice: PDevice): Integer;
     function ChangeDurationEvent(AEvent: PEvent; ADevice: PDevice): Integer;
     function GetOnAirEventID(AHostIP: AnsiString; var AEventID: TEventID): Integer;
 
@@ -350,6 +351,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_EVENT_FiXED_COLOR;
+
       FixedRows := CNT_EVENT_HEADER;
       RowCount  := CNT_EVENT_HEADER + 1;
       ColCount  := CNT_EVENT_COLUMNS;
@@ -523,8 +526,8 @@ exit;
       MouseActions.DisjunctRowSelect := False;
       ClearRowSelect;
       MouseActions.DisjunctRowSelect := True;
-      SelectRows(R, 1);
-      Row := R;
+//      SelectRows(R, 1);
+//      Row := R;
     end
     else if (InRange(R, TopRow, TopRow + VisibleRowCount - 1)) then
       RepaintRow(R);
@@ -552,8 +555,8 @@ begin
       MouseActions.DisjunctRowSelect := False;
       ClearRowSelect;
       MouseActions.DisjunctRowSelect := True;
-      SelectRows(R, 1);
-      Row := R;
+//      SelectRows(R, 1);
+//      Row := R;
     end;
   end;
 end;
@@ -1164,6 +1167,31 @@ begin
 end;
 
 function TfrmChannelEvents.HoldEvent(AEvent: PEvent; ADevice: PDevice): Integer;
+var
+  E: PEventItem;
+begin
+  Result := -1;
+
+  if (AEvent <> nil) then
+  begin
+    FEventItemLock.Enter;
+    try
+      E := GetEventItemByID(AEvent^.EventID, ADevice);
+      if (E <> nil) then
+      begin
+//        E^.Event := AEvent;
+        Move(AEvent^, E^.Event, SizeOf(TEvent));
+        Result := FEventItemList.IndexOf(E);
+
+        PostMessage(Handle, WM_UPDATE_EVENT, Result, NativeInt(@E^.Event));
+      end;
+    finally
+      FEventItemLock.Leave;
+    end;
+  end;
+end;
+
+function TfrmChannelEvents.ChangeStartTime(AEvent: PEvent; ADevice: PDevice): Integer;
 var
   E: PEventItem;
 begin

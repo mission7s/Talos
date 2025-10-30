@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.196,C:\User Data\Git\Talos\SEC\SEC_Lang\SEC_Lang_en.dproj=C:\User Data\Git\Talos\SEC\SEC_Lang\SEC_Lang_ko.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.315,=C:\User Data\Git\Talos\SEC\SEC_Lang\ko\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.294,C:\User Data\Git\Talos\SEC\SEC_Lang\ko\Unit1.pas=C:\User Data\Git\Talos\SEC\SEC_Lang\ko\UnitSEC_Lang_ko_dummy.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.002,=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.394,C:\User Data\Git\Talos\SEC\SEC_Lang\SEC_Lang_en.dproj=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.951,C:\User Data\Git\Talos\SEC\SEC_Lang\UnitSEC_Lang_en.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.960,=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.640,=C:\User Data\Git\Talos\SEC\SEC_Lang\UnitSEC_Lang_ko.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.627,C:\Gemiso\SEC\Lang\UnitSEC_Lang_en.pas=C:\Users\BONG\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2025-10-10 14:34:37.675,=C:\User Data\Git\Talos\SEC\SEC_Lang\ko\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

@@ -41,11 +41,19 @@ type
     edtBase5: TEdit;
     edtResult5: TEdit;
     edtValue5: TEdit;
+    Label12: TLabel;
+    Label13: TLabel;
+    btnCalc6: TButton;
+    edtBase6: TEdit;
+    edtResult6: TEdit;
+    edtValue6: TEdit;
     procedure btnCalc1Click(Sender: TObject);
     procedure btnCalc2Click(Sender: TObject);
     procedure btnCalc3Click(Sender: TObject);
     procedure btnCalc4Click(Sender: TObject);
     procedure btnCalc5Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnCalc6Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -54,6 +62,7 @@ type
 
 var
   Form18: TForm18;
+  FrameRateType: TFrameRateType;
 
 implementation
 
@@ -64,11 +73,11 @@ var
   R, B: TEventTime;
   V: TTimecode;
 begin
-  B := StringToEventTime(edtBase1.Text);
+  B := StringToEventTime(edtBase1.Text, FrameRateType);
   V := StringToTimecode(edtValue1.Text);
-  R := GetEventTimeSubBegin(B, V);
+  R := GetEventTimeSubBegin(B, V, FrameRateType);
 
-  edtResult1.Text := EventTimeToString(R);
+  edtResult1.Text := EventTimeToString(R, FrameRateType);
 end;
 
 procedure TForm18.btnCalc2Click(Sender: TObject);
@@ -76,12 +85,12 @@ var
   R, B: TEventTime;
   V1, V2: TTimecode;
 begin
-  B := StringToEventTime(edtBase2.Text);
+  B := StringToEventTime(edtBase2.Text, FrameRateType);
   V1 := StringToTimecode(edtValue21.Text);
   V2 := StringToTimecode(edtValue22.Text);
-  R := GetEventTimeSubEnd(B, V1, V2);
+  R := GetEventTimeSubEnd(B, V1, V2, FrameRateType);
 
-  edtResult2.Text := EventTimeToString(R);
+  edtResult2.Text := EventTimeToString(R, FrameRateType);
 end;
 
 procedure TForm18.btnCalc3Click(Sender: TObject);
@@ -89,33 +98,49 @@ var
   R, B: TEventTime;
   V: TTimecode;
 begin
-  B := StringToEventTime(edtBase3.Text);
+  B := StringToEventTime(edtBase3.Text, FrameRateType);
   V := StringToTimecode(edtValue3.Text);
-  R := GetEventEndTime(B, V);
+  R := GetEventEndTime(B, V, FrameRateType);
 
-  edtResult3.Text := EventTimeToString(R);
+  edtResult3.Text := EventTimeToString(R, FrameRateType);
 end;
 
 procedure TForm18.btnCalc4Click(Sender: TObject);
 var
   R, B, V: TEventTime;
 begin
-  B := StringToEventTime(edtBase4.Text);
-  V := StringToEventTime(edtValue4.Text);
-  R := GetDurEventTime(B, V);
+  B := StringToEventTime(edtBase4.Text, FrameRateType);
+  V := StringToEventTime(edtValue4.Text, FrameRateType);
+  R := GetDurEventTime(B, V, FrameRateType);
 
-  edtResult4.Text := EventTimeToString(R);
+  edtResult4.Text := EventTimeToString(R, FrameRateType);
 end;
 
 procedure TForm18.btnCalc5Click(Sender: TObject);
 var
   R, B, V: TEventTime;
 begin
-  B := StringToEventTime(edtBase5.Text);
-  V := StringToEventTime(edtValue5.Text);
-  R := GetMinusEventTime(B, V);
+  B := StringToEventTime(edtBase5.Text, FrameRateType);
+  V := StringToEventTime(edtValue5.Text, FrameRateType);
+  R := GetMinusEventTime(B, V, FrameRateType);
 
-  edtResult5.Text := EventTimeToString(R);
+  edtResult5.Text := EventTimeToString(R, FrameRateType);
+end;
+
+procedure TForm18.btnCalc6Click(Sender: TObject);
+var
+  R, B, V: TEventTime;
+begin
+  B := StringToEventTime(edtBase6.Text, FrameRateType);
+  V := StringToEventTime(edtValue6.Text, FrameRateType);
+  R := GetPlusEventTime(B, V, FrameRateType);
+
+  edtResult6.Text := EventTimeToString(R, FrameRateType);
+end;
+
+procedure TForm18.FormCreate(Sender: TObject);
+begin
+  FrameRateType := FR_29_97_DF;
 end;
 
 end.

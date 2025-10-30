@@ -9,6 +9,8 @@ uses
   System.Actions, Vcl.ActnList,
   UnitCommons, UnitConsts, UnitDCSDLL, UnitMCCDLL, UnitSECDLL;
 
+{$I .\Lang\SECLang.INC}
+
 type
   TDeviceCheckThread = class;
 
@@ -61,7 +63,7 @@ procedure TfrmCheckStart.FormCreate(Sender: TObject);
 begin
   inherited;
 
-  lblChecking.Caption := SSECStart;
+  lblChecking.Caption := GetLanguageStr(SSECStart);
   lblDeviceName.Caption := '';
 
   FIsCheckCancel := False;
@@ -260,7 +262,7 @@ begin
       end;  }
 
       // DCS check
-      lblChecking.Caption := SLookingForDevice;
+      lblChecking.Caption := GetLanguageStr(SLookingForDevice);
       for I := 0 to GV_DCSList.Count - 1 do
       begin
         DCSName := String(GV_DCSList[I]^.Name);
@@ -270,17 +272,17 @@ begin
         if (R = D_OK) then
         begin
           GV_DCSList[I]^.Alive := IsAlive;
-          Assert(False, GetMainLogStr(lsNormal, @LS_DCSAliveCheckSuccess, [GV_DCSList[I]^.ID, String(GV_DCSList[I]^.Name), BoolToStr(IsAlive, True)]));
+          Assert(False, GetMainLogStr(lsNormal, LS_DCSAliveCheckSuccess, [GV_DCSList[I]^.ID, String(GV_DCSList[I]^.Name), BoolToStr(IsAlive, True)]));
         end
         else
         begin
           GV_DCSList[I]^.Alive := False;
-          Assert(False, GetMainLogStr(lsError, @LSE_DCSAliveCheckFailed, [R, GV_DCSList[I]^.ID, String(GV_DCSList[I]^.Name)]));
+          Assert(False, GetMainLogStr(lsError, LSE_DCSAliveCheckFailed, [R, GV_DCSList[I]^.ID, String(GV_DCSList[I]^.Name)]));
         end;
       end;
 
       // Device check
-      lblChecking.Caption := SLookingForDevice;
+      lblChecking.Caption := GetLanguageStr(SLookingForDevice);
       for I := 0 to GV_SourceList.Count - 1 do
       begin
         DeviceName := GV_SourceList[I]^.Name;
@@ -308,18 +310,18 @@ begin
 //                GV_SourceList[I]^.CommSuccess := True;
       //          ShowMessage(Format('Success ID=%d, IP=%s, DeviceName=%s, DeviceHandle=%d', [SourceHandle^.DCSID, SourceHandle^.DCSIP, GV_SourceList[I]^.Name, DeviceHandle]));
 
-                Assert(False, GetMainLogStr(lsNormal, @LS_DCSOpenDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name)]));
+                Assert(False, GetMainLogStr(lsNormal, LS_DCSOpenDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name)]));
               end
               else
               begin
                 SourceHandle^.Handle := DeviceHandle;
 
-                Assert(False, GetMainLogStr(lsError, @LSE_DCSOpenDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name)]));
+                Assert(False, GetMainLogStr(lsError, LSE_DCSOpenDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name)]));
 
   //              ShowMessage(IntToStr(R));
                 if (not FIsCheckAll) then
                 begin
-                  ErrorString := Format(SNotFoundDeviceAndContinue, [DeviceName, DCSName]);
+                  ErrorString := Format(GetLanguageStr(SNotFoundDeviceAndContinue), [DeviceName, DCSName]);
                   MessageBeep(MB_ICONWARNING);
                   R := MessageBox(Handle, PChar(ErrorString), PChar(Application.Title), MB_YESNO or MB_ICONWARNING or MB_TOPMOST);
                   if (R = ID_NO) then
@@ -328,7 +330,7 @@ begin
                   end
                   else
                   begin
-                    ErrorString := SLookingForAllDevice;
+                    ErrorString := GetLanguageStr(SLookingForAllDevice);
                     MessageBeep(MB_ICONQUESTION);
                     R := MessageBox(Handle, PChar(ErrorString), PChar(Application.Title), MB_YESNO or MB_ICONQUESTION or MB_TOPMOST);
                     if (R = ID_YES) then

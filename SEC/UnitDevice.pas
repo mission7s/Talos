@@ -32,6 +32,8 @@ type
 //    procedure PopulateDeviceListGrid(AIndex: Integer; AStatus: TDeviceStatus; ADCSID: Word);
   public
     { Public declarations }
+    procedure ApplyUpdateLanguage;
+
     procedure SetDeviceCommError(ADeviceName: String; AStatus: TDeviceStatus);
 //    procedure SetDeviceStatus(AIndex: Integer; ASource: PSource; AStatus: TDeviceStatus; ADCSID: Word);
     procedure SetDeviceStatus(ASource: PSource; ASourceHandle: PSourceHandle; AStatus: TDeviceStatus); overload;
@@ -240,6 +242,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_DEVICE_FiXED_COLOR;
+
       FixedRows  := CNT_DEVICE_HEADER;
       RowCount   := GV_SourceList.Count + CNT_DEVICE_HEADER;
       ColCount   := CNT_DEVICE_COLUMNS;
@@ -515,6 +519,65 @@ begin
 //    Cells[IDX_COL_DEVICE_CHANNEL, R] := String(ASource^.Channel^.Name);
   end;
 end; }
+
+procedure TfrmDevice.ApplyUpdateLanguage;
+var
+  I: Integer;
+  Column: TGridColumnItem;
+begin
+  // Device
+  NAM_COL_DEVICE_NO := GetLanguageStr(SUDeviceNo);
+  NAM_COL_DEVICE_NAME := GetLanguageStr(SUDeviceName);
+  NAM_COL_DEVICE_STATUS := GetLanguageStr(SUDeviceStatus);
+  NAM_COL_DEVICE_TIMECODE := GetLanguageStr(SUDeviceTimecode);
+  NAM_COL_DEVICE_DCS := GetLanguageStr(SUDeviceControl);
+
+  with acgDeviceList do
+  begin
+    BeginUpdate;
+    try
+      Columns.BeginUpdate;
+      try
+        for I := 0 to ColCount - 1 do
+        begin
+          Column := Columns[I];
+          with Column do
+          begin
+            // Column : No
+            if (I = IDX_COL_DEVICE_NO) then
+            begin
+              Header     := NAM_COL_DEVICE_NO;
+            end
+            // Column : Name
+            else if (I = IDX_COL_DEVICE_NAME) then
+            begin
+              Header     := NAM_COL_DEVICE_NAME;
+            end
+            // Column Status
+            else if (I = IDX_COL_DEVICE_STATUS) then
+            begin
+              Header    := NAM_COL_DEVICE_STATUS;
+            end
+            // Column Timecode
+            else if (I = IDX_COL_DEVICE_TIMECODE) then
+            begin
+              Header    := NAM_COL_DEVICE_TIMECODE;
+            end
+            // Column DCS
+            else if (I = IDX_COL_DEVICE_DCS) then
+            begin
+              Header    := NAM_COL_DEVICE_DCS;
+            end;
+          end;
+        end;
+      finally
+        Columns.EndUpdate;
+      end;
+    finally
+      EndUpdate;
+    end;
+  end;
+end;
 
 procedure TfrmDevice.SetDeviceCommError(ADeviceName: String; AStatus: TDeviceStatus);
 var

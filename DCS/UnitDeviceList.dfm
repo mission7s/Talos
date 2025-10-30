@@ -578,7 +578,7 @@ inherited frmDeviceList: TfrmDeviceList
         FixedColWidth = 36
         FixedRowHeight = 26
         FixedFont.Charset = ANSI_CHARSET
-        FixedFont.Color = 16765315
+        FixedFont.Color = clBlack
         FixedFont.Height = -14
         FixedFont.Name = 'Century Gothic'
         FixedFont.Style = []

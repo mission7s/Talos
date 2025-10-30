@@ -387,7 +387,7 @@ begin
     MsgStrParam := GlobalAddAtom(PChar(AFileName));
     SendMessage(FForm.Handle, WM_UPDATE_CHANNEL_OPEN_FILENAME, MsgStrLen, MsgStrParam);
 
-    MsgStrLen := Length(SLoadingCuesheetFile) + 1;
+    MsgStrLen := Length(GetLanguageStr(SLoadingCuesheetFile)) + 1;
     MsgStrParam := GlobalAddAtom(PChar(SLoadingCuesheetFile));
     SendMessage(FForm.Handle, WM_UPDATE_CHANNEL_OPEN_STATUS, MsgStrLen, MsgStrParam);
 
@@ -493,13 +493,13 @@ var
 begin
   if (not Terminated) then
   begin
-    MsgStrLen := Length(SUpdatingCuesheet) + 1;
+    MsgStrLen := Length(GetLanguageStr(SUpdatingCuesheet)) + 1;
     MsgStrParam := GlobalAddAtom(PChar(SUpdatingCuesheet));
     PostMessage(FForm.Handle, WM_UPDATE_CHANNEL_OPEN_STATUS, MsgStrLen, MsgStrParam);
 
     FChannelForm.AddLoadPlayList(FForm.LoadChannelCueSheet, FForm.LoadCueSheetList);
 
-    MsgStrLen := Length(SCompletedLoadingCuesheetFile) + 1;
+    MsgStrLen := Length(GetLanguageStr(SCompletedLoadingCuesheetFile)) + 1;
     MsgStrParam := GlobalAddAtom(PChar(SCompletedLoadingCuesheetFile));
     SendMessage(FForm.Handle, WM_UPDATE_CHANNEL_OPEN_STATUS, MsgStrLen, MsgStrParam);
   end;

@@ -7,8 +7,10 @@ uses System.SysUtils, System.Classes, System.Generics.Collections, System.IniFil
      Vcl.Forms, Vcl.Graphics, Vcl.Dialogs, MediaInfoDLL,
      UnitCommons, UnitDCSDLL;
 
+{$I .\Lang\SECLang.INC}
+
 resourcestring
-  // SEC
+{  // SEC
   SSECStart = 'SEC Starting...';
   SLookingForSEC = 'Looking for another SEC.';
   SLookingForAllComponentAndDevice = 'Would you like to find all the rest of the component or device?';
@@ -99,7 +101,7 @@ resourcestring
   SWDeviceCommError = 'The device cannot communicate with the DCS.';
   SWDeviceStatusNotConnect = 'Device status is not connected. ';
   SWNotExistNextEvent = 'There is no next event to play. [Channel=%s]';
-
+}
   // Log string
   LS_DCSAliveCheckSuccess = 'DCS successfully alive check. [DCS=%d, Name=%s, Alive=%s]';
   LS_DCSMainCheckSuccess = 'DCS successfully main check. [DCS=%d, Name=%s, Main=%s]';
@@ -318,6 +320,7 @@ type
     MediaPath: String;
     LogPath: String;
     LogExt: String;
+    Language: String;
   end;
 
   TSettingSEC = packed record
@@ -587,16 +590,16 @@ var
   IDX_COL_CUESHEET_START_MODE: Word     = 4;
   IDX_COL_CUESHEET_START_DATE: Word     = 5;
   IDX_COL_CUESHEET_START_TIME: Word     = 6;
-  IDX_COL_CUESHEET_INPUT: Word          = 7;
-  IDX_COL_CUESHEET_OUTPUT: Word         = 8;
+  IDX_COL_CUESHEET_DURATON: Word        = 7;
+  IDX_COL_CUESHEET_MEDIA_ID: Word       = 8;
   IDX_COL_CUESHEET_TITLE: Word          = 9;
   IDX_COL_CUESHEET_SUB_TITLE: Word      = 10;
   IDX_COL_CUESHEET_SOURCE: Word         = 11;
-  IDX_COL_CUESHEET_MEDIA_ID: Word       = 12;
-  IDX_COL_CUESHEET_MEDIA_STATUS: Word   = 13;
-  IDX_COL_CUESHEET_DURATON: Word        = 14;
-  IDX_COL_CUESHEET_IN_TC: Word          = 15;
-  IDX_COL_CUESHEET_OUT_TC: Word         = 16;
+  IDX_COL_CUESHEET_MEDIA_STATUS: Word   = 12;
+  IDX_COL_CUESHEET_IN_TC: Word          = 13;
+  IDX_COL_CUESHEET_OUT_TC: Word         = 14;
+  IDX_COL_CUESHEET_INPUT: Word          = 15;
+  IDX_COL_CUESHEET_OUTPUT: Word         = 16;
   IDX_COL_CUESHEET_TR_TYPE: Word        = 17;
   IDX_COL_CUESHEET_TR_RATE: Word        = 18;
   IDX_COL_CUESHEET_FINISH_ACTION: Word  = 19;
@@ -616,16 +619,16 @@ var
   NAM_COL_CUESHEET_START_MODE: String     = 'Start Mode';
   NAM_COL_CUESHEET_START_DATE: String     = 'Start Date';
   NAM_COL_CUESHEET_START_TIME: String     = 'Start Time';
-  NAM_COL_CUESHEET_INPUT: String          = 'Input';
-  NAM_COL_CUESHEET_OUTPUT: String         = 'Output';
+  NAM_COL_CUESHEET_DURATON: String        = 'Duration';
+  NAM_COL_CUESHEET_MEDIA_ID: String       = 'Media ID';
   NAM_COL_CUESHEET_TITLE: String          = 'Title';
   NAM_COL_CUESHEET_SUB_TITLE: String      = 'Sub Title';
   NAM_COL_CUESHEET_SOURCE: String         = 'Source';
-  NAM_COL_CUESHEET_MEDIA_ID: String       = 'Media ID';
   NAM_COL_CUESHEET_MEDIA_STATUS: String   = 'Media Status';
-  NAM_COL_CUESHEET_DURATON: String        = 'Duration';
   NAM_COL_CUESHEET_IN_TC: String          = 'In TC';
   NAM_COL_CUESHEET_OUT_TC: String         = 'Out TC';
+  NAM_COL_CUESHEET_INPUT: String          = 'Input';
+  NAM_COL_CUESHEET_OUTPUT: String         = 'Output';
   NAM_COL_CUESHEET_TR_TYPE: String        = 'TT';//'Transition Type';
   NAM_COL_CUESHEET_TR_RATE: String        = 'TR';//'Transition Rate';
   NAM_COL_CUESHEET_FINISH_ACTION: String  = 'FA';//'Finish Action';
@@ -644,16 +647,16 @@ var
   WIDTH_COL_CUESHEET_START_MODE: Integer      = 84;
   WIDTH_COL_CUESHEET_START_DATE: Integer      = 82;
   WIDTH_COL_CUESHEET_START_TIME: Integer      = 84;
-  WIDTH_COL_CUESHEET_INPUT: Integer           = 60;
-  WIDTH_COL_CUESHEET_OUTPUT: Integer          = 60;
+  WIDTH_COL_CUESHEET_DURATON: Integer         = 84;
+  WIDTH_COL_CUESHEET_MEDIA_ID: Integer        = 100;
   WIDTH_COL_CUESHEET_TITLE: Integer           = 240;
   WIDTH_COL_CUESHEET_SUB_TITLE: Integer       = 240;
   WIDTH_COL_CUESHEET_SOURCE: Integer          = 120;
-  WIDTH_COL_CUESHEET_MEDIA_ID: Integer        = 100;
   WIDTH_COL_CUESHEET_MEDIA_STATUS: Integer    = 100;
-  WIDTH_COL_CUESHEET_DURATON: Integer         = 84;
   WIDTH_COL_CUESHEET_IN_TC: Integer           = 84;
   WIDTH_COL_CUESHEET_OUT_TC: Integer          = 84;
+  WIDTH_COL_CUESHEET_INPUT: Integer           = 60;
+  WIDTH_COL_CUESHEET_OUTPUT: Integer          = 60;
   WIDTH_COL_CUESHEET_TR_TYPE: Integer         = 40;
   WIDTH_COL_CUESHEET_TR_RATE: Integer         = 40;
   WIDTH_COL_CUESHEET_FINISH_ACTION: Integer   = 50;
@@ -671,12 +674,12 @@ var
   VIS_COL_CUESHEET_START_MODE: Boolean      = True;
   VIS_COL_CUESHEET_START_DATE: Boolean      = True;
   VIS_COL_CUESHEET_START_TIME: Boolean      = True;
+  VIS_COL_CUESHEET_DURATON: Boolean         = True;
+  VIS_COL_CUESHEET_MEDIA_ID: Boolean        = True;
   VIS_COL_CUESHEET_TITLE: Boolean           = True;
   VIS_COL_CUESHEET_SUB_TITLE: Boolean       = True;
   VIS_COL_CUESHEET_SOURCE: Boolean          = True;
-  VIS_COL_CUESHEET_MEDIA_ID: Boolean        = True;
   VIS_COL_CUESHEET_MEDIA_STATUS: Boolean    = True;
-  VIS_COL_CUESHEET_DURATON: Boolean         = True;
   VIS_COL_CUESHEET_IN_TC: Boolean           = True;
   VIS_COL_CUESHEET_OUT_TC: Boolean          = True;
   VIS_COL_CUESHEET_TR_TYPE: Boolean         = True;
@@ -718,6 +721,15 @@ var
   HIDE_SUB_EVENT: Boolean = True;
 
   FORMAT_DATE: String;
+
+  // CueSheet grid color
+  COLOR_TX_CUESHEET_FiXED_COLOR: TColor = $00FFD183;//$00FFBDAD;
+
+  // Device grid color
+  COLOR_TX_DEVICE_FiXED_COLOR: TColor = $00FFD183;//$00FFBDAD;
+
+  // Timeline color
+  COLOR_TX_TIMECODE_COLOR: TColor = $00FFD183;//$00FFBDAD;
 
   // All channel color
   COLOR_BK_ALL_CHANNEL_ONAIR: TColor = clRed;
@@ -785,6 +797,9 @@ var
   COLOR_TX_WARNING_NORMAL: TColor = $00FFD183;//$00FFBDAD;
   COLOR_TX_WARNING: TColor = $003817A5;//clRed;
 
+  GV_LangDLLName: PChar;
+  GV_LangDLLHandle: HMODULE;
+
   GV_SettingGeneral: TSettingGeneral;
   GV_SettingSEC: TSettingSEC;
   GV_SettingMCC: TSettingMCC;
@@ -831,14 +846,19 @@ var
   procedure LoadConfig;
   procedure SaveConfig;
 
+  procedure LoadLanquageDll;
+  procedure FreeLanguageDll;
+
+  function GetLanguageStr(AResourceID: LongInt): String;
+
   procedure SaveSECConfig;
   procedure SaveDCSConfig;
 
   procedure AssertProc(const AMessage, AFileName: String; ALineNumber: Integer; AErrorAddr: Pointer);
 
   function GetMainLogStr(AState: TLogState; ALogStr: String): String; overload;
-  function GetMainLogStr(AState: TLogState; APRec: PResStringRec): String; overload;
-  function GetMainLogStr(AState: TLogState; APRec: PResStringRec; const Args: array of const): String; overload;
+//  function GetMainLogStr(AState: TLogState; APRec: TResStringRec): String; overload;
+  function GetMainLogStr(AState: TLogState; ALogStr: String; const Args: array of const): String; overload;
 
   function GetChannelLogStr(AState: TLogState; const AChannelID: Word; const ALogStr: String): String;
 
@@ -1018,6 +1038,9 @@ begin
       Channel^.ID := IniFile.ReadInteger(Section, 'ID', 0);
       StrPLCopy(Channel^.Name, IniFile.ReadString(Section, 'Name', ''), CHANNELNAME_LEN);
       Channel^.FrameRateType := GetFrameRateTypeByName(IniFile.ReadString(Section, 'FrameRateType', '29.97 DF'));
+
+      // Default Source
+//      StrPLCopy(Channel^.DefaultSource, IniFile.ReadString(Section, 'DefaultSource', ''), DEVICENAME_LEN);
 
       // Break current
       Channel^.BreakAddTime           := StringToTimecode(IniFile.ReadString(Section, 'BreakAddTime', '00:00:01:00'));
@@ -1236,6 +1259,8 @@ begin
       if (not DirectoryExists(WorkCueSheetPath)) then ForceDirectories(WorkCueSheetPath);
       if (not DirectoryExists(LoadCueSheetPath)) then ForceDirectories(LoadCueSheetPath);
       if (not DirectoryExists(SaveCueSheetPath)) then ForceDirectories(SaveCueSheetPath);
+
+      Language         := IniFile.ReadString(Section, 'Language', 'ko');
     end;
 
     // SEC
@@ -1611,6 +1636,34 @@ begin
   end;
 end;
 
+procedure LoadLanquageDll;
+begin
+  if (GV_SettingGeneral.Language = 'ko') then
+    GV_LangDLLName := 'SEC_Lang_ko.dll'
+  else if (GV_SettingGeneral.Language = 'en') then
+    GV_LangDLLName := 'SEC_Lang_en.dll'
+  else
+    GV_LangDLLName := 'SEC_Lang_en.dll';
+
+  GV_LangDLLHandle := LoadLibraryEx(PChar(GV_LangDLLName), 0, LOAD_LIBRARY_AS_DATAFILE);
+end;
+
+procedure FreeLanguageDll;
+begin
+  if (GV_LangDLLHandle <> 0) then
+    FreeLibrary(GV_LangDLLHandle);
+end;
+
+function GetLanguageStr(AResourceID: LongInt): String;
+var
+  Buf: array[0..1024] of Char;
+begin
+  Result := '';
+  if (GV_LangDLLHandle <> 0) then
+    if (LoadString(GV_LangDLLHandle, AResourceID, Buf, Length(Buf)) <> 0) then
+      Result := String(Buf);
+end;
+
 procedure SaveSECConfig;
 var
   IniFile: TIniFile;
@@ -1702,14 +1755,14 @@ begin
   end;
 end;
 
-function GetMainLogStr(AState: TLogState; APRec: PResStringRec): String;
-begin
-  Result := GetMainLogStr(AState, LoadResString(APRec));
-end;
+//function GetMainLogStr(AState: TLogState; APRec: TResStringRec): String;
+//begin
+//  Result := GetMainLogStr(AState, LoadResString(@APRec));
+//end;
 
-function GetMainLogStr(AState: TLogState; APRec: PResStringRec; const Args: array of const): String;
+function GetMainLogStr(AState: TLogState; ALogStr: String; const Args: array of const): String;
 begin
-  Result := GetMainLogStr(AState, Format(LoadResString(APRec), Args));
+  Result := GetMainLogStr(AState, Format(ALogStr, Args));
 end;
 
 function GetChannelLogStr(AState: TLogState; const AChannelID: Word; const ALogStr: String): String;

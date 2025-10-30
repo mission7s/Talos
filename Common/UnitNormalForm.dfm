@@ -9,7 +9,7 @@ object frmNormal: TfrmNormal
   Font.Charset = ANSI_CHARSET
   Font.Color = clSilver
   Font.Height = -12
-  Font.Name = 'Century Gothic'
+  Font.Name = 'Noto Sans KR DemiLight'
   Font.Style = []
   Position = poScreenCenter
   StyleElements = []
@@ -46,7 +46,7 @@ object frmNormal: TfrmNormal
       Font.Charset = ANSI_CHARSET
       Font.Color = clWhite
       Font.Height = -20
-      Font.Name = 'Century Gothic'
+      Font.Name = 'Noto Sans KR DemiLight'
       Font.Style = []
       StyleElements = []
       OnMouseDown = WMTitleBarMouseDown

@@ -217,6 +217,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_DEVICE_FiXED_COLOR;
+
       FixedRows := CNT_DEVICE_HEADER;
       RowCount  := CNT_DEVICE_HEADER + 1;
       ColCount  := CNT_DEVICE_COLUMNS;

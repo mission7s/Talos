@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2025-10-13 15:09:53.413,C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\TestSECLangKOdll.dproj=C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\TestSECLangKOdll.pas.dproj</Transaction>
+    <Transaction>2025-10-13 16:17:05.570,=C:\User Data\Git\Talos\SEC\Lang\SECLang,inc</Transaction>
+    <Transaction>2025-10-13 16:22:54.153,C:\User Data\Git\Talos\SEC\Lang\SECLang,inc=</Transaction>
+    <Transaction>2025-10-13 16:24:01.561,=C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc</Transaction>
+    <Transaction>2025-10-13 16:24:32.237,C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc=</Transaction>
+    <Transaction>2025-10-13 16:27:14.049,=C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc</Transaction>
+    <Transaction>2025-10-13 16:27:36.109,C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc=</Transaction>
+    <Transaction>2025-10-13 16:35:16.199,=C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc</Transaction>
+    <Transaction>2025-10-13 16:37:11.780,C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\SECLang,inc=</Transaction>
+    <Transaction>2025-10-13 16:42:05.546,=C:\User Data\Git\Talos\SEC\Lang\ko\TestSECLangKOdll\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>

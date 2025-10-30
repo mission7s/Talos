@@ -147,7 +147,8 @@ type
     function ClearEvent(AID: Word; AHandle: TDeviceHandle; AChannelID: Word): Integer;                                // 0X50.02
     function TakeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer;       // 0X50.10
     function HoldEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): Integer;                               // 0X50.11
-    function ChangeDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer; // 0X50.12
+    function ChangeStartTimeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; // 0X50.12
+    function ChangeDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer; // 0X50.13
     function OnAirCatchEvent(AID: Word; AHandle: TDeviceHandle): Integer;                                             // 0X50.13
     function GetOnAirEventID(AID: Word; AHandle: TDeviceHandle; var AOnAirEventID, ANextEventID: TEventID): Integer;  // 0X50.20
     function GetEventInfo(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; var AStartTime: TEventTime; var ADurationTC: TTimecode): Integer;  // 0X50.21
@@ -1794,6 +1795,24 @@ begin
   Result := TransmitCommand(P^.IP, P^.Port, $50, $11, Buffer, Length(Buffer));
 end;
 
+function TDCSMgr.ChangeStartTimeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer;
+var
+  P: PDCSDevice;
+  Buffer, Data: AnsiString;
+begin
+  Result := D_FALSE;
+
+  Result := GetValidDeviceHandle(AID, AHandle, P);
+  if (Result <> D_OK) then exit;
+
+  SetLength(Data, SizeOf(TEventID) + SizeOf(TEventTime));
+  Move(AEventID, Data[1], SizeOf(TEventID));
+  Move(AStartTime, Data[1 + SizeOf(TEventID)], SizeOf(TEventTime));
+
+  Buffer := IntToAnsiString(AHandle) + Data;
+  Result := TransmitCommand(P^.IP, P^.Port, $50, $12, Buffer, Length(Buffer));
+end;
+
 function TDCSMgr.ChangeDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer;
 var
   P: PDCSDevice;
@@ -1808,7 +1827,7 @@ begin
   Move(AEventID, Data[1], SizeOf(TEventID));
 
   Buffer := IntToAnsiString(AHandle) + Data + DWordToAnsiString(ADuration);
-  Result := TransmitCommand(P^.IP, P^.Port, $50, $12, Buffer, Length(Buffer));
+  Result := TransmitCommand(P^.IP, P^.Port, $50, $13, Buffer, Length(Buffer));
 end;
 
 function TDCSMgr.OnAirCatchEvent(AID: Word; AHandle: TDeviceHandle): Integer;

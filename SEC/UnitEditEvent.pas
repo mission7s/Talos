@@ -9,6 +9,8 @@ uses
   System.Actions, Vcl.ActnList, Vcl.Mask, Vcl.ComCtrls, Vcl.StdCtrls,
   UnitCommons, UnitConsts;
 
+{$I .\Lang\SECLang.INC}
+
 type
   TfrmEditEvent = class(TfrmSingle)
     Label1: TLabel;
@@ -264,7 +266,7 @@ begin
   try
     if (cbEventMode.ItemIndex < 0) then
     begin
-      ErrorString := SEnterEventMode;
+      ErrorString := GetLanguageStr(SEnterEventMode);
       ErrorControl := cbEventMode;
     end
     else
@@ -273,52 +275,52 @@ begin
       begin
         if (cbStartMode.ItemIndex < 0) then
         begin
-          ErrorString := SEnterStartMode;
+          ErrorString := GetLanguageStr(SEnterStartMode);
           ErrorControl := cbStartMode;
         end
         else if (cbInput.ItemIndex < 0) then
         begin
-          ErrorString := SEnterInput;
+          ErrorString := GetLanguageStr(SEnterInput);
           ErrorControl := cbInput;
         end
         else if (cbOutput.ItemIndex < 0) then
         begin
-          ErrorString := SEnterOutput;
+          ErrorString := GetLanguageStr(SEnterOutput);
           ErrorControl := cbOutput;
         end
         else if (Trim(edTitle.Text) = '') then
         begin
-          ErrorString := SEnterTitle;
+          ErrorString := GetLanguageStr(SEnterTitle);
           ErrorControl := edTitle;
         end
         else if (cbSource.ItemIndex < 0) then
         begin
-          ErrorString := SEnterSource;
+          ErrorString := GetLanguageStr(SEnterSource);
           ErrorControl := cbSource;
         end
         else if (cbSourceLayer.Visible) and (cbSourceLayer.ItemIndex < 0) then
         begin
-          ErrorString := SEnterSourceLayer;
+          ErrorString := GetLanguageStr(SEnterSourceLayer);
           ErrorControl := cbSourceLayer;
         end
         else if (cbTransitionType.ItemIndex < 0) then
         begin
-          ErrorString := SEnterTransitionType;
+          ErrorString := GetLanguageStr(SEnterTransitionType);
           ErrorControl := cbTransitionType;
         end
         else if (cbTransitionRate.ItemIndex < 0) then
         begin
-          ErrorString := SEnterTransitionRate;
+          ErrorString := GetLanguageStr(SEnterTransitionRate);
           ErrorControl := cbTransitionRate;
         end
         else if (cbFinishAction.ItemIndex < 0) then
         begin
-          ErrorString := SEnterFinishAction;
+          ErrorString := GetLanguageStr(SEnterFinishAction);
           ErrorControl := cbFinishAction;
         end
         else if (cbProgramType.ItemIndex < 0) then
         begin
-          ErrorString := SEnterProgramType;
+          ErrorString := GetLanguageStr(SEnterProgramType);
           ErrorControl := cbProgramType;
         end;
       end
@@ -326,7 +328,7 @@ begin
       begin
         if (Trim(edTitle.Text) = '') then
         begin
-          ErrorString := SEnterTitle;
+          ErrorString := GetLanguageStr(SEnterTitle);
           ErrorControl := edTitle;
         end
       end;
@@ -639,14 +641,14 @@ begin
           if (not CheckCueSheetEditPossibleLockTimeByIndex(FSelectIndex)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SENotPossibleEditLockTime), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+            MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditLockTime)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
             Result := False;
             exit;
           end
           else if (not CheckCueSheetEditPossibleLocationByIndex(FSelectIndex)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SENotPossibleEditBeforeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+            MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditBeforeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
             Result := False;
             exit;
           end;
@@ -892,14 +894,14 @@ begin
               if (not CheckCueSheetEditPossibleLockTimeByIndex(FSelectIndex)) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SENotPossibleEditLockTime), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+                MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditLockTime)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
                 Result := False;
                 exit;
               end
               else if (not CheckCueSheetEditPossibleLocationByIndex(FSelectIndex)) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SENotPossibleEditBeforeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+                MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditBeforeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
                 Result := False;
                 exit;
               end;

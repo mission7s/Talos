@@ -14,6 +14,8 @@ uses
   AdvUtil, Vcl.Grids, AdvObj, BaseGrid, AdvGrid,
   AdvCGrid, AdvScrollBox, System.ImageList, Vcl.ImgList, Vcl.StdStyleActnCtrls;
 
+{$I .\Lang\SECLang.INC}
+
 type
   TCrossCheckThread = class;
 
@@ -100,7 +102,6 @@ type
     actViewTimeline: TAction;
     lblCurrentTime: TLabel;
     actControlCatchOnair: TAction;
-    XPColorMap: TXPColorMap;
     actControlBreakOnair: TAction;
     WMPanel1: TWMPanel;
     wmibTimelineGotoCurrent: TWMImageSpeedButton;
@@ -110,6 +111,7 @@ type
     wmibTimelineZoomIn: TWMImageSpeedButton;
     wmtbTimelineZoom: TWMTrackBar;
     wmibTimelineZoomOut: TWMImageSpeedButton;
+    XPColorMap: TXPColorMap;
     procedure actFileCloseExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure actFileNewPlaylistExecute(Sender: TObject);
@@ -164,6 +166,8 @@ type
     procedure actControlBreakOnairExecute(Sender: TObject);
     procedure wmtbTimelineZoomChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure actEditFindEventExecute(Sender: TObject);
+    procedure actEditReplaceEventExecute(Sender: TObject);
   private
     { Private declarations }
 
@@ -198,7 +202,11 @@ type
 
     FWarningDialogDeviceCheck: TfrmWarningDialog;
 
+    function CreateWarningDialog(AOwner: TComponent; AText: String): TfrmWarningDialog;
+
     procedure DisplayStartCheck(ACheckStr: String);
+
+    procedure ApplyUpdateLanguage;
 
     procedure Initialize;
     procedure Finalize;
@@ -254,6 +262,8 @@ type
   protected
     procedure CreateParams(var Params: TCreateParams); override;
 //    procedure WndProc(var Message: TMessage); override;
+
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     procedure WMSettingChange(var Message: TWMSettingChange); message WM_SETTINGCHANGE;
 
@@ -454,7 +464,7 @@ type
     procedure WaitComplete;
   end;
 
-  TDCSCommandType = (ctNone, ctControlBy, ctControlChannel, {ctDelete, }ctClear, ctTake, ctHold, ctChangeDuration,
+  TDCSCommandType = (ctNone, ctControlBy, ctControlChannel, {ctDelete, }ctClear, ctTake, ctHold, ctChangeStartTime, ctChangeDuration,
                      ctOnAirEventID, ctEventInfo, ctExist, ctSize,
                      ctSetXpt);
 
@@ -467,7 +477,15 @@ type
 		  0:
       (
         EventID: TEventID;
-        Timecode: TTimecode;
+        case Integer of
+          0:
+          (
+            EventTime: TEventTime;
+          );
+          1:
+          (
+            Timecode: TTimecode;
+          );
       );
 		  1:
       (
@@ -572,6 +590,7 @@ type
     procedure MediaCheckQueueCheck;
 
     procedure SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType); overload;
+    procedure SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AEventID: TEventID; AEventTime: TEventTime); overload;
     procedure SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AEventID: TEventID; ATimecode: TTimecode = 0); overload;
     procedure SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AChannelID: Word); overload;
     procedure SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AMediaID: String); overload;
@@ -613,6 +632,7 @@ type
 
     function TakeEvent(ASourceHandle: PSourceHandle; AEventID: TEventID; ADelayTime: TTimecode): Integer;
     function HoldEvent(ASourceHandle: PSourceHandle; AEventID: TEventID): Integer;
+    function ChangeStartTimeEvent(ASourceHandle: PSourceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer;
     function ChangeDurationEvent(ASourceHandle: PSourceHandle; AEventID: TEventID; ADurTimecode: TTimecode): Integer;
 
     function GetOnAirEventID(ASourceHandle: PSourceHandle; var AOnAirEventID: TEventID; var ANextEventID: TEventID): Integer;
@@ -1059,8 +1079,6 @@ var
   procedure SECUpdateActnMenusProc;
 
   procedure TimerCallBack(uTimer, uMessage: UINT; dwUser, dw1, dw2: DWORD); stdcall;
-
-  function CreateWarningDialog(AText: String): TfrmWarningDialog;
 
 implementation
 
@@ -2022,6 +2040,13 @@ begin
   end;
 end; }
 
+procedure TfrmSEC.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FWarningDialogDeviceCheck) then
+    FWarningDialogDeviceCheck := nil;
+end;
+
 procedure TfrmSEC.WMSettingChange(var Message: TWMSettingChange);
 begin
   inherited;
@@ -2070,7 +2095,7 @@ begin
         GlobalDeleteAtom(Message.LParam);
         if (FWarningDialogDeviceCheck = nil) or (not FWarningDialogDeviceCheck.HandleAllocated) then
         begin
-          FWarningDialogDeviceCheck := CreateWarningDialog(WarningText);
+          FWarningDialogDeviceCheck := CreateWarningDialog(Self, WarningText);
 
           with GV_SettingOption do
             if (OnAirCheckDeviceAlarm) then
@@ -2093,7 +2118,7 @@ exit;
     try
       if (FWarningDialogDeviceCheck = nil) or (not FWarningDialogDeviceCheck.HandleAllocated) then
       begin
-        FWarningDialogDeviceCheck := CreateWarningDialog(WarningText);
+        FWarningDialogDeviceCheck := CreateWarningDialog(Self, WarningText);
 
         with GV_SettingOption do
           if (OnAirCheckDeviceAlarm) then
@@ -2108,7 +2133,7 @@ exit;
   if (FWarningDialogDeviceCheck = nil) or (not FWarningDialogDeviceCheck.HandleAllocated) then
   begin
     WarningText := String(PChar(Message.LParam));
-    FWarningDialogDeviceCheck := CreateWarningDialog(WarningText);
+    FWarningDialogDeviceCheck := CreateWarningDialog(Self, WarningText);
 
     with GV_SettingOption do
       if (OnAirCheckDeviceAlarm) then
@@ -2629,6 +2654,12 @@ begin
   CutToClipboardEvent;
 end;
 
+procedure TfrmSEC.actEditFindEventExecute(Sender: TObject);
+begin
+  inherited;
+//
+end;
+
 procedure TfrmSEC.actEventDeleteEventExecute(Sender: TObject);
 begin
   inherited;
@@ -2688,6 +2719,12 @@ procedure TfrmSEC.actEditPasteEventExecute(Sender: TObject);
 begin
   inherited;
   PasteFromClipboardEvent;
+end;
+
+procedure TfrmSEC.actEditReplaceEventExecute(Sender: TObject);
+begin
+  inherited;
+//
 end;
 
 procedure TfrmSEC.actEditSelectMediaExecute(Sender: TObject);
@@ -2805,7 +2842,7 @@ begin
     if (ChannelForm.ChannelOnAir) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SENoCreateCuesheetWhileChannelOnair), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SENoCreateCuesheetWhileChannelOnair)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
 
@@ -2864,7 +2901,7 @@ begin
           if (ChannelForm.ChannelOnAir) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SENoOpenCuesheetWhileChannelOnair), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+            MessageBox(Handle, PChar(GetLanguageStr(SENoOpenCuesheetWhileChannelOnair)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
             exit;
           end;
 
@@ -3116,13 +3153,15 @@ begin
   end;
 end;
 
-function CreateWarningDialog(AText: String): TfrmWarningDialog;
+function TfrmSEC.CreateWarningDialog(AOwner: TComponent; AText: String): TfrmWarningDialog;
 var
   H: HWND;
   F: TfrmWarningDialog;
 begin
   Result := TfrmWarningDialog.Create(nil);
   Result.SetWarningText(AText);
+
+  AOwner.FreeNotification(Result);  // ?? AOwner가 AForm 파괴를 감지함
   Result.Show;
 
   // If showing message then bring to top
@@ -3137,6 +3176,108 @@ procedure TfrmSEC.DisplayStartCheck(ACheckStr: String);
 begin
   if (frmStartSplash <> nil) and (frmStartSplash.HandleAllocated) then
     frmStartSplash.DisplayCheck(ACheckStr);
+end;
+
+procedure TfrmSEC.ApplyUpdateLanguage;
+var
+  I: Integer;
+  OfficePage: TAdvOfficePage;
+  Channel: PChannel;
+  ChannelForm: TfrmChannel;
+  DeviceForm: TfrmDevice;
+begin
+  // Action bar
+  with actManager.ActionBars[0] do
+  begin
+    Items[0].Caption := GetLanguageStr(SAFile);
+    Items[1].Caption := GetLanguageStr(SAEdit);
+    Items[2].Caption := GetLanguageStr(SAControl);
+    Items[3].Caption := GetLanguageStr(SAEvent);
+    Items[3].Items[0].Caption := GetLanguageStr(SAEventInsert);
+
+    Items[4].Visible := False;
+    Items[5].Visible := False;
+    Items[6].Visible := False;
+  end;
+
+  // Action
+  // File
+  actFileNewPlaylist.Caption := GetLanguageStr(SAFileNewPlaylist);
+  actFileOpenPlaylist.Caption := GetLanguageStr(SAFileOpenPlaylist);
+  actFileOpenAddPlayList.Caption := GetLanguageStr(SAFileOpenAddPlaylist);
+  actFileSavePlaylist.Caption := GetLanguageStr(SAFileSavePlaylist);
+  actFileSaveAsPlayList.Caption := GetLanguageStr(SAFileSaveAsPlaylist);
+  actFileClose.Caption := GetLanguageStr(SAFileClose);
+
+  // Edit
+  actEditCopyEvent.Caption := GetLanguageStr(SAEditCopyEvent);
+  actEditCutEvent.Caption := GetLanguageStr(SAEditCutEvent);
+  actEditPasteEvent.Caption := GetLanguageStr(SAEditPasteEvent);
+  actEditClearClipboard.Caption := GetLanguageStr(SAEditClearClipboard);
+  actEditFindEvent.Caption := GetLanguageStr(SAEditFindEvent);
+  actEditReplaceEvent.Caption := GetLanguageStr(SAEditReplaceEvent);
+  actEditSelectMedia.Caption := GetLanguageStr(SAEditSelectMedia);
+  actEditTimelineZoomIn.Caption := GetLanguageStr(SAEditTimelineZoomIn);
+  actEditTimelineZoomOut.Caption := GetLanguageStr(SAEditTimelineZoomOut);
+  actEditTimelineMoveLeft.Caption := GetLanguageStr(SAEditTimelineMoveLeft);
+  actEditTimelineMoveRight.Caption := GetLanguageStr(SAEditTimelineMoveRight);
+  actEditTimelineGotoCurrent.Caption := GetLanguageStr(SAEditTimelineGotoCurrent);
+
+  // Control action
+  actControlStartOnair.Caption := GetLanguageStr(SAControlStartOnAir);
+  actControlFreezeOnAir.Caption := GetLanguageStr(SAControlFreezeOnAir);
+  actControlBreakOnair.Caption := GetLanguageStr(SAControlBreakOnair);
+  actControlFinishOnAir.Caption := GetLanguageStr(SAControlFinishOnAir);
+  actControlCatchOnair.Caption := GetLanguageStr(SAControlCatchOnair);
+  actControlAssignNextEvent.Caption := GetLanguageStr(SAControlAssignNextEvent);
+  actControlStartNextEventImmediately.Caption := GetLanguageStr(SAControlStartNextEventImmediately);
+  actControlIncrease1Second.Caption := GetLanguageStr(SAControlIncrease1Second);
+  actControlDecrease1Second.Caption := GetLanguageStr(SAControlDecrease1Second);
+  actControlAssignTargetEvent.Caption := GetLanguageStr(SAControlAssignTargetEvent);
+  actControlGotoCurrentEvent.Caption := GetLanguageStr(SAControlGotoCurrentEvent);
+
+  // Event action
+  actEventInsertProgram.Caption := GetLanguageStr(SAEventInsertProgram);
+  actEventInsertMainEvent.Caption := GetLanguageStr(SAEventInsertMainEvent);
+  actEventInsertJoinEvent.Caption := GetLanguageStr(SAEventInsertJoinEvent);
+  actEventInsertSubEvent.Caption := GetLanguageStr(SAEventInsertSubEvent);
+  actEventInsertCommentEvent.Caption := GetLanguageStr(SAEventInsertCommentEvent);
+  actEventUpdateEvent.Caption := GetLanguageStr(SAEventUpdateEvent);
+  actEventDeleteEvent.Caption := GetLanguageStr(SAEventDeleteEvent);
+  actEventInspectEvent.Caption := GetLanguageStr(SAEventInspectEvent);
+  actEventSourceExchange.Caption := GetLanguageStr(SAEventSourceExchange);
+
+  // UI
+  aopAllChannel.Caption := GetLanguageStr(SUTabChannelAll);
+
+  aopDevice.Caption := GetLanguageStr(SUTabDeviceList);
+
+  frmAllChannels.ApplyUpdateLanguage;
+
+  for I := aoPagerMain.AdvPageCount - 1 downto 0 do
+  begin
+    if (I > 0) then
+    begin
+      OfficePage := aoPagerMain.AdvPages[I];
+      if (OfficePage <> nil) then
+      begin
+        if (OfficePage.ControlCount > 0) then
+        begin
+          ChannelForm := TfrmChannel(OfficePage.Controls[0]);
+          if (ChannelForm <> nil) then
+          begin
+            ChannelForm.ApplyUpdateLanguage;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  DeviceForm := GetDeviceForm;
+  if (DeviceForm <> nil) then
+  begin
+    DeviceForm.ApplyUpdateLanguage;
+  end;
 end;
 
 procedure TfrmSEC.Initialize;
@@ -3191,6 +3332,7 @@ begin
   ServerCritSec := TCriticalSection.Create;
 
   LoadConfig;
+  LoadLanquageDll;
 
   SetEventDeadlineHour(GV_SettingTimeParameter.DeadlineHour);
 
@@ -3208,58 +3350,58 @@ begin
     // Device control
     R := DCSInitialize(NotifyPort, InPort, OutPort, TimecodeToMilliSec(CommandTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_DCSInitializeFailed, [R, NotifyPort, InPort, OutPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_DCSInitializeFailed, [R, NotifyPort, InPort, OutPort]));
 
     if (LogNotifyPortEnabled) then
     begin
       R := DCSLogNotifyPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSLogNotifyPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSLogNotifyPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     if (LogInPortEnabled) then
     begin
       R := DCSLogInPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSLogInPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSLogInPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     if (LogOutPortEnabled) then
     begin
       R := DCSLogOutPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSLogOutPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSLogOutPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     R := DCSDeviceStatusNotify(@DeviceStatusNotify);
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_DCSSetDeviceStatusNotifyFailed, [R]));
+      Assert(False, GetMainLogStr(lsError, LSE_DCSSetDeviceStatusNotifyFailed, [R]));
 
     R := DCSEventStatusNotify(@EventStatusNotify);
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_DCSSetEventStatusNotifyFailed, [R]));
+      Assert(False, GetMainLogStr(lsError, LSE_DCSSetEventStatusNotifyFailed, [R]));
 
     R := DCSEventOverallNotify(@EventOverallNotify);
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_DCSSetEventOverallNotifyFailed, [R]));
+      Assert(False, GetMainLogStr(lsError, LSE_DCSSetEventOverallNotifyFailed, [R]));
 
     // System control
     R := DCSSysInitialize(SysInPort, SysOutPort, TimecodeToMilliSec(SysCheckTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_DCSSysInitializeFailed, [R, SysInPort, SysOutPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_DCSSysInitializeFailed, [R, SysInPort, SysOutPort]));
 
     if (SysLogInPortEnabled) then
     begin
       R := DCSSysLogInPortEnable(PChar(SysLogPath), PChar(SysLogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
     end;
 
     if (SysLogOutPortEnabled) then
     begin
       R := DCSSysLogOutPortEnable(PChar(SysLogPath), PChar(SysLogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSSysLogOutPortEnableFailed, [R, SysLogPath, SysLogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSSysLogOutPortEnableFailed, [R, SysLogPath, SysLogExt]));
     end;
   end;
 
@@ -3272,46 +3414,46 @@ begin
     // Command control
     R := MCCInitialize(NotifyPort, InPort, OutPort, TimecodeToMilliSec(CommandTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_MCCInitializeFailed, [R, NotifyPort, InPort, OutPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_MCCInitializeFailed, [R, NotifyPort, InPort, OutPort]));
 
     if (LogNotifyPortEnabled) then
     begin
       R := MCCLogNotifyPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCLogNotifyPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCLogNotifyPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     if (LogInPortEnabled) then
     begin
       R := MCCLogInPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCLogInPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCLogInPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     if (LogOutPortEnabled) then
     begin
       R := MCCLogOutPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCLogOutPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCLogOutPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     // System control
     R := MCCSysInitialize(SysInPort, SysOutPort, TimecodeToMilliSec(SysCheckTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_MCCSysInitializeFailed, [R, SysInPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_MCCSysInitializeFailed, [R, SysInPort]));
 
     if (SysLogInPortEnabled) then
     begin
       R := MCCSysLogInPortEnable(PChar(SysLogPath), PChar(SysLogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
     end;
 
     if (SysLogOutPortEnabled) then
     begin
       R := MCCSysLogOutPortEnable(PChar(SysLogPath), PChar(SysLogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCSysLogOutPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCSysLogOutPortEnableFailed, [R, LogPath, LogExt]));
     end;
   end;
 
@@ -3322,34 +3464,34 @@ begin
     // Command control
     R := SECInitialize(InPort, TimecodeToMilliSec(CommandTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_SECInitializeFailed, [R, InPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_SECInitializeFailed, [R, InPort]));
 
     if (LogInPortEnabled) then
     begin
       R := SECLogInPortEnable(PChar(LogPath), PChar(LogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_SECLogInPortEnableFailed, [R, LogPath, LogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_SECLogInPortEnableFailed, [R, LogPath, LogExt]));
     end;
 
     R := SECSetServerReadProc(@ServerRead);
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_SECSetServerReadProcFailed, [R]));
+      Assert(False, GetMainLogStr(lsError, LSE_SECSetServerReadProcFailed, [R]));
 
     // System control
     R := SECSysInitialize(SysInPort, TimecodeToMilliSec(SysCheckTimeout, FR_30));
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_SECSysInitializeFailed, [R, SysInPort]));
+      Assert(False, GetMainLogStr(lsError, LSE_SECSysInitializeFailed, [R, SysInPort]));
 
     if (SysLogInPortEnabled) then
     begin
       R := SECSysLogInPortEnable(PChar(SysLogPath), PChar(SysLogExt));
       if (R <> D_OK) then
-        Assert(False, GetMainLogStr(lsError, @LSE_SECSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
+        Assert(False, GetMainLogStr(lsError, LSE_SECSysLogInPortEnableFailed, [R, SysLogPath, SysLogExt]));
     end;
 
     R := SECSysSetServerReadProc(@ServerSysRead);
     if (R <> D_OK) then
-      Assert(False, GetMainLogStr(lsError, @LSE_SECSysSetServerReadProcFailed, [R]));
+      Assert(False, GetMainLogStr(lsError, LSE_SECSysSetServerReadProcFailed, [R]));
   end;
 
   DisplayStartCheck('Main sec system checking...');
@@ -3434,6 +3576,8 @@ begin
 
   GetLocalTime(GV_TimeBefore);
   GetLocalTime(GV_TimeCurrent);
+
+  ApplyUpdateLanguage;
 
 
 //  Maximize;
@@ -3531,37 +3675,37 @@ begin
 
   R := DCSSysFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_DCSSysFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_DCSSysFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded DCSSysFinalize.'));
 
   R := DCSFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_DCSFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_DCSFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded DCSFinalize.'));
 
   R := SECSysFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_SECSysFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_SECSysFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded SECSysFinalize.'));
 
   R := SECFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_SECFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_SECFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded SECFinalize.'));
 
   R := MCCSysFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_MCCSysFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_MCCSysFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded MCCSysFinalize.'));
 
   R := MCCFinalize;
   if (R <> D_OK) then
-    Assert(False, GetMainLogStr(lsError, @LSE_MCCFinalizeFailed, [R]));
+    Assert(False, GetMainLogStr(lsError, LSE_MCCFinalizeFailed, [R]));
 
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded MCCFinalize.'));
 
@@ -3612,6 +3756,8 @@ begin
   Assert(False, GetMainLogStr(lsNormal, 'Succeeded Finalize.'));
 
   FreeAndNil(GV_LogCS);
+
+  FreeLanguageDll;
 end;
 
 procedure TfrmSEC.InitializeAllChannelPage;
@@ -3771,9 +3917,9 @@ begin
           R := DCSClose(SourceHandle^.DCS^.ID, SourceHandle^.Handle);
           if (R <> D_OK) then
 //            ShowMessage(Format('Close Failed ID=%d, Handle=%d, Name=%s', [SourceHandle^.DCSID, SourceHandle^.Handle, GV_SourceList[I]^.Name]))
-            Assert(False, GetMainLogStr(lsError, @LSE_DCSCloseDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name), SourceHandle^.Handle]))
+            Assert(False, GetMainLogStr(lsError, LSE_DCSCloseDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name), SourceHandle^.Handle]))
           else
-            Assert(False, GetMainLogStr(lsNormal, @LS_DCSCloseDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name), SourceHandle^.Handle]));
+            Assert(False, GetMainLogStr(lsNormal, LS_DCSCloseDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[I]^.Name), SourceHandle^.Handle]));
         end;
       end;
     end;
@@ -4019,12 +4165,12 @@ begin
       if (R = D_OK) then
       begin
         MCC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, @LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
+        Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
         MCC^.Alive := False;
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCAliveCheckFailed, [R, MCC^.ID, MCC^.Name]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCAliveCheckFailed, [R, MCC^.ID, MCC^.Name]));
       end;
 
       if ((R = D_OK) and (IsAlive) and (not SaveAlive)) then
@@ -4072,12 +4218,12 @@ begin
       if (R = D_OK) then
       begin
         SEC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, @LS_SECAliveCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsAlive, True)]));
+        Assert(False, GetMainLogStr(lsNormal, LS_SECAliveCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
         SEC^.Alive := False;
-        Assert(False, GetMainLogStr(lsError, @LSE_SECAliveCheckFailed, [R, SEC^.ID, SEC^.Name]));
+        Assert(False, GetMainLogStr(lsError, LSE_SECAliveCheckFailed, [R, SEC^.ID, SEC^.Name]));
       end;
 
       if ((R = D_OK) and (IsAlive) and (not SaveAlive)) then
@@ -4531,7 +4677,7 @@ begin
       R := DCSSysIsMain(DCS^.HostIP, IsMain);
       if (R = D_OK) then
       begin
-        Assert(False, GetMainLogStr(lsNormal, @LS_DCSMainCheckSuccess, [DCS^.ID, DCS^.Name, BoolToStr(IsMain, True)]));
+        Assert(False, GetMainLogStr(lsNormal, LS_DCSMainCheckSuccess, [DCS^.ID, DCS^.Name, BoolToStr(IsMain, True)]));
         DCS^.Main := IsMain;
         DCS^.Alive := True;
         if (DCS^.Alive) and (SaveAlive <> DCS^.Alive) then
@@ -4555,13 +4701,13 @@ begin
                     GV_SourceList[J]^.CommSuccess := True;
           //          ShowMessage(Format('Success ID=%d, IP=%s, DeviceName=%s, DeviceHandle=%d', [SourceHandle^.DCSID, SourceHandle^.DCSIP, GV_SourceList[I]^.Name, DeviceHandle]));
 
-                    Assert(False, GetMainLogStr(lsNormal, @LS_DCSOpenDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[J]^.Name)]));
+                    Assert(False, GetMainLogStr(lsNormal, LS_DCSOpenDeviceSuccess, [SourceHandle^.DCS^.ID, String(GV_SourceList[J]^.Name)]));
                   end
                   else
                   begin
                     SourceHandle^.Handle := DeviceHandle;
 
-                    Assert(False, GetMainLogStr(lsError, @LSE_DCSOpenDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[J]^.Name)]));
+                    Assert(False, GetMainLogStr(lsError, LSE_DCSOpenDeviceFailed, [R, SourceHandle^.DCS^.ID, String(GV_SourceList[J]^.Name)]));
                   end;
 
                   if (SourceHandle^.Handle > INVALID_DEVICE_HANDLE) then
@@ -4624,7 +4770,7 @@ begin
       end
       else
       begin
-        Assert(False, GetMainLogStr(lsError, @LSE_DCSMainCheckFailed, [R, DCS^.ID, DCS^.Name]));
+        Assert(False, GetMainLogStr(lsError, LSE_DCSMainCheckFailed, [R, DCS^.ID, DCS^.Name]));
 //        DCS^.Main := False;
         DCS^.Alive := False;
       end;
@@ -5180,11 +5326,11 @@ begin
         SEC^.Main  := IsMain;
         SEC^.Alive := True;
 
-        Assert(False, GetMainLogStr(lsNormal, @LS_SECMainCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsMain, True)]));
+        Assert(False, GetMainLogStr(lsNormal, LS_SECMainCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsMain, True)]));
       end
       else
       begin
-        Assert(False, GetMainLogStr(lsError, @LSE_SECMainCheckFailed, [R, SEC^.ID, SEC^.Name]));
+        Assert(False, GetMainLogStr(lsError, LSE_SECMainCheckFailed, [R, SEC^.ID, SEC^.Name]));
         SEC^.Alive := False;
       end;
 
@@ -5333,12 +5479,12 @@ begin
       if (R = D_OK) then
       begin
         MCC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, @LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
+        Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
         MCC^.Alive := False;
-        Assert(False, GetMainLogStr(lsError, @LSE_MCCAliveCheckFailed, [R, MCC^.ID, MCC^.Name]));
+        Assert(False, GetMainLogStr(lsError, LSE_MCCAliveCheckFailed, [R, MCC^.ID, MCC^.Name]));
       end;
     end;
   end;
@@ -5788,6 +5934,14 @@ begin
   FCommand.CommandType  := ACommandType;
 end;
 
+procedure TDCSEventThread.SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AEventID: TEventID; AEventTime: TEventTime);
+begin
+  SetCommand(ASourceHandle, ACommandType);
+
+  Move(AEventID, FCommand.EventID, SizeOf(TEventID));
+  FCommand.EventTime := AEventTime;
+end;
+
 procedure TDCSEventThread.SetCommand(ASourceHandle: PSourceHandle; ACommandType: TDCSCommandType; AEventID: TEventID; ATimecode: TTimecode);
 begin
   SetCommand(ASourceHandle, ACommandType);
@@ -5937,6 +6091,24 @@ begin
   Result := D_FALSE;
 
   SetCommand(ASourceHandle, ctHold, AEventID);
+
+  ResetEvent(FEventCompleted);
+  SetEvent(FEventCommand);
+
+//  if (WaitForSingleObject(FEventCompleted, GV_SettingDCS.CommandTimeout) = WAIT_OBJECT_0) then
+  if (WaitForSingleObject(FEventCompleted, INFINITE) = WAIT_OBJECT_0) then
+  begin
+    Result := FCMD_Result;
+  end;
+
+  EventQueueCheck;
+end;
+
+function TDCSEventThread.ChangeStartTimeEvent(ASourceHandle: PSourceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer;
+begin
+  Result := D_FALSE;
+
+  SetCommand(ASourceHandle, ctChangeStartTime, AEventID, AStartTime);
 
   ResetEvent(FEventCompleted);
   SetEvent(FEventCommand);
@@ -6205,6 +6377,16 @@ begin
               Assert(False, GetMainLogStr(lsError, Format('DoEventCommand DCSHoldEvent failed, error = %d, dcs = %d, handle = %d, id = %s', [R, SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID)])));
           end;
 
+          ctChangeStartTime:
+          begin
+            R := DCSChangetStartTimeEvent(SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventID, EventTime);
+
+            if (R = D_OK) then
+              Assert(False, GetMainLogStr(lsNormal, Format('DoEventCommand DCSChangetStartTimeEvent succeeded, dcs = %d, handle = %d, id = %s, start= %s', [SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), EventTimeToString(EventTime, FrameRateType)])))
+            else
+              Assert(False, GetMainLogStr(lsError, Format('DoEventCommand DCSChangetStartTimeEvent failed, error = %d, dcs = %d, handle = %d, id = %s, start = %s', [R, SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), EventTimeToString(EventTime, FrameRateType)])));
+          end;
+
           ctChangeDuration:
           begin
             R := DCSChangetDurationEvent(SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventID, Timecode);
@@ -6212,9 +6394,9 @@ begin
             IsDropFrame := GetChannelIsDropFrameByID(ChannelID);
 
             if (R = D_OK) then
-              Assert(False, GetMainLogStr(lsNormal, Format('DoEventCommand DCSHoldEvent succeeded, dcs = %d, handle = %d, id = %s, duration = %s', [SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), TimecodeToString(Timecode, IsDropFrame)])))
+              Assert(False, GetMainLogStr(lsNormal, Format('DoEventCommand DCSChangetDurationEvent succeeded, dcs = %d, handle = %d, id = %s, duration = %s', [SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), TimecodeToString(Timecode, IsDropFrame)])))
             else
-              Assert(False, GetMainLogStr(lsError, Format('DoEventCommand DCSHoldEvent failed, error = %d, dcs = %d, handle = %d, id = %s, duration = %s', [R, SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), TimecodeToString(Timecode, IsDropFrame)])));
+              Assert(False, GetMainLogStr(lsError, Format('DoEventCommand DCSChangetDurationEvent failed, error = %d, dcs = %d, handle = %d, id = %s, duration = %s', [R, SourceHandle^.DCS^.ID, SourceHandle^.Handle, EventIDToString(EventID), TimecodeToString(Timecode, IsDropFrame)])));
           end;
 
           ctOnAirEventID:
@@ -6570,7 +6752,7 @@ begin
           if (not Status.Connected) then
           begin
             if (WarningConnectText = '') then
-              WarningConnectText := SWDeviceStatusNotConnect + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name])
+              WarningConnectText := GetLanguageStr(SWDeviceStatusNotConnect) + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name])
             else
               WarningConnectText := WarningConnectText + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name]);
           end;
@@ -6579,7 +6761,7 @@ begin
         begin
           DeviceForm.SetDeviceCommError(String(Source^.Name), Status);
           if (WarningCommText = '') then
-            WarningCommText := SWDeviceCommError + #13#10 + Format('%s', [String(Source^.Name)])
+            WarningCommText := GetLanguageStr(SWDeviceCommError) + #13#10 + Format('%s', [String(Source^.Name)])
           else
             WarningCommText := WarningCommText + #13#10 + Format('%s', [String(Source^.Name)]);
         end;
@@ -8302,7 +8484,7 @@ begin
         begin
           DeviceForm.SetDeviceCommError(String(Source^.Name), Source^.Status);
           if (WarningCommText = '') then
-            WarningCommText := SWDeviceCommError + #13#10 + Format('%s', [String(Source^.Name)])
+            WarningCommText := GetLanguageStr(SWDeviceCommError) + #13#10 + Format('%s', [String(Source^.Name)])
           else
             WarningCommText := WarningCommText + #13#10 + Format('%s', [String(Source^.Name)]);
         end;
@@ -8321,7 +8503,7 @@ begin
             end;
 
             if (WarningConnectText = '') then
-              WarningConnectText := SWDeviceStatusNotConnect + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name])
+              WarningConnectText := GetLanguageStr(SWDeviceStatusNotConnect) + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name])
             else
               WarningConnectText := WarningConnectText + #13#10 + Format('Device=%s, DCS=%s', [String(Source^.Name), SourceHandle^.DCS^.Name]);
           end;

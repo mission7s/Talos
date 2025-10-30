@@ -1,0 +1,331 @@
+
+/* Action 1101~ */
+/* SEC */
+/* File action */
+#define SAFile 1101
+#define SAFileNewPlaylist 1102
+#define SAFileOpenPlaylist 1103
+#define SAFileOpenAddPlaylist 1104
+#define SAFileSavePlaylist 1105
+#define SAFileSaveAsPlaylist 1106
+#define SAFileClose 1107
+
+/* Edit action */
+#define SAEdit 1201
+#define SAEditCopyEvent 1202
+#define SAEditCutEvent 1203
+#define SAEditPasteEvent 1204
+#define SAEditClearEvent 1205
+#define SAEditFindEvent 1206
+#define SAEditReplaceEvent 1207
+#define SAEditSelectMediaFile 1208
+#define SAEditTimelineZoomIn 1209
+#define SAEditTimelineZoomOut 1210
+#define SAEditTimelineMoveLeft 1211
+#define SAEditTimelineMoveRight 1212
+#define SAEditTimelineGotoCurrent 1213
+
+/* Control action */
+#define SAControl 1301
+#define SAControlStartOnAir 1302
+#define SAControlFreezeOnAir 1303
+#define SAControlBreakOnair 1304
+#define SAControlFinishOnAir 1305
+#define SAControlCatchOnair 1306
+#define SAControlAssignNextEvent 1307
+#define SAControlStartNextEventImmediately 1308
+#define SAControlIncrease1Second 1309
+#define SAControlDecrease1Second 1310
+#define SAControlAssignTargetEvent 1311
+#define SAControlGotoCurrentEvent 1312
+
+/* Event action */
+#define SAEvent 1401
+#define SAEventInsert 1402
+#define SAEventInsertProgram 1403
+#define SAEventInsertMainEvent 1404
+#define SAEventInsertJoinEvent 1405
+#define SAEventInsertSubEvent 1406
+#define SAEventInsertCommentEvent 1407
+#define SAEventUpdateEvent 1408
+#define SAEventDeleteEvent 1409
+#define SAEventInspectEvent 1410
+#define SAEventSourceExchange 1411
+
+
+/* UI 2101~ */
+/* SEC */
+/* Pages */
+#define SUTabChannelAll 2101
+#define SUTabDeviceList 2102
+
+
+
+
+
+/* Information message 4101~ */
+/* SEC */
+#define SSECStart 4101
+#define SLookingForSEC 4102
+#define SLookingForAllComponentAndDevice 4103
+#define SNotFoundComponentAndContinue 4104
+
+#define SLookingForMCC 4105
+#define SEInvalidSettinMCC 4106
+
+#define SLookingForDCS 4107
+#define SEInvalidSettinDCS 4108
+
+/* Device */
+#define SLookingForDevice 4201
+#define SLookingForAllDevice 4202
+#define SNotFoundDeviceAndContinue 4203
+
+/* Edit Event */
+#define SEnterEventMode 4301
+#define SEnterStartMode 4302
+#define SEnterInput 4303
+#define SEnterOutput 4304
+#define SEnterTitle 4305
+#define SEnterSource 4306
+#define SEnterSourceLayer 4307
+#define SEnterTransitionType 4308
+#define SEnterTransitionRate 4309
+#define SEnterFinishAction 4310
+#define SEnterProgramType 4311
+#define SEnterCompletedFileFolder 4312
+#define SEnterCompletedFileStoredDays 4313
+
+/* CheSheet */
+#define SLoadingCuesheetFile 4401
+#define SUpdatingCuesheet 4402
+#define SCompletedLoadingCuesheetFile 4403
+#define SInvalidTimeocde 4404
+#define SStartTimeGreaterThenBeforeEndTime 4405
+#define SSubStartTimeGreaterThenParentStartTime 4406
+#define SSubStartTimeLessThenParentEndTime 4407
+#define SDurationTCGreaterThenMinDuration 4408
+#define SDurationTCLessThenMaxDuration 4409
+#define SInTCLessThenDurationTC 4410
+#define SInTCLessThenOutTC 4411
+#define SOutTCLessThenDurationTC 4412
+#define SOutTCGreaterThenInTC 4413
+#define SQDeleteEvent 4414
+
+/* OnAir */
+#define SChannelAlreadyRunning 4501
+#define SFreezeOnAirTimeout 4502
+#define SBreakCurrentTimeout 4503
+#define SSetNextTimeout 4504
+#define SEnqueueTimeout 4505
+#define SQStartOnAirByManual 4506
+#define SQFinishtOnAirAndPreserveEvent 4507
+#define SQFinishtOnAirAndClearEvent 4508
+#define SQSourceExchange 4509
+
+
+/* Error message 5101~*/
+/* SEC */
+#define SEInvalidSettinSEC 5101
+#define SEInvalidSettinProgramType 5102
+
+/* Device */
+#define SEInvalidSettinXpt 5201
+#define SEInvalidSettinMCS 5202
+
+/* CheSheet */
+#define SEPasteLocationIncorrect 5401
+#define SEPasteHasProgramLocationIncorrect 5402
+#define SEPasteHasMainLocationIncorrect 5403
+#define SEPasteJoinSubLocationIncorrect 5404
+#define SESourceExchangeLocationIncorrect 5405
+#define SENoCreateCuesheetWhileChannelOnair 5406
+#define SENoOpenCuesheetWhileChannelOnair 5407
+
+/* OnAir */
+#define SENextEventNotReady 5501
+#define SEChangedOnAirEvent 5502
+#define SENotPossibleEditLockTime 5503
+#define SENotPossibleEditBeforeLocationIncorrect 5504
+#define SENotInsertProgramLocationIncorrect 5505
+#define SENotInsertMainLocationIncorrect 5506
+#define SENotInsertJoinSubLocationIncorrect 5507
+
+
+/* Warning message 6101~ */
+/* Device */
+#define SWDeviceCommError 6201
+#define SWDeviceStatusNotConnect 6202
+
+/* CheSheet */
+#define SWNotExistNextEvent 6401
+
+STRINGTABLE
+BEGIN
+        /* Action 1101~ */
+        /* SEC */
+        /* File action */
+        SAFile, "File(&F)"
+        SAFileNewPlaylist, "New playlist"
+        SAFileOpenPlaylist, "Open playlist"
+        SAFileOpenAddPlaylist, "Open add playlist"
+        SAFileSavePlaylist, "Save playlist"
+        SAFileSaveAsPlaylist, "Save as playList"
+        SAFileClose, "&Close"
+
+        /* Edit action */
+        SAEdit, "Edit(&E)"
+        SAEditCopyEvent, "Copy event"
+        SAEditCutEvent, "Cut event"
+        SAEditPasteEvent, "Paste event"
+        SAEditClearClipboard, "Clear clipboard"
+        SAEditFindEvent, "Find event"
+        SAEditReplaceEvent, "Replace event"
+        SAEditSelectMedia, "Select media file"
+        SAEditTimelineZoomIn, "-"
+        SAEditTimelineZoomOut, "+"
+        SAEditTimelineMoveLeft, "<"
+        SAEditTimelineMoveRight, ">"
+        SAEditTimelineGotoCurrent, "Current time"
+
+        /* Control action */
+        SAControl, "Control(&C)"
+        SAControlStartOnAir, "Start onair"
+        SAControlFreezeOnAir, "Freeze onair"
+        SAControlBreakOnair, "Break onair"
+        SAControlFinishOnAir, "Finish onair"
+        SAControlCatchOnair, "Catch onair"
+        SAControlAssignNextEvent, "Assign next event"
+        SAControlStartNextEventImmediately, "Start next event Immediately"
+        SAControlIncrease1Second, "Increase 1 second"
+        SAControlDecrease1Second, "Decrease 1 second"
+        SAControlAssignTargetEvent, "Assign target event"
+        SAControlGotoCurrentEvent, "Goto current event"
+
+        /* Event action */
+        SAEvent, "Event(&T)"
+        SAEventInsert, "Insert Event"
+        SAEventInsertProgram, "Program"
+        SAEventInsertMainEvent, "Main event"
+        SAEventInsertJoinEvent, "Join event"
+        SAEventInsertSubEvent, "Sub event"
+        SAEventInsertCommentEvent, "Comment"
+        SAEventUpdateEvent, "Update event"
+        SAEventDeleteEvent, "Delete event"
+        SAEventInspectEvent, "Inspect event"
+        SAEventSourceExchange, "Event source exchange"
+
+
+        /* UI 2101~ */
+        /* SEC */
+        /* Pages */
+        SUTabChannelAll, "All Channels"
+        SUTabDeviceList, "Device"
+
+
+
+
+
+        /* Information message */
+        /* SEC */
+        SSECStart, "SEC Starting..."
+        SLookingForSEC, "Looking for another SEC."
+        SLookingForAllComponentAndDevice, "Would you like to find all the rest of the component or device?"
+        SNotFoundComponentAndContinue, "Not found component. [Name=%s]'#13#10'Do you still want to find the rest of your component or devices?"
+
+        SLookingForMCC, "Looking for MCC."
+        SEInvalidSettinMCC, "The MCC setting information is invalidate.."
+
+        SLookingForDCS, "Looking for dcs."
+        SEInvalidSettinDCS, "The DCS setting information is invalidate."
+
+        /* Device */
+        SLookingForDevice, "Looking for device..."
+        SLookingForAllDevice, "Would you like to find all the rest of the devices?"
+        SNotFoundDeviceAndContinue, "Not found device. [Device=%s, DCS=%s]'#13#10'Do you still want to find the rest of your devices?"
+
+        /* Edit Event */
+        SEnterEventMode, "''Event mode'' is a required field."
+        SEnterStartMode, "''Start mode'' is a required field."
+        SEnterInput, "''Input'' is a required field."
+        SEnterOutput, "''Output'' is a required field."
+        SEnterTitle, "''Title'' is a required field."
+        SEnterSource, "''Source'' is a required field."
+        SEnterSourceLayer, "''Source layer'' is a required field."
+        SEnterTransitionType, "''Transition type'' is a required field."
+        SEnterTransitionRate, "''Transition rate'' is a required field."
+        SEnterFinishAction, "''Finish action'' is a required field."
+        SEnterProgramType, "''Program type'' is a required field."
+
+        SEnterCompletedFileFolder, "캡춰 완료파일 폴더를 입력하십시오."
+        SEnterCompletedFileStoredDays, "캡춰 완료파일 보관 일 수를 입력하십시오."
+
+        /* CheSheet */
+        SLoadingCuesheetFile, "Loading play list file..."
+        SUpdatingCuesheet, "Updating play list..."
+        SCompletedLoadingCuesheetFile, "Completed loading play list file."
+        SInvalidTimeocde, "''%s'' timecode is invalidate."
+        SStartTimeGreaterThenBeforeEndTime, "The start time must be greater then the end time of the previous event."
+        SSubStartTimeGreaterThenParentStartTime, "The sub event start time must be greater then the start time of the parent event."
+        SSubStartTimeLessThenParentEndTime, "The sub event start time + duration must be less then the end time of the parent event."
+        SDurationTCGreaterThenMinDuration, "''%s'' must be greater then ''%s''."
+        SDurationTCLessThenMaxDuration, "''%s'' must be less then ''%s''."
+        SInTCLessThenDurationTC, "The in timecode must be less then the duration timecode."
+        SInTCLessThenOutTC, "The in timecode must be less then the out timecode."
+        SOutTCLessThenDurationTC, "The out timecode must be less then the duration timecode."
+        SOutTCGreaterThenInTC, "The out timecode must be grater then the in timecode."
+        SQDeleteEvent, "Selected events and sub-events will be deleted.'#13#10'Events in the onair or cue state are not deleted.'#13#10'Are you sure you want to delete the events below?"
+
+        /* OnAir */
+        SChannelAlreadyRunning, "This channel is already running. [%s]"
+        SFreezeOnAirTimeout, "The time remaining until the next event is less than the freeze onair timeout."
+        SBreakCurrentTimeout, "The time remaining until the current event end time is less than the break current timeout."
+        SSetNextTimeout, "The time remaining until the current event is less than the set next timeout."
+        SEnqueueTimeout, "The time remaining until the next event is less than the enqueue timeout."
+
+        SQStartOnAirByManual, "Not enough time to prepare for start onair.'#13#10'Do you want to manually start the first event after the current time?"
+        SQFinishtOnAirAndPreserveEvent, "Do you want to preserve the event queue so that you can resume onair after shutdown?"
+        SQFinishtOnAirAndClearEvent, "Are you sure you want to clear the event queue and finish the current channel completely?"
+        SQSourceExchange, "%s'#13#10#13#10'Do you want to exchange the source of main event and backup event for all events from the currently selected event?"
+
+
+
+
+        /* Error message */
+        /* SEC */
+        SEInvalidSettinSEC, "Invalidate SEC setting information."
+        SEInvalidSettinProgramType, "Invalidate programe type setting information."
+
+        /* Device */
+        SEInvalidSettinXpt, "Invalidate crosspoint setting information."
+        SEInvalidSettinMCS, "Invalidate MCS setting information."
+
+        /* CheSheet */
+        SEPasteLocationIncorrect, "Please specify only one paste location and paste again."
+        SEPasteHasProgramLocationIncorrect, "There is a program event include the events on the clipboard.'#13#10'If clipboard has a program event, you can paste it in the program or independant main location."
+        SEPasteHasMainLocationIncorrect, "There is a main event include the events on the clipboard.'#13#10'If clipboard has a main event, you can paste it in the main location."
+        SEPasteJoinSubLocationIncorrect, "There is a join or sub event include the events on the clipboard.'#13#10'If clipboard not has a main event, you can paste it in the main location."
+        SESourceExchangeLocationIncorrect, "The source cannot be exchange before the current or next event."
+        SENoCreateCuesheetWhileChannelOnair, "You will not be able to create a new cuesheet while this channel is onair."
+        SENoOpenCuesheetWhileChannelOnair, "You will not be able to open other cuesheet while this channel is onair."
+
+        /* OnAir */
+        SENextEventNotReady, "The next event is not ready. Please try again later."
+        SEChangedOnAirEvent, "The onair event changed. Please retry start onair."
+        SENotPossibleEditLockTime, "Editing is not possible because the current time is less than the edit lock time."
+        SENotPossibleEditBeforeLocationIncorrect, "You can not enter event befor onair or cued event locations."
+        SENotInsertProgramLocationIncorrect, "Program event can only be entered on the program or independent main event."
+        SENotInsertMainLocationIncorrect, "Main event can only be entered on the program or main or independent comment event."
+        SENotInsertJoinSubLocationIncorrect, "Join or sub event can only be entered below the main event."
+
+
+
+        /* Warning message */
+        /* Device */
+        SWDeviceCommError, "The device cannot communicate with the DCS."
+        SWDeviceStatusNotConnect, "Device status is not connected. "
+
+        /* CheSheet */
+        SWNotExistNextEvent, "There is no next event to play. [Channel=%s]"
+
+END

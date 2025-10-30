@@ -61,7 +61,7 @@ inherited frmWarningDialog: TfrmWarningDialog
         Font.Charset = ANSI_CHARSET
         Font.Color = 16765315
         Font.Height = -21
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         Lines.Strings = (
           'mmWarning'
@@ -157,7 +157,7 @@ inherited frmWarningDialog: TfrmWarningDialog
     Font.Charset = ANSI_CHARSET
     Font.Color = 10262422
     Font.Height = -14
-    Font.Name = 'Century Gothic'
+    Font.Name = 'Noto Sans KR DemiLight'
     Font.Style = []
     ShowCaption = True
     FocusedRectColor = clNone

@@ -10,11 +10,11 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'Tahoma'
+  Font.Name = 'Noto Sans KR DemiLight'
   Font.Style = []
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  TextHeight = 13
+  TextHeight = 16
   object pnlChannel: TWMPanel
     Left = 0
     Top = 0
@@ -32,15 +32,15 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
       196)
     object lblChannelName: TLabel
       Left = 44
-      Top = 12
-      Width = 245
-      Height = 43
+      Top = 7
+      Width = 248
+      Height = 52
       AutoSize = False
       Caption = 'Channel 1'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 12105912
       Font.Height = -36
-      Font.Name = 'Century Gothic'
+      Font.Name = 'Noto Sans KR DemiLight'
       Font.Style = []
       ParentFont = False
       OnDblClick = pnlChannelDblClick
@@ -147,28 +147,28 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
       TabOrder = 0
       object lblPlayedTime: TLabel
         Left = 7
-        Top = 26
-        Width = 94
+        Top = 25
+        Width = 122
         Height = 28
         AutoSize = False
         Caption = '00:00:00'
         Font.Charset = ANSI_CHARSET
         Font.Color = 9485642
-        Font.Height = -28
-        Font.Name = 'Crystal'
+        Font.Height = -23
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
-      object Label2: TLabel
+      object lblTitlePlayedTime: TLabel
         Left = 7
         Top = 3
-        Width = 70
+        Width = 66
         Height = 17
         Caption = 'Played time'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 9485642
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -187,28 +187,28 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
       object lblRemainingTime: TLabel
         Left = 7
         Top = 25
-        Width = 94
+        Width = 122
         Height = 27
         AutoSize = False
         Caption = '00:00:00'
         Font.Charset = ANSI_CHARSET
         Font.Color = 2649285
-        Font.Height = -27
-        Font.Name = 'Crystal'
+        Font.Height = -23
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Pitch = fpVariable
         Font.Style = []
         ParentFont = False
       end
-      object Label3: TLabel
+      object lblTitleRemainingTime: TLabel
         Left = 7
         Top = 3
-        Width = 92
+        Width = 88
         Height = 17
         Caption = 'Remaining time'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 2649285
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -227,27 +227,27 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
       object lblNextStart: TLabel
         Left = 7
         Top = 25
-        Width = 127
-        Height = 27
+        Width = 122
+        Height = 34
         AutoSize = False
         Caption = '00:00:00:00'
         Font.Charset = ANSI_CHARSET
         Font.Color = 830136
-        Font.Height = -27
-        Font.Name = 'Crystal'
+        Font.Height = -23
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
-      object Label5: TLabel
+      object lblTitleNextStart: TLabel
         Left = 7
         Top = 3
-        Width = 61
+        Width = 58
         Height = 17
         Caption = 'Next start '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 830136
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
@@ -266,27 +266,27 @@ object frmAllChannelsPanel: TfrmAllChannelsPanel
       object lblNextDuration: TLabel
         Left = 7
         Top = 25
-        Width = 127
+        Width = 122
         Height = 27
         AutoSize = False
         Caption = '00:00:00:00'
         Font.Charset = ANSI_CHARSET
         Font.Color = 830136
-        Font.Height = -27
-        Font.Name = 'Crystal'
+        Font.Height = -23
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end
-      object Label7: TLabel
+      object lblTitleNextDuration: TLabel
         Left = 3
         Top = 3
-        Width = 81
+        Width = 76
         Height = 17
         Caption = 'Next duration'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 830136
         Font.Height = -12
-        Font.Name = 'Century Gothic'
+        Font.Name = 'Noto Sans KR DemiLight'
         Font.Style = []
         ParentFont = False
       end

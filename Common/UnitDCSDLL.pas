@@ -574,6 +574,7 @@ function DCSDeleteEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): 
 function DCSClearEvent(AID: Word; AHandle: TDeviceHandle; AChannelID: Word): Integer; stdcall; external DCSDLL_NAME name 'DCSClearEvent';
 function DCSTakeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; stdcall; external DCSDLL_NAME name 'DCSTakeEvent';
 function DCSHoldEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID): Integer; stdcall; external DCSDLL_NAME name 'DCSHoldEvent';
+function DCSChangetStartTimeEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; AStartTime: TEventTime): Integer; stdcall; external DCSDLL_NAME name 'DCSChangetStartTimeEvent';
 function DCSChangetDurationEvent(AID: Word; AHandle: TDeviceHandle; AEventID: TEventID; ADuration: TTimecode): Integer; stdcall; external DCSDLL_NAME name 'DCSChangetDurationEvent';
 function DCSOnAirCatchEvent(AID: Word; AHandle: TDeviceHandle): Integer; stdcall; external DCSDLL_NAME name 'DCSOnAirCatchEvent';
 function DCSGetOnAirEventID(AID: Word; AHandle: TDeviceHandle; var AOnAirEventID, ANextEventID: TEventID): Integer; stdcall; external DCSDLL_NAME name 'DCSGetOnAirEventID';

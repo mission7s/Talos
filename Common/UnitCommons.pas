@@ -683,6 +683,9 @@ type
     Name: array[0..CHANNELNAME_LEN] of Char;
     FrameRateType: TFrameRateType;
 
+    // Below SEC
+    DefaultSource: array[0..DEVICENAME_LEN] of Char;
+
     BreakLockTime: TTimecode;
     BreakAddTime: TTimecode;
     BreakEventDurationTime: TTimecode;
@@ -2674,8 +2677,8 @@ begin
   T.vtDWord := Result.T;
 
   // Deadline Hour 보다 작으면 0시 기준으로 계산
-  if (EventDeadlineHour > 24) and (T.Hour < (EventDeadlineHour - HoursPerDay)) then
-//  if (T.Hour < EventDeadlineHour) then
+//  if (EventDeadlineHour > 24) and (T.Hour < (EventDeadlineHour - HoursPerDay)) then
+  if (T.Hour < EventDeadlineHour) then
   begin
     // 24시 -> 0시로 처리
     if ((AEventTime1.D > AEventTime2.D) and (AEventTime1.T < AEventTime2.T)) or
@@ -2791,8 +2794,8 @@ begin
   TR.Second := SS;
   TR.Frame  := FF;
 
-  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 2
-  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 4;
+  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame + 2
+  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame + 4;
 
   Result := TR.vtDWord;
 
@@ -2862,8 +2865,8 @@ begin
   TR.Second := SS;
   TR.Frame  := FF;
 
-  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 2
-  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 4;
+  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame - 2
+  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame - 4;
 
   Result := TR.vtDWord;
 
@@ -2925,8 +2928,8 @@ begin
   TR.Second := SS;
   TR.Frame  := FF;
 
-  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 2
-  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 4;
+  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame + 2
+  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame + 4;
 
   Result := TR.vtDWord;
 
@@ -2988,8 +2991,8 @@ begin
   TR.Second := SS;
   TR.Frame  := FF;
 
-  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 2
-  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := 4;
+  if (AFrameRateType = FR_29_97_DF) and (TR.Frame < 2) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame - 2
+  else if (AFrameRateType = FR_59_94_DF) and (TR.Frame < 4) and (TR.Second = 0) and ((TR.Minute mod 10) <> 0) then TR.Frame := TR.Frame - 4;
 
   Result := TR.vtDWord;
 

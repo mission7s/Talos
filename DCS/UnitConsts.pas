@@ -93,6 +93,18 @@ var
   WIDTH_COL_EVENT_START_TC: Integer      = 84;
   WIDTH_COL_EVENT_NOTES: Integer         = 160;
 
+  // Event grid color
+  COLOR_TX_EVENT_FiXED_COLOR: TColor = $00FFBDAD;
+
+  // Device grid color
+  COLOR_TX_DEVICE_FiXED_COLOR: TColor = $00FFBDAD;
+
+  // Common log grid color
+  COLOR_TX_LOG_COMMON_FiXED_COLOR: TColor = $00FFBDAD;
+
+  // Device log grid color
+  COLOR_TX_LOG_DEVICE_FiXED_COLOR: TColor = $00FFBDAD;
+
   // Event select
   COLOR_ROW_SELECT_EVENT: TColor = $00FFAB1D;//$00FFBDAD;
 

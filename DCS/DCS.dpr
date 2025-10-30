@@ -1,19 +1,6 @@
 program DCS;
 
 uses
-  {$IFDEF EurekaLog}
-  EMemLeaks,
-  EResLeaks,
-  EDebugJCL,
-  EDebugExports,
-  EFixSafeCallException,
-  EMapWin32,
-  EAppVCL,
-  EDialogWinAPIMSClassic,
-  EDialogWinAPIEurekaLogDetailed,
-  EDialogWinAPIStepsToReproduce,
-  ExceptionLog7,
-  {$ENDIF EurekaLog}
   Vcl.Forms,
   Winapi.Windows,
   UnitCommons in '..\Common\UnitCommons.pas',
@@ -99,6 +86,7 @@ begin
   Application.CreateForm(TfrmDCS, frmDCS);
   Application.Run;
 end.
+
 
 
 

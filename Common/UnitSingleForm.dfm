@@ -9,7 +9,7 @@ object frmSingle: TfrmSingle
   Font.Charset = ANSI_CHARSET
   Font.Color = 16760237
   Font.Height = -12
-  Font.Name = 'Century Gothic'
+  Font.Name = 'Noto Sans KR DemiLight'
   Font.Style = []
   Position = poScreenCenter
   StyleElements = []
@@ -43,7 +43,7 @@ object frmSingle: TfrmSingle
       Font.Charset = ANSI_CHARSET
       Font.Color = 16760237
       Font.Height = -20
-      Font.Name = 'Century Gothic'
+      Font.Name = 'Noto Sans KR DemiLight'
       Font.Style = []
       StyleElements = []
       OnSystemMenuClick = WMTitleBarSystemMenuClick

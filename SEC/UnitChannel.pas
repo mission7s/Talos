@@ -10,7 +10,9 @@ uses
   AdvOfficePager, AdvSplitter,
   WMTools, WMUtils, WMControls, WMTimeLine, {LibXmlParserU, }Xml.VerySimple,
   UnitCommons, UnitAllChannels, UnitWarningDialog, UnitAlarmThread,
-  UnitDCSDLL, UnitMCCDLL, UnitSECDLL, UnitConsts, Vcl.ComCtrls;
+  UnitDCSDLL, UnitMCCDLL, UnitSECDLL, UnitConsts, Vcl.ComCtrls, WMOleDrag;
+
+{$I .\Lang\SECLang.INC}
 
 type
   TChannelTimerThread = class;
@@ -46,12 +48,12 @@ type
     WMPanel8: TWMPanel;
     wmtlPlaylist: TWMTimeLine;
     Shape1: TShape;
-    Label2: TLabel;
+    lblTitlePlayedTime: TLabel;
     imgPlayedTime: TImage;
-    Label3: TLabel;
-    Label5: TLabel;
-    Label7: TLabel;
-    lblRemainingTargetEvent: TLabel;
+    lblTitleRemainingTime: TLabel;
+    lblTitleNextStart: TLabel;
+    lblTitleNextDuration: TLabel;
+    lblTitleRemainingTargetTime: TLabel;
     imgRamainingTime: TImage;
     imgNextStart: TImage;
     imgNextDuration: TImage;
@@ -62,6 +64,7 @@ type
     wmibEventTimelineClose: TWMImageSpeedButton;
     lblEventCount: TLabel;
     imgTimeline: TImage;
+    wmoChannel: TWMOleDrag;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure acgPlaylistCanEditCell(Sender: TObject; ARow, ACol: Integer;
@@ -116,6 +119,7 @@ type
       ABottom: Integer);
     procedure acgPlaylistRowUpdate(Sender: TObject; OldRow, NewRow: Integer);
     procedure FormShow(Sender: TObject);
+    procedure wmoChannelDragDropFile(Sender: TObject; Files: TStrings);
   private
     { Private declarations }
     FPlayListFileName: String;
@@ -170,7 +174,8 @@ type
 
     FCueSheetLoopFirst: PCueSheetItem;
     FCueSheetLoopLast: PCueSheetItem;
-    FCueSheetLoopPrevList: TCueSheetList;
+    FCueSheetLoopLastNextMainItem: PCueSheetItem;
+
     FCueSheetLoopNextList: TCueSheetList;
 
     FCueSheetLoopLastStartTime: TEventTime;
@@ -302,7 +307,10 @@ type
     function ClearEvent: Integer;
     function TakeEvent(AItem: PCueSheetItem): Integer;
     function HoldEvent(AItem: PCueSheetItem): Integer;
+    function ChangeStartTimeEvent(AItem: PCueSheetItem; AStartTime: TEventTime): Integer;
     function ChangeDurationEvent(AItem: PCueSheetItem; ADuration: TTimecode): Integer;
+
+    function CreateWarningDialog(AOwner: TComponent; AText: String): TfrmWarningDialog;
 
     procedure SetCueSheetCurr(AValue: PCueSheetItem);
     procedure SetCueSheetNext(AValue: PCueSheetItem);
@@ -318,6 +326,8 @@ type
 
 //    procedure PlaylistFileParsing(AFileName: String);
     procedure SavePlayListXML(AChannelCueSheet: PChannelCueSheet; AAll: Boolean = False);
+
+    procedure DisplayEventCount;
 
     procedure DisplayPlayListGrid(AIndex: Integer = 0; AAddCount: Integer = 0); overload;
     procedure DisplayPlayListGrid(AIndex: Integer; AItem: PCueSheetItem); overload;
@@ -354,7 +364,6 @@ type
 
     procedure ErrorDisplayPlayListTimeLine;
 
-    procedure ClearCueSheetLoopPrevList;
     procedure ClearCueSheetLoopNextList;
 
     procedure ClearChannelCueSheetList;
@@ -380,6 +389,8 @@ type
 
     procedure ResetStartDateTimeline(AIndex: Integer);
 
+    procedure ResetStartTimeLoopNextList(ASaveTime, ANewTime: TEventTime);
+
     procedure ChannelCueSheetListQuickSort(L, R: Integer; AChannelCueSheetList: TChannelCueSheetList);
     procedure CueSheetListQuickSort(L, R: Integer; ACueSheetList: TCueSheetList);
 
@@ -399,9 +410,11 @@ type
     procedure OnAirClearEvents;
     procedure OnAirTakeEvent(AIndex: Integer);
     procedure OnAirHoldEvent(AIndex: Integer);
+    procedure OnAirChangeStartTimeEvent(AIndex: Integer; ASaveStartTime, AChangeStartTime: TEventTime);
     procedure OnAirChangeDurationEvent(AIndex: Integer; ASaveDuration, AChangeDuration: TTimecode);
   protected
 //    procedure WndProc(var Message: TMessage); override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     procedure WMUpdateChannelTime(var Message: TMessage); message WM_UPDATE_CHANNEL_TIME;
     procedure WMUpdateChannelOnAir(var Message: TMessage); message WM_UPDATE_CHANNEL_ONAIR;
@@ -439,6 +452,8 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent; AChannelID: Word; ACombine: Boolean; ALeft, ATop, AWidth, AHeight: Integer); overload;
+
+    procedure ApplyUpdateLanguage;
 
     function SECBeginUpdateW: Integer;
     function SECEndUpdateW: Integer;
@@ -520,6 +535,8 @@ type
     procedure DeleteCueSheet;
     procedure ExecuteDeleteCueSheet(ADeleteList: TCueSheetList);
 
+    procedure InsertCueSheetByFiles(AIndex: Integer; AFiles: TStrings);
+
     procedure InspectCueSheet;
 
     procedure SourceExchangeCueSheet;
@@ -561,6 +578,8 @@ type
     procedure SetEventStatus(AEventID: TEventID; AStatus: TEventStatus; AIsCurrEvent: Boolean = False); overload;
     procedure SetEventStatus(AHandle: TDeviceHandle; AEventID: TEventID; AStatus: TEventStatus; AIsCurrEvent: Boolean = False); overload;
     procedure SetEventStatusColor(AItem: PCueSheetItem);
+
+    procedure SetLoopEventStatus(AEventID: TEventID; AStatus: TEventStatus);
 
     procedure SetEventOverall(ADCSIP: String; ADeviceHandle: TDeviceHandle; AOverall: TEventOverall);
 
@@ -833,6 +852,16 @@ uses UnitSEC, UnitOpenPlaylist, UnitEditEvent, UnitSelectStartOnAir,
 
 {$R *.dfm}
 
+procedure TfrmChannel.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (FBlankCheckThread <> nil) then
+  begin
+    if (Operation = opRemove) and (AComponent = FBlankCheckThread.FWarningDialog) then
+      FBlankCheckThread.FWarningDialog := nil;
+  end;
+end;
+
 procedure TfrmChannel.WMUpdateChannelTime(var Message: TMessage);
 var
   Index, Count: Integer;
@@ -962,7 +991,9 @@ begin
     RemainTimeString := FormatDateTime('hh:nn:ss', RemainTime); }
 
     PlayedTime := GetDurEventTime(CueSheetCurr^.StartTime, CurrentTime, ChannelFrameRateType);
+
     RemainTime := GetDurEventTime(CurrentTime, GetEventEndTime(CueSheetCurr^.StartTime, CueSheetCurr^.DurationTC, ChannelFrameRateType), ChannelFrameRateType);
+//    RemainTime.T := GetPlusTimecode(RemainTime.T, SecondToTimeCode(1, ChannelFrameRateType), ChannelFrameRateType);
 
     PlayedTimeString := TimecodeToString(PlayedTime.T, ChannelIsDropFrame, False);
     RemainTimeString := TimecodeToString(RemainTime.T, ChannelIsDropFrame, False);
@@ -1061,8 +1092,8 @@ begin
           MouseActions.DisjunctRowSelect := False;
           ClearRowSelect;
           MouseActions.DisjunctRowSelect := True;
-          SelectRows(R, 1);
-          Row := R;
+//          SelectRows(R, 1);
+//          Row := R;
         end;
       end;
     end;
@@ -1104,8 +1135,8 @@ begin
           MouseActions.DisjunctRowSelect := False;
           ClearRowSelect;
           MouseActions.DisjunctRowSelect := True;
-          SelectRows(R, 1);
-          Row := R;
+//          SelectRows(R, 1);
+//          Row := R;
         end;
       end;
     end;
@@ -1385,6 +1416,28 @@ begin
 //      acgPlaylist.Repaint;
 end;
 
+procedure TfrmChannel.wmoChannelDragDropFile(Sender: TObject; Files: TStrings);
+var
+  Index: Integer;
+  P: TPoint;
+  Col, Row: Integer;
+begin
+  inherited;
+
+  WinApi.Windows.GetCursorPos(P);
+
+  P := acgPlaylist.ScreenToClient(P);
+//  lblPlayListFileName.Caption := Format('%d, %d', [P.X, P.Y]);
+
+  acgPlaylist.MouseToCell(P.X, P.Y, Col, Row);
+  if (Row < 0) then
+    Row := acgPlaylist.RowCount - CNT_CUESHEET_HEADER;
+
+  Index := Row - CNT_CUESHEET_HEADER;
+
+  InsertCueSheetByFiles(Index, Files);
+end;
+
 procedure TfrmChannel.WMWarningDisplayNotExistEvent(var Message: TMessage);
 var
   WarningStrLen: Integer;
@@ -1404,7 +1457,7 @@ begin
         GlobalDeleteAtom(Message.LParam);
         if (FBlankCheckThread.FWarningDialog = nil) or (not FBlankCheckThread.FWarningDialog.HandleAllocated) then
         begin
-          FBlankCheckThread.FWarningDialog := CreateWarningDialog(WarningText);
+          FBlankCheckThread.FWarningDialog := CreateWarningDialog(Self, WarningText);
 
           with GV_SettingOption do
             if (BlankCheckAlarm) then
@@ -1426,7 +1479,7 @@ exit;
     try
       if (FBlankCheckThread.FWarningDialog = nil) or (not FBlankCheckThread.FWarningDialog.HandleAllocated) then
       begin
-        FBlankCheckThread.FWarningDialog := CreateWarningDialog(WarningText);
+        FBlankCheckThread.FWarningDialog := CreateWarningDialog(Self, WarningText);
 
         with GV_SettingOption do
           if (BlankCheckAlarm) then
@@ -1443,7 +1496,7 @@ exit;
   if (FBlankCheckThread.FWarningDialog = nil) or (not FBlankCheckThread.FWarningDialog.HandleAllocated) then
   begin
     WarningText := String(PChar(Message.LParam));
-    FBlankCheckThread.FWarningDialog := CreateWarningDialog(WarningText);
+    FBlankCheckThread.FWarningDialog := CreateWarningDialog(Self, WarningText);
 
     with GV_SettingOption do
       if (BlankCheckAlarm) then
@@ -2119,6 +2172,8 @@ begin
               exit;
             end;
           end;
+
+          CheckCueSheetLoop(CItem);
         end
         else if (RCol = IDX_COL_CUESHEET_START_DATE) then
         begin
@@ -2197,7 +2252,7 @@ begin
               if (CompareEventTime(CStartTime, PEndTime) < 0) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                MessageBox(Handle, PChar(GetLanguageStr(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                 EditCell(ACol, ARow);
                 exit;
               end;
@@ -2249,7 +2304,7 @@ begin
             if (not IsValidTimecode(CStartTime.T)) then
             begin
               MessageBeep(MB_ICONWARNING);
-              MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+              MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
 //                MessageDlg(SInvalidTimeocde, mtWarning, [mbOK], MB_ICONWARNING);
               EditCell(ACol, ARow);
               exit;
@@ -2265,7 +2320,7 @@ begin
               if (CompareEventTime(CStartTime, PEndTime) < 0) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                MessageBox(Handle, PChar(GetLanguageStr(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                 EditCell(ACol, ARow);
                 exit;
               end;
@@ -2292,7 +2347,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2313,7 +2368,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2384,7 +2439,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2416,7 +2471,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2440,7 +2495,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2494,7 +2549,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2502,7 +2557,7 @@ begin
           if (CStartTime.T >= DurationTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2510,7 +2565,7 @@ begin
           if (CStartTime.T > OutTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2565,7 +2620,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2573,7 +2628,7 @@ begin
           if (CStartTime.T >= DurationTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2581,7 +2636,7 @@ begin
           if (CStartTime.T < InTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2717,7 +2772,7 @@ begin
               if (CompareEventTime(CStartTime, PEndTime) < 0) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                MessageBox(Handle, PChar(GetLanguageStr(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                 EditCell(ACol, ARow);
                 exit;
               end;
@@ -2760,7 +2815,7 @@ begin
             if (not IsValidTimecode(CStartTime.T)) then
             begin
               MessageBeep(MB_ICONWARNING);
-              MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+              MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
 //                MessageDlg(SInvalidTimeocde, mtWarning, [mbOK], MB_ICONWARNING);
               EditCell(ACol, ARow);
               exit;
@@ -2776,7 +2831,7 @@ begin
               if (CompareEventTime(CStartTime, PEndTime) < 0) then
               begin
                 MessageBeep(MB_ICONWARNING);
-                MessageBox(Handle, PChar(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                MessageBox(Handle, PChar(GetLanguageStr(SStartTimeGreaterThenBeforeEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                 EditCell(ACol, ARow);
                 exit;
               end;
@@ -2803,7 +2858,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2824,7 +2879,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2896,7 +2951,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2928,7 +2983,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2952,7 +3007,7 @@ begin
                 if (CompareEventTime(CEndTime, PEndTime) > 0) then
                 begin
                   MessageBeep(MB_ICONWARNING);
-                  MessageBox(Handle, PChar(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+                  MessageBox(Handle, PChar(GetLanguageStr(SSubStartTimeLessThenParentEndTime), PChar(Application.Title), MB_OK or MB_ICONWARNING);
                   EditCell(ACol, ARow);
                   exit;
                 end;
@@ -2985,7 +3040,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -2993,7 +3048,7 @@ begin
           if (CStartTime.T >= DurationTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -3001,7 +3056,7 @@ begin
           if (CStartTime.T > OutTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -3031,7 +3086,7 @@ begin
           if (not IsValidTimecode(CStartTime.T)) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInvalidTimeocde), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -3039,7 +3094,7 @@ begin
           if (CStartTime.T >= DurationTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenDurationTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -3047,7 +3102,7 @@ begin
           if (CStartTime.T < InTC) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+            MessageBox(Handle, PChar(GetLanguageStr(SInTCLessThenOutTC), PChar(Application.Title), MB_OK or MB_ICONWARNING);
             EditCell(ACol, ARow);
             exit;
           end;
@@ -4067,11 +4122,15 @@ var
 begin
   inherited;
   with acgPlaylist do
+  begin
     ChannelCueSheet := GetChannelCueSheetByIndex(RealRowIndex(NewRow) - FixedRows);
     if (ChannelCueSheet <> nil) then
       PlayListFileName := String(ChannelCueSheet^.FileName)
     else
       PlayListFileName := '';
+  end;
+
+  DisplayEventCount;
 end;
 
 procedure TfrmChannel.acgPlaylistSelectCell(Sender: TObject; ACol,
@@ -4160,8 +4219,11 @@ procedure TfrmChannel.acgPlaylistSelectionChanged(Sender: TObject; ALeft, ATop,
   ARight, ABottom: Integer);
 begin
   inherited;
-  with (Sender as TAdvColumnGrid) do
-    lblEventCount.Caption := Format('%d / %d', [SelectedRowCount, FCueSheetList.Count + 1]);
+
+  DisplayEventCount;
+
+//  with (Sender as TAdvColumnGrid) do
+//    lblEventCount.Caption := Format('%d / %d', [SelectedRowCount, FCueSheetList.Count + 1]);
 end;
 
 procedure TfrmChannel.acgPlaylistSetEditText(Sender: TObject; ACol,
@@ -4600,6 +4662,198 @@ begin
   end;
 end;
 
+procedure TfrmChannel.ApplyUpdateLanguage;
+var
+  I: Integer;
+  Column: TGridColumnItem;
+begin
+  // Time
+  lblTitlePlayedTime.Caption := GetLanguageStr(SUTimePlayed);
+  lblTitleRemainingTime.Caption := GetLanguageStr(SUTimeRemaining);
+  lblTitleNextStart.Caption := GetLanguageStr(SUTimeNextStart);
+  lblTitleNextDuration.Caption := GetLanguageStr(SUTimeNextDuration);
+  lblTitleRemainingTargetTime.Caption := GetLanguageStr(SUTimeRemainigTarget);
+
+  // CueSheet
+  NAM_COL_CUESHEET_GROUP := '';
+  NAM_COL_CUESHEET_NO := GetLanguageStr(SUCueSheetNo);
+  NAM_COL_CUESHEET_EVENT_MODE := GetLanguageStr(SUCueSheetEventMode);
+  NAM_COL_CUESHEET_EVENT_STATUS := GetLanguageStr(SUCueSheetEventStatus);
+  NAM_COL_CUESHEET_START_MODE := GetLanguageStr(SUCueSheetStartMode);
+  NAM_COL_CUESHEET_START_DATE := GetLanguageStr(SUCueSheetStartDate);
+  NAM_COL_CUESHEET_START_TIME := GetLanguageStr(SUCueSheetStartTime);
+  NAM_COL_CUESHEET_DURATON := GetLanguageStr(SUCueSheetDuration);
+  NAM_COL_CUESHEET_MEDIA_ID := GetLanguageStr(SUCueSheetMediaID);
+  NAM_COL_CUESHEET_TITLE := GetLanguageStr(SUCueSheetTitle);
+  NAM_COL_CUESHEET_SUB_TITLE := GetLanguageStr(SUCueSheetSubTitle);
+  NAM_COL_CUESHEET_SOURCE := GetLanguageStr(SUCueSheetSource);
+  NAM_COL_CUESHEET_MEDIA_STATUS := GetLanguageStr(SUCueSheetMediaStaus);
+  NAM_COL_CUESHEET_IN_TC := GetLanguageStr(SUCueSheetInTC);
+  NAM_COL_CUESHEET_OUT_TC := GetLanguageStr(SUCueSheetOutTC);
+  NAM_COL_CUESHEET_INPUT := GetLanguageStr(SUCueSheetInput);
+  NAM_COL_CUESHEET_OUTPUT := GetLanguageStr(SUCueSheetOutput);
+  NAM_COL_CUESHEET_TR_TYPE := GetLanguageStr(SUCueSheetTrType);
+  NAM_COL_CUESHEET_TR_RATE := GetLanguageStr(SUCueSheetTrRate);
+  NAM_COL_CUESHEET_FINISH_ACTION := GetLanguageStr(SUCueSheetFinishAction);
+  NAM_COL_CUESHEET_VIDEO_TYPE := GetLanguageStr(SUCueSheetVideoType);
+  NAM_COL_CUESHEET_AUDIO_TYPE := GetLanguageStr(SUCueSheetAudioType);
+  NAM_COL_CUESHEET_CLOSED_CAPTION := GetLanguageStr(SUCueSheetClosedCaption);
+  NAM_COL_CUESHEET_VOICE_ADD := GetLanguageStr(SUCueSheetVoiceAdd);
+  NAM_COL_CUESHEET_PROGRAM_TYPE := GetLanguageStr(SUCueSheetProgramType);
+  NAM_COL_CUESHEET_NOTES := GetLanguageStr(SUCueSheetNotes);
+
+  with acgPlaylist do
+  begin
+    BeginUpdate;
+    try
+      Columns.BeginUpdate;
+      try
+        for I := 0 to CNT_CUESHEET_COLUMNS - 1 do
+        begin
+          Column := Columns[I];
+          with Column do
+          begin
+            // Column : Group
+            if (I = IDX_COL_CUESHEET_GROUP) then
+            begin
+              Header   := NAM_COL_CUESHEET_GROUP;
+            end
+            // Column : No
+            else if (I = IDX_COL_CUESHEET_NO) then
+            begin
+              Header    := NAM_COL_CUESHEET_NO;
+            end
+            // Column Dropdown List : Event Mode
+            else if (I = IDX_COL_CUESHEET_EVENT_MODE) then
+            begin
+              Header    := NAM_COL_CUESHEET_EVENT_MODE;
+            end
+            // Column : Event Status
+            else if (I = IDX_COL_CUESHEET_EVENT_STATUS) then
+            begin
+              Header    := NAM_COL_CUESHEET_EVENT_STATUS;
+            end
+            // Column Dropdown List : Start Mode
+            else if (I = IDX_COL_CUESHEET_START_MODE) then
+            begin
+              Header := NAM_COL_CUESHEET_START_MODE;
+            end
+            // Column : Start Date
+            else if (I = IDX_COL_CUESHEET_START_DATE) then
+            begin
+              Header := NAM_COL_CUESHEET_START_DATE;
+            end
+            // Column : Start Time
+            else if (I = IDX_COL_CUESHEET_START_TIME) then
+            begin
+              Header := NAM_COL_CUESHEET_START_TIME;
+            end
+            // Column Dropdown List : Input Type
+            else if (I = IDX_COL_CUESHEET_INPUT) then
+            begin
+              Header := NAM_COL_CUESHEET_INPUT;
+            end
+            // Column Dropdown List : Output Type
+            else if (I = IDX_COL_CUESHEET_OUTPUT) then
+            begin
+              Header := NAM_COL_CUESHEET_OUTPUT;
+            end
+            // Column : Title
+            else if (I = IDX_COL_CUESHEET_TITLE) then
+            begin
+              Header  := NAM_COL_CUESHEET_TITLE;
+            end
+            // Column : Sub Title
+            else if (I = IDX_COL_CUESHEET_SUB_TITLE) then
+            begin
+              Header  := NAM_COL_CUESHEET_SUB_TITLE;
+            end
+            // Column Dropdown List : Source
+            else if (I = IDX_COL_CUESHEET_SOURCE) then
+            begin
+              Header := NAM_COL_CUESHEET_SOURCE;
+            end
+            // Column Dropdown List : Media ID
+            else if (I = IDX_COL_CUESHEET_MEDIA_ID) then
+            begin
+              Header := NAM_COL_CUESHEET_MEDIA_ID;
+            end
+            // Column Dropdown List : Media Status
+            else if (I = IDX_COL_CUESHEET_MEDIA_STATUS) then
+            begin
+              Header := NAM_COL_CUESHEET_MEDIA_STATUS;
+            end
+            // Column : Duration TC
+            else if (I = IDX_COL_CUESHEET_DURATON) then
+            begin
+              Header := NAM_COL_CUESHEET_DURATON;
+            end
+            // Column : In TC
+            else if (I = IDX_COL_CUESHEET_IN_TC) then
+            begin
+              Header := NAM_COL_CUESHEET_IN_TC;
+            end
+            // Column : Out TC
+            else if (I = IDX_COL_CUESHEET_OUT_TC) then
+            begin
+              Header := NAM_COL_CUESHEET_OUT_TC;
+            end
+            // Column Dropdown List : Video Type
+            else if (I = IDX_COL_CUESHEET_VIDEO_TYPE) then
+            begin
+              Header := NAM_COL_CUESHEET_VIDEO_TYPE;
+            end
+            // Column Dropdown List : Audio Type
+            else if (I = IDX_COL_CUESHEET_AUDIO_TYPE) then
+            begin
+              Header := NAM_COL_CUESHEET_AUDIO_TYPE;
+            end
+            // Column Dropdown List : Closed Caption
+            else if (I = IDX_COL_CUESHEET_CLOSED_CAPTION) then
+            begin
+              Header := NAM_COL_CUESHEET_CLOSED_CAPTION;
+            end
+            // Column Dropdown List : Voice Add
+            else if (I = IDX_COL_CUESHEET_VOICE_ADD) then
+            begin
+              Header := NAM_COL_CUESHEET_VOICE_ADD;
+            end
+            // Column Dropdown List : Transition Type
+            else if (I = IDX_COL_CUESHEET_TR_TYPE) then
+            begin
+              Header := NAM_COL_CUESHEET_TR_TYPE;
+            end
+            // Column Dropdown List : Transition Rate
+            else if (I = IDX_COL_CUESHEET_TR_RATE) then
+            begin
+              Header := NAM_COL_CUESHEET_TR_RATE;
+            end
+            // Column Dropdown List : Finish Action
+            else if (I = IDX_COL_CUESHEET_FINISH_ACTION) then
+            begin
+              Header := NAM_COL_CUESHEET_FINISH_ACTION;
+            end
+            // Column Dropdown List : Program Type
+            else if (I = IDX_COL_CUESHEET_PROGRAM_TYPE) then
+            begin
+              Header := NAM_COL_CUESHEET_PROGRAM_TYPE;
+            end
+            // Column : Notes
+            else if (I = IDX_COL_CUESHEET_NOTES) then
+            begin
+              Header := NAM_COL_CUESHEET_NOTES;
+            end;
+          end;
+        end;
+      finally
+        Columns.EndUpdate;
+      end;
+    finally
+      EndUpdate;
+    end;
+  end;
+end;
+
 procedure TfrmChannel.Initialize;
 begin
   FChannelOnAir := False;
@@ -4633,8 +4887,8 @@ begin
 
   FCueSheetLoopFirst := nil;
   FCueSheetLoopLast  := nil;
+  FCueSheetLoopLastNextMainItem := nil;
 
-  FCueSheetLoopPrevList := TCueSheetList.Create;
   FCueSheetLoopNextList := TCueSheetList.Create;
 
   FillChar(FServerEventIDCurr, SizeOf(TEVentID), #0);
@@ -4703,10 +4957,14 @@ begin
 
   FTimerThread := TChannelTimerThread.Create(Self);
   FTimerThread.Start;
+
+  wmoChannel.RegisterHandle(acgPlaylist.Handle);
 end;
 
 procedure TfrmChannel.Finalize;
 begin
+  wmoChannel.UnregisterHandle(acgPlaylist.Handle);
+
   if (FTimerThread <> nil) then
   begin
     FTimerThread.Terminate;
@@ -4780,9 +5038,6 @@ begin
   Assert(False, GetMainLogStr(lsNormal, Format('Succeeded Channel EventContol thread destroy. Channel=%d', [ChannelID])));
 
   ClearCueSheetLoopItems;
-
-  ClearCueSheetLoopPrevList;
-  FreeAndNil(FCueSheetLoopPrevList);
 
   ClearCueSheetLoopNextList;
   FreeAndNil(FCueSheetLoopNextList);
@@ -6190,12 +6445,12 @@ begin
   else
     StartIndex := 0;
 
-  if (StartIndex > 0) and (CueSheetLoopFirst <> nil) then
+{ if (StartIndex > 0) and (CueSheetLoopFirst <> nil) then
   begin
     LoopStartIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
     if (LoopStartIndex < StartIndex) then
        StartIndex := LoopStartIndex;
-  end;
+  end;  }
 
   for I := StartIndex to FCueSheetList.Count - 1 do
   begin
@@ -6654,7 +6909,7 @@ begin
 
         if (CompareEventTime(StartTime, PEndTime, ChannelFrameRateType) < 0) then
         begin
-          ErrorString := SStartTimeGreaterThenBeforeEndTime;
+          ErrorString := GetLanguageStr(SStartTimeGreaterThenBeforeEndTime);
           exit;
         end;
       end;
@@ -6689,7 +6944,7 @@ begin
     // Check that the entered timecode is validate.
     if (not IsValidTimecode(AStartTC, ChannelFrameRateType)) then
     begin
-      ErrorString := Format(SInvalidTimeocde, ['Start time']);
+      ErrorString := Format(GetLanguageStr(SInvalidTimeocde), ['Start time']);
       exit;
     end;
 
@@ -6708,7 +6963,7 @@ begin
 
         if (CompareEventTime(StartTime, PEndTime, ChannelFrameRateType) < 0) then
         begin
-          ErrorString := SStartTimeGreaterThenBeforeEndTime;
+          ErrorString := GetLanguageStr(SStartTimeGreaterThenBeforeEndTime);
           exit;
         end;
       end
@@ -6727,7 +6982,7 @@ begin
 
           if (CompareEventTime(EndTime, PEndTime, ChannelFrameRateType) > 0) then
           begin
-            ErrorString := SSubStartTimeLessThenParentEndTime;
+            ErrorString := GetLanguageStr(SSubStartTimeLessThenParentEndTime);
             exit;
           end;
         end
@@ -6737,12 +6992,12 @@ begin
 
           if (CompareEventTime(EndTime, PEndTime, ChannelFrameRateType) > 0) then
           begin
-            ErrorString := SSubStartTimeLessThenParentEndTime;
+            ErrorString := GetLanguageStr(SSubStartTimeLessThenParentEndTime);
             exit;
           end
           else if (AStartTC > PItem^.DurationTC) then
           begin
-            ErrorString := SSubStartTimeGreaterThenParentStartTime;
+            ErrorString := GetLanguageStr(SSubStartTimeGreaterThenParentStartTime);
             exit;
           end;
       end;
@@ -6776,7 +7031,7 @@ begin
     // Check that the entered timecode is validate.
     if (not IsValidTimecode(ADuration, ChannelFrameRateType)) then
     begin
-      ErrorString := Format(SInvalidTimeocde, ['Duration']);
+      ErrorString := Format(GetLanguageStr(SInvalidTimeocde), ['Duration']);
       exit;
     end;
 
@@ -6786,13 +7041,13 @@ begin
       begin
         if (ADuration < GV_SettingThresholdTime.MinDuration) then
         begin
-          ErrorString := Format(SDurationTCGreaterThenMinDuration, ['Duration', TimecodeToString(GV_SettingThresholdTime.MinDuration, ChannelIsDropFrame)]);
+          ErrorString := Format(GetLanguageStr(SDurationTCGreaterThenMinDuration), ['Duration', TimecodeToString(GV_SettingThresholdTime.MinDuration, ChannelIsDropFrame)]);
           exit;
         end;
 
         if (ADuration > GV_SettingThresholdTime.MaxDuration) then
         begin
-          ErrorString := Format(SDurationTCLessThenMaxDuration, ['Duration', TimecodeToString(GV_SettingThresholdTime.MaxDuration, ChannelIsDropFrame)]);
+          ErrorString := Format(GetLanguageStr(SDurationTCLessThenMaxDuration), ['Duration', TimecodeToString(GV_SettingThresholdTime.MaxDuration, ChannelIsDropFrame)]);
           exit;
         end;
       end;
@@ -6821,7 +7076,7 @@ begin
 
             if (CompareEventTime(EndTime, PEndTime, ChannelFrameRateType) > 0) then
             begin
-              ErrorString := SSubStartTimeLessThenParentEndTime;
+              ErrorString := GetLanguageStr(SSubStartTimeLessThenParentEndTime);
               exit;
             end;
           end
@@ -6833,7 +7088,7 @@ begin
 
             if (CompareEventTime(EndTime, PEndTime, ChannelFrameRateType) > 0) then
             begin
-              ErrorString := SSubStartTimeLessThenParentEndTime;
+              ErrorString := GetLanguageStr(SSubStartTimeLessThenParentEndTime);
               exit;
             end;
           end;
@@ -6864,7 +7119,7 @@ begin
     // Check that the entered timecode is validate.
     if (not IsValidTimecode(AInTC, ChannelFrameRateType)) then
     begin
-      ErrorString := Format(SInvalidTimeocde, ['In']);
+      ErrorString := Format(GetLanguageStr(SInvalidTimeocde), ['In']);
       exit;
     end;
 
@@ -6874,13 +7129,13 @@ begin
       begin
         if (AInTC >= AItem^.DurationTC) then
         begin
-          ErrorString := SInTCLessThenDurationTC;
+          ErrorString := GetLanguageStr(SInTCLessThenDurationTC);
           exit;
         end;
 
         if (AInTC > AItem^.OutTC) then
         begin
-          ErrorString := SInTCLessThenOutTC;
+          ErrorString := GetLanguageStr(SInTCLessThenOutTC);
           exit;
         end;
       end;
@@ -6909,7 +7164,7 @@ begin
     // Check that the entered timecode is validate.
     if (not IsValidTimecode(AOutTC, ChannelFrameRateType)) then
     begin
-      ErrorString := Format(SInvalidTimeocde, ['Out']);
+      ErrorString := Format(GetLanguageStr(SInvalidTimeocde), ['Out']);
       exit;
     end;
 
@@ -6925,7 +7180,7 @@ begin
 
         if (AOutTC < AItem^.InTC) then
         begin
-          ErrorString := SOutTCGreaterThenInTC;
+          ErrorString := GetLanguageStr(SOutTCGreaterThenInTC);
           exit;
         end;
       end;
@@ -7027,6 +7282,7 @@ begin
 
   FCueSheetLoopFirst := nil;
   FCueSheetLoopLast  := nil;
+  FCueSheetLoopLastNextMainItem := nil;
 end;
 
 procedure TfrmChannel.AddLoadPlayList(ALoadChannelCueSheet: PChannelCueSheet; ACueSheetList: TCueSheetList; AAdd: Boolean = False);
@@ -7362,6 +7618,13 @@ begin
     TxColor := COLOR_TX_EVENTSTATUS_NEXT;
     ToColor := COLOR_TO_EVENTSTATUS_NEXT;
   end
+  else if (FCueSheetLoopLastNextMainItem <> nil) and (AItem^.GroupNo = FCueSheetLoopLastNextMainItem^.GroupNo) and
+          (AItem^.EventStatus.State in [esLoaded]) then
+  begin
+    BkColor := COLOR_BK_EVENTSTATUS_NEXT;
+    TxColor := COLOR_TX_EVENTSTATUS_NEXT;
+    ToColor := COLOR_TO_EVENTSTATUS_NEXT;
+  end
   else
   begin
     case AItem^.EventStatus.State of
@@ -7572,23 +7835,13 @@ var
   I, Index: Integer;
   Item, AddItem: PCueSheetItem;
 
-  LoopLastItem: PCueSheetItem;
-
   LoopAddMainStartTime: TEventTime;
+  LoopAddMainEndTime: TEventTime;
   SaveStartTime: TEventTime;
 
   LoopLastNextMainIndex: Integer;
-  LoopLastNextMainItem: PCueSheetItem;
 begin
   Result := D_FALSE;
-
-  // 마지막 Loop의 다음 Main 인덱스를 구함
-  LoopLastNextMainIndex := GetCueSheetIndexByItem(FCueSheetLoopLast);
-  LoopLastItem := GetLastChildCueSheetItemByIndex(LoopLastNextMainIndex);
-
-  LoopLastNextMainIndex := GetCueSheetIndexByItem(LoopLastItem) + 1;
-
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, LoopLastNextMainIndex = %d', [LoopLastNextMainIndex])));
 
 {  // 마지막 Loop Index의 다음 이벤트를 모두 지움
   if (ChannelOnAir) then
@@ -7639,6 +7892,8 @@ begin
         Inc(ChannelCueSheet.LastProgramNo);
 
         AddItem^.StartTime := LoopAddMainStartTime;
+
+        LoopAddMainEndTime := GetEventEndTime(AddItem^.StartTime, AddItem^.DurationTC, ChannelFrameRateType);
       end;
 
       AddItem^.EventID.SerialNo := ChannelCueSheet.LastSerialNo;
@@ -7653,32 +7908,28 @@ begin
 
   Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, Loop add count = %d', [FCueSheetLoopNextList.Count])));
 
-  for I := 0 to FCueSheetLoopNextList.Count - 1 do
+//  // 마지막 Loop 다음 Item을 찾음
+//  FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);//GetCueSheetItemByIndex(LoopLastNextMainIndex);
+  if (FCueSheetLoopLastNextMainItem <> nil) then
   begin
-    Result := InputEvent(FCueSheetLoopNextList[I], FCueSheetLoopNextList[0]);
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, InputEvent ID = %s, Result = %d', [EventIDToString(FCueSheetLoopNextList[I]^.EventID), Result])));
-  end;
-
-  // 마지막 Loop 다음 Item을 찾음
-  LoopLastNextMainItem := GetCueSheetItemByIndex(LoopLastNextMainIndex);
-  if (LoopLastNextMainItem <> nil) then
-  begin
-    SaveStartTime := LoopLastNextMainItem^.StartTime;
+    SaveStartTime := FCueSheetLoopLastNextMainItem^.StartTime;
 
 //    // 마지막 loop 다음의 이벤트 시간을 마지막 Loop의 EndTime에 현재 Loop의 길이를 더한 값으로 조정
 //    LoopLastNextMainItem^.StartTime := GetEventEndTime(LoopAddMainStartTime, ALoopItem^.DurationTC);
 
     // loop에 추가한 이벤트 시간으로 조정
-    LoopLastNextMainItem^.StartTime := LoopAddMainStartTime;
+    FCueSheetLoopLastNextMainItem^.StartTime := LoopAddMainStartTime;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, LoopLastNextMainItem StartTime = %s', [EventTimeToString(LoopLastNextMainItem.StartTime, ChannelFrameRateType)])));
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, FCueSheetLoopLastNextMainItem StartTime = %s', [EventTimeToString(FCueSheetLoopLastNextMainItem^.StartTime, ChannelFrameRateType)])));
 
     // 마지막 Loop 다음의 이벤트 업데이트
+    LoopLastNextMainIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
     ResetStartTimeByTime(LoopLastNextMainIndex, SaveStartTime);
 
     if (ChannelOnAir) then
     begin
-      OnAirInputEvents(LoopLastNextMainIndex, GV_SettingOption.MaxInputEventCount);
+//      OnAirInputEvents(LoopLastNextMainIndex, GV_SettingOption.MaxInputEventCount);
+      OnAirChangeStartTimeEvent(LoopLastNextMainIndex, SaveStartTime, LoopAddMainEndTime);
 
       ServerBeginUpdates(ChannelID);
       try
@@ -7691,96 +7942,22 @@ begin
     end;
   end;
 
-exit;
-
-
-
-
-  if (FCueSheetLoopPrevList = nil) then exit;
-  if (FCueSheetLoopNextList = nil) then exit;
-
-//  if (FCueSheetLoopLast = nil) then exit;
-  if (ALoopItem = nil) then exit;
-  if (ALoopItem^.EventMode <> EM_MAIN) then exit;
-
-  ChannelCueSheet := GetChannelCueSheetByItem(ALoopItem);
-  if (ChannelCueSheet = nil) then exit;
-
-  ClearCueSheetLoopPrevList;
+  // 추가 Loop 이벤트 전송
   for I := 0 to FCueSheetLoopNextList.Count - 1 do
   begin
-    Item := FCueSheetLoopNextList[I];
-    if (Item <> nil) then
-    begin
-      AddItem := New(PCueSheetItem);
-      Move(Item^, AddItem^, SizeOf(TCueSheetItem));
+    Result := InputEvent(FCueSheetLoopNextList[I], FCueSheetLoopNextList[0]);
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, InputEvent ID = %s, Result = %d', [EventIDToString(FCueSheetLoopNextList[I]^.EventID), Result])));
+  end;
 
-      FCueSheetLoopPrevList.Add(AddItem);
+  if (ChannelOnAir) then
+  begin
+    ServerBeginUpdates(ChannelID);
+    try
+      ServerInputCueSheets(ChannelID, Index, FCueSheetLoopNextList.Count);
+    finally
+      ServerEndUpdates(ChannelID);
     end;
   end;
-
-  // 마지막 Loop의 EndTime을 현재 Loop의 StartTime으로  구함
-//  StartTime := GetEventEndTime(FCueSheetLoopLast^.StartTime, FCueSheetLoopLast^.DurationTC);
-  LoopAddMainStartTime := GetEventEndTime(FCueSheetLoopLastStartTime, FCueSheetLoopLast^.DurationTC, ChannelFrameRateType);
-
-  // 마지막 Loop의 인덱스를 구함
-  // 마지막 Loop 다음 Item을 찾음
-  LoopLastNextMainIndex := GetCueSheetIndexByItem(FCueSheetLoopLast);
-  Item := GetCueSheetItemByIndex(LoopLastNextMainIndex + 1);
-  if (Item <> nil) then
-  begin
-    SaveStartTime := Item^.StartTime;
-
-    // 마지막 loop 다음의 이벤트 시간을 마지막 Loop의 EndTime에 현재 Loop의 길이를 더한 값으로 조정
-    Item^.StartTime := GetEventEndTime(LoopAddMainStartTime, ALoopItem^.DurationTC, ChannelFrameRateType);
-    // 마지막 Loop 다음의 이벤트 업데이트
-    ResetStartTime(LoopLastNextMainIndex + 1, SaveStartTime);
-
-    if (ChannelOnAir) then
-    begin
-      OnAirDeleteEvents(LoopLastNextMainIndex + 1, LoopLastNextMainIndex + GV_SettingOption.MaxInputEventCount + 1);
-      OnAirInputEvents(LoopLastNextMainIndex + 1, GV_SettingOption.MaxInputEventCount);
-    end;
-  end;
-
-  ClearCueSheetLoopNextList;
-
-  Index := GetCueSheetIndexByItem(ALoopItem);
-  for I := Index to FCueSheetList.Count - 1 do
-  begin
-    Item := GetCueSheetItemByIndex(I);
-    if (Item <> nil) and (Item^.GroupNo = ALoopItem^.GroupNo) then
-    begin
-      AddItem := New(PCueSheetItem);
-      Move(Item^, AddItem^, SizeOf(TCueSheetItem));
-      FillChar(AddItem^.EventStatus, SizeOf(TEventStatus), #0);
-
-      Inc(ChannelCueSheet.LastSerialNo);
-
-      if (Item = ALoopItem) then
-      begin
-        Inc(ChannelCueSheet.LastGroupNo);
-        Inc(ChannelCueSheet.LastProgramNo);
-
-        AddItem^.StartTime := LoopAddMainStartTime;
-      end;
-
-      AddItem^.EventID.SerialNo := ChannelCueSheet.LastSerialNo;
-      AddItem^.GroupNo := ChannelCueSheet.LastGroupNo;
-      AddItem^.ProgramNo := ChannelCueSheet.LastProgramNo;
-
-      FCueSheetLoopNextList.Add(AddItem);
-    end
-    else
-      break;
-  end;
-
-  for I := 0 to FCueSheetLoopNextList.Count - 1 do
-  begin
-    Result := InputEvent(FCueSheetLoopNextList[I]);
-  end;
-
-  FCueSheetLoopLastStartTime := LoopAddMainStartTime;//GetEventEndTime(StartTime, FCueSheetLoopLastDurationTC);
 end;
 
 procedure TfrmChannel.UpdateLoopCueSheet(ALoopItem: PCueSheetItem);
@@ -7825,24 +8002,6 @@ begin
   FCueSheetLoopLastStartTime  := ALoopItem^.StartTime;
   FCueSheetLoopLastDurationTC := ALoopItem^.DurationTC;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('UpdateLoopCueSheet, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
-
-
-exit;
-  if (FCueSheetLoopLast = nil) then exit;
-  if (ALoopItem = nil) then exit;
-
-  LoopIndex := GetCueSheetIndexByItem(ALoopItem);
-
-  for I := 0 to FCueSheetLoopPrevList.Count - 1 do
-  begin
-    Item := GetCueSheetItemByIndex(LoopIndex);
-    Move(FCueSheetLoopPrevList[I]^, Item^, SizeOf(TCueSheetItem));
-
-    Inc(LoopIndex);
-  end;
-
-//  FCueSheetLoopLast := ALoopItem;
 end;
 
 function TfrmChannel.DeleteLoopCueSheet: Integer;
@@ -7860,6 +8019,7 @@ procedure TfrmChannel.ClearCueSheetLoopItems;
 begin
   FCueSheetLoopFirst := nil;
   FCueSheetLoopLast  := nil;
+  FCueSheetLoopLastNextMainItem  := nil;
 end;
 
 procedure TfrmChannel.CheckCueSheetLoop(AIndex: Integer);
@@ -7871,11 +8031,12 @@ begin
 
   FCueSheetLoopFirst := nil;
   FCueSheetLoopLast  := nil;
+  FCueSheetLoopLastNextMainItem := nil;
 
   for I := AIndex to FCueSheetList.Count - 1 do
   begin
     Item := GetCueSheetItemByIndex(I);
-    if (Item <> nil) and (Item^.EventMode = EM_MAIN) and (Item^.StartMode = SM_LOOP) then
+    if (Item <> nil) and (Item^.EventMode = EM_MAIN) and (Item^.StartMode = SM_LOOP) and (Item^.EventStatus.State <> esSkipped) then
     begin
       FCueSheetLoopFirst := Item;
       FCueSheetLoopLast  := Item;
@@ -7887,6 +8048,8 @@ begin
         Item := GetCueSheetItemByIndex(J);
         if (Item <> nil) and (Item^.EventMode = EM_MAIN) then
         begin
+          if (Item^.EventStatus.State = esSkipped) then continue;
+
           if (Item^.StartMode = SM_LOOP) then
             FCueSheetLoopLast := Item
           else
@@ -7909,6 +8072,9 @@ begin
     FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
 
     Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+
+    // 마지막 Loop의 다음 Main 인덱스를 구함
+    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
   end;
 end;
 
@@ -7945,13 +8111,13 @@ begin
   if (not CheckCueSheetEditPossibleLockTimeByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditLockTime), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditLockTime)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end
   else if (not CheckCueSheetEditPossibleLocationByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditBeforeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditBeforeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end;
 
@@ -7975,7 +8141,7 @@ begin
             if (ProgItem <> nil) then
             begin
               MessageBeep(MB_ICONWARNING);
-              MessageBox(Handle, PChar(SENotInsertProgramLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+              MessageBox(Handle, PChar(GetLanguageStr(SENotInsertProgramLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
               exit;
             end;
 
@@ -7985,7 +8151,7 @@ begin
           else if (Item^.EventMode <> EM_PROGRAM) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SENotInsertProgramLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+            MessageBox(Handle, PChar(GetLanguageStr(SENotInsertProgramLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
             exit;
           end
 //          else
@@ -8012,14 +8178,14 @@ begin
             if (GetParentCueSheetItemByItem(Item) <> nil) then
             begin
               MessageBeep(MB_ICONWARNING);
-              MessageBox(Handle, PChar(SENotInsertMainLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+              MessageBox(Handle, PChar(GetLanguageStr(SENotInsertMainLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
               exit;
             end;
           end
           else if (not (Item^.EventMode in [EM_PROGRAM, EM_MAIN])) then
           begin
             MessageBeep(MB_ICONWARNING);
-            MessageBox(Handle, PChar(SENotInsertMainLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+            MessageBox(Handle, PChar(GetLanguageStr(SENotInsertMainLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
             exit;
           end;
         end;
@@ -8049,7 +8215,7 @@ begin
       if (Item = nil) then
       begin
         MessageBeep(MB_ICONWARNING);
-        MessageBox(Handle, PChar(SENotInsertJoinSubLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+        MessageBox(Handle, PChar(GetLanguageStr(SENotInsertJoinSubLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
         exit;
       end;
 
@@ -8527,13 +8693,13 @@ begin
   if (not CheckCueSheetEditPossibleLockTimeByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditLockTime), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditLockTime)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end
   else if (not CheckCueSheetEditPossibleLocationByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditBeforeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditBeforeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end;
 
@@ -8951,7 +9117,7 @@ var
     Flag: Boolean;
     SItem: PCueSheetItem;
   begin
-    Result := SQDeleteEvent + #13#10;
+    Result := GetLanguageStr(SQDeleteEvent) + #13#10;
 
     with acgPlaylist do
     begin
@@ -9329,6 +9495,148 @@ begin
   end;
 end;
 
+procedure TfrmChannel.InsertCueSheetByFiles(AIndex: Integer; AFiles: TStrings);
+var
+  I: Integer;
+  Item: PCueSheetItem;
+
+  BaseTime: TEventTime;
+  BaseDisplayNo: Integer;
+
+  ChannelCueSheet: PChannelCueSheet;
+begin
+  if (not HasMainControl) then exit;
+  if (AIndex < 0) or (AIndex > FCueSheetList.Count) then exit;
+  if (AFiles = nil) or (AFiles.Count <= 0) then exit;
+
+  Screen.Cursor := crHourGlass;
+  try
+    if (AIndex <= 0) then
+    begin
+      BaseTime.D := Date;
+      BaseTime.T := 0;
+      BaseDisplayNo := -1;
+    end
+    else
+    begin
+      Item := GetParentCueSheetItemByIndex(AIndex - 1);
+      if (Item = nil) then exit;
+
+      BaseTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC, ChannelFrameRateType);
+      BaseDisplayNo := Item.DisplayNo;
+    end;
+
+    ChannelCueSheet := GetChannelCueSheetByIndex(AIndex - 1);
+    if (ChannelCueSheet = nil) then exit;
+
+    FCueSheetLock.Enter;
+    try
+      for I := 0 to AFiles.Count - 1 do
+      begin
+        Item := New(PCueSheetItem);
+        FillChar(Item^, SizeOf(TCueSheetItem), #0);
+
+        with GV_SettingEventColumnDefault do
+        begin
+          Item^.EventMode := EM_MAIN;
+          Item^.StartMode := StartMode;
+          Item^.StartTime := BaseTime;
+
+          StrPLCopy(Item^.Title, AFiles[I], TITLE_LEN);
+          StrPLCopy(Item^.SubTitle, '', SUBTITLE_LEN);
+
+          Item^.Input  := Input;
+
+          if (Item^.Input in [IT_MAIN, IT_BACKUP]) then
+            Item^.Output := Byte(OutputBkgnd)
+          else
+            Item^.Output := Byte(OutputKeyer);
+
+          StrPLCopy(Item^.Source, 'SKB_C1_DEC1', DEVICENAME_LEN);
+
+          Item^.SourceLayer := 0;
+
+          StrPLCopy(Item^.MediaId, AFiles[I], MEDIAID_LEN);
+
+          Item^.DurationTC := GetMediaDuration(AFiles[I]);
+          Item^.InTC       := InTC;
+          Item^.OutTC      := GetPlusTimecode(Item^.InTC, FrameToTimeCode(TimecodeToFrame(Item^.DurationTC, ChannelFrameRateType) - 1, ChannelFrameRateType), ChannelFrameRateType);
+
+          Item^.TransitionType := TTRType(TransitionType);
+          Item^.TransitionRate := TTRRate(TransitionRate);
+
+          Item^.FinishAction := TFinishAction(FinishAction);
+
+          Item^.ProgramType := Byte(ProgramType);
+          StrPLCopy(Item^.Notes, '', NOTES_LEN);
+
+          Item^.DisplayNo := BaseDisplayNo + I + 1;
+
+          ChannelCueSheet^.LastProgramNo := ChannelCueSheet^.LastProgramNo + 1;
+          Item^.ProgramNo := ChannelCueSheet^.LastProgramNo;
+
+          ChannelCueSheet^.LastGroupNo := ChannelCueSheet^.LastGroupNo + 1;
+          Item^.GroupNo := ChannelCueSheet^.LastGroupNo;
+
+          ChannelCueSheet^.LastSerialNo := ChannelCueSheet^.LastSerialNo + 1;
+
+          with Item^.EventID do
+          begin
+            ChannelID := ChannelCueSheet^.ChannelID;
+            StrCopy(OnAirDate, ChannelCueSheet^.OnairDate);
+            OnAirFlag := ChannelCueSheet^.OnairFlag;
+            OnAirNo   := ChannelCueSheet^.OnairNo;
+            SerialNo  := ChannelCueSheet^.LastSerialNo;
+          end;
+        end;
+
+        if (FCueSheetList.Count <- 0) then
+          FCueSheetList.Add(Item)
+        else
+          FCueSheetList.Insert(AIndex + I, Item);
+
+        Inc(ChannelCueSheet.EventCount);
+
+        InsertPlayListGridMain(AIndex + I);
+
+        BaseTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC, ChannelFrameRateType);
+      end;
+
+      ResetNo(AIndex, BaseDisplayNo);
+      ResetStartTime(AIndex);// + 1);
+    finally
+      FCueSheetLock.Leave;
+    end;
+
+//    PopulatePlayListGrid(AIndex);
+    SelectRowPlayListGrid(AIndex);
+
+
+  //  // DoCueSheetCheck에서 잗ㅇ으로 이벤트를 Input 처리함
+    if (FChannelOnAir) and (AIndex <= FLastInputIndex) then
+      OnAirInputEvents(AIndex, GV_SettingOption.MaxInputEventCount);
+
+
+//    PopulatePlayListTimeLine(AIndex);
+
+    FLastCount := FCueSheetList.Count;
+
+    CheckCueSheetLoop(CueSheetCurr);
+
+    if (ChannelOnAir) then
+    begin
+      ServerBeginUpdates(ChannelID);
+      try
+        ServerInputCueSheets(ChannelID, AIndex);
+      finally
+        ServerEndUpdates(ChannelID);
+      end;
+    end;
+  finally
+    Screen.Cursor := crDefault;
+  end;
+end;
+
 procedure TfrmChannel.InspectCueSheet;
 var
   CurrTime: TDateTime;
@@ -9386,7 +9694,7 @@ begin
   begin
 //    if (FBlankCheckThread.FWarningDialog = nil) or (not FBlankCheckThread.FWarningDialog.Showing) then
     begin
-      WarningText := Format(SWNotExistNextEvent, [GetChannelNameByID(ChannelID)]);
+      WarningText := Format(GetLanguageStr(SWNotExistNextEvent), [GetChannelNameByID(ChannelID)]);
 
       WarningStrLen := Length(WarningText) + 1;
 //      WarningStr := StrAlloc(WarningStrLen);
@@ -9439,7 +9747,7 @@ begin
     begin
 //      ShowMessage(Format('%d, %d', [CurrIndex, StartIndex]));
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SESourceExchangeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SESourceExchangeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
   end
@@ -9448,13 +9756,13 @@ begin
     if (StartIndex < NextIndex) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SESourceExchangeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SESourceExchangeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
   end;
 
   MessageBeep(MB_ICONQUESTION);
-  R := MessageBox(Handle, PChar(Format(SQSourceExchange, [Item^.Title])), PChar(Application.Title), MB_YESNO or MB_ICONQUESTION);
+  R := MessageBox(Handle, PChar(Format(GetLanguageStr(SQSourceExchange), [Item^.Title])), PChar(Application.Title), MB_YESNO or MB_ICONQUESTION);
   if (R <> IDYES) then exit;
 
 //  ExecuteSourceExchange(StartIndex);
@@ -9770,7 +10078,7 @@ begin
   if (acgPlayList.SelectedRowCount <> 1) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SEPasteLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SEPasteLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end;
 
@@ -9779,13 +10087,13 @@ begin
   if (not CheckCueSheetEditPossibleLockTimeByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditLockTime), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditLockTime)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end
   else if (not CheckCueSheetEditPossibleLocationByIndex(SelectIndex)) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SENotPossibleEditBeforeLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SENotPossibleEditBeforeLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end;
 
@@ -9796,7 +10104,7 @@ begin
       (GV_ClipboardCueSheet.PasteIncluded <> [EM_COMMENT])) then
   begin
     MessageBeep(MB_ICONWARNING);
-    MessageBox(Handle, PChar(SEPasteHasMainLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+    MessageBox(Handle, PChar(GetLanguageStr(SEPasteHasMainLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
   end;
 
@@ -9825,7 +10133,7 @@ begin
            (SelectItem^.EventMode in [EM_JOIN, EM_SUB]) then
         begin
           MessageBeep(MB_ICONWARNING);
-          MessageBox(Handle, PChar(SEPasteHasProgramLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+          MessageBox(Handle, PChar(GetLanguageStr(SEPasteHasProgramLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
           exit;
         end
         // 선택한 이벤트가 COMMENT이고 프로그램 또는 MAIN 이벤트에 속해 있는 경우 에러
@@ -9833,7 +10141,7 @@ begin
                 ((ProgItem <> nil) or (ParentItem <> nil)) then
         begin
           MessageBeep(MB_ICONWARNING);
-          MessageBox(Handle, PChar(SEPasteHasProgramLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+          MessageBox(Handle, PChar(GetLanguageStr(SEPasteHasProgramLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
           exit;
         end;
       end;
@@ -9845,7 +10153,7 @@ begin
       if (SelectItem <> nil) and (ParentItem <> nil) and (SelectItem <> ParentItem) then
       begin
         MessageBeep(MB_ICONWARNING);
-        MessageBox(Handle, PChar(SEPasteHasMainLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+        MessageBox(Handle, PChar(GetLanguageStr(SEPasteHasMainLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
         exit;
       end;
     end
@@ -9856,7 +10164,7 @@ begin
       if (ParentItem = nil) then
       begin
         MessageBeep(MB_ICONWARNING);
-        MessageBox(Handle, PChar(SEPasteJoinSubLocationIncorrect), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+        MessageBox(Handle, PChar(GetLanguageStr(SEPasteJoinSubLocationIncorrect)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
         exit;
       end;
     end;
@@ -11005,8 +11313,32 @@ begin
       if (AAddCount <> 0) then LoadHideRowList;
       EndUpdate;
     end;
-    lblEventCount.Caption := Format('%d / %d', [SelectedRowCount, FCueSheetList.Count + 1]);
+//    lblEventCount.Caption := Format('%d / %d', [SelectedRowCount, FCueSheetList.Count + 1]);
   end;
+
+  DisplayEventCount;
+end;
+
+procedure TfrmChannel.DisplayEventCount;
+var
+  SelectedCount: Integer;
+begin
+  with acgPlayList do
+  begin
+    SelectedCount := SelectedRowCount;
+
+    if (SelectedCount <= 0) and (Row >= CNT_CUESHEET_HEADER) then
+      SelectedCount := 1;
+
+    if (RowSelect[RowCount - CNT_CUESHEET_FOOTER]) then
+      Dec(SelectedCount);
+
+    lblEventCount.Caption := Format('%d / %d', [SelectedCount, FCueSheetList.Count]);
+  end;
+
+
+//  with acgPlaylist do
+//    lblEventCount.Caption := Format('%d / %d', [SelectedRowCount, FCueSheetList.Count]);
 end;
 
 procedure TfrmChannel.DisplayPlayListGrid(AIndex: Integer; AItem: PCueSheetItem);
@@ -11886,7 +12218,11 @@ begin
 
         Track.Duration := Track.OutPoint - Track.InPoint;
 
-        if (Item^.EventMode = EM_PROGRAM) then
+        Track.Color         := Item^.BkColor;
+        Track.ColorCaption  := Item^.BkColor;
+        Track.Caption       := String(Item^.Title);
+
+{        if (Item^.EventMode = EM_PROGRAM) then
         begin
           Track.Color        := clAqua;
           Track.ColorCaption := clAqua;
@@ -11901,7 +12237,7 @@ begin
 //          Track.ColorShadow    := $000E0607;
 
           Track.Caption := String(Item^.Title);
-        end;
+        end; }
 
         if (Track.InPoint < FTimeLineMin) then FTimeLineMin := Track.InPoint;
         if (Track.OutPoint > FTimeLineMax) then FTimeLineMax := Track.OutPoint;
@@ -12271,11 +12607,11 @@ begin
               begin
                 Track.Color        := COLOR_BK_EVENTSTATUS_ERROR;
                 Track.ColorCaption := COLOR_BK_EVENTSTATUS_ERROR;
-              end
+{              end
               else
               begin
                 Track.Color        := GetProgramTypeColorByCode(Item^.ProgramType);
-                Track.ColorCaption := GetProgramTypeColorByCode(Item^.ProgramType);
+                Track.ColorCaption := GetProgramTypeColorByCode(Item^.ProgramType); }
               end;
             end;
           end;
@@ -12830,6 +13166,44 @@ exit;
   end;
 end;
 
+procedure TfrmChannel.ResetStartTimeLoopNextList(ASaveTime, ANewTime: TEventTime);
+var
+  I: Integer;
+  Item: PCueSheetItem;
+  DurEventTime: TEventTime;
+begin
+  if (FCueSheetLoopNextList = nil) then exit;
+
+  DurEventTime := GetDurEventTime(ASaveTime, ANewTime, ChannelFrameRateType);
+
+  FCueSheetLock.Enter;
+  try
+    for I := 0 to FCueSheetLoopNextList.Count - 1 do
+    begin
+      Item := FCueSheetLoopNextList[I];
+      if (Item <> nil) and (Item^.EventMode = EM_MAIN) then
+      begin
+        if (CompareEventTime(ASaveTime, ANewTime, ChannelFrameRateType) <= 0) then
+          Item^.StartTime := GetPlusEventTime(Item^.StartTime, DurEventTime, ChannelFrameRateType)
+        else
+          Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurEventTime, ChannelFrameRateType);
+
+//FCueSheetLoopLastDurationTC := Item.DurationTC;
+
+        break;
+      end;
+
+    end;
+
+    if (CompareEventTime(ASaveTime, ANewTime, ChannelFrameRateType) <= 0) then
+    FCueSheetLoopLastStartTime := GetPlusEventTime(FCueSheetLoopLastStartTime, DurEventTime, ChannelFrameRateType)
+    else
+    FCueSheetLoopLastStartTime := GetMinusEventTime(FCueSheetLoopLastStartTime, DurEventTime, ChannelFrameRateType);
+  finally
+    FCueSheetLock.Leave;
+  end;
+end;
+
 procedure TfrmChannel.ChannelCueSheetListQuickSort(L, R: Integer; AChannelCueSheetList: TChannelCueSheetList);
 var
   I, J, P: Integer;
@@ -13056,6 +13430,9 @@ var
   RemoveItemList: TCueSheetList;
   RemoveRowList: TList<Integer>;
   RemoveMainRowList: TList<Integer>;
+
+
+  LoopFirstIndex, LoopLastIndex, LoopLastNextIndex: Integer;
 begin
   if (not HasMainControl) then exit;
 
@@ -13432,6 +13809,30 @@ begin
                       begin
 //                        Dec(FLastInputIndex, RemoveItemList.Count);
 
+                        DeleteLoopCueSheet;
+{  // Loop 첫번째/마지막 이벤트 인덱스 구함
+  LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
+  LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLast);
+  LoopLastNextIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
+
+    // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
+    if (InRange(StartIndex, LoopFirstIndex, LoopLastIndex)) then
+    begin
+
+                        for I := StartIndex to SelectIndex - 1 do
+                        begin
+                          Item := GetCueSheetItemByIndex(I);
+                          if (Item <> nil) then
+                          begin
+                            if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+                              continue;
+
+                            DeleteEvent(Item);
+                          end;
+                        end;
+    end; }
+
+
                         for I := RemoveMainRowList.Count - 1 downto 0 do
                         begin
                           OnAirDeleteEvents(RemoveMainRowList[I], RemoveMainRowList[I]);
@@ -13470,6 +13871,7 @@ begin
 
                       StartIndex := NowStartIndex + SaveEventCount;
   //                    ShowMessage(IntToStr(StartIndex));
+
                     finally
                       RemoveMainRowList.Clear;
                       RemoveRowList.Clear;
@@ -13599,6 +14001,10 @@ begin
                   if (ChannelOnAir) then
                   begin
                     FMediaCheckThread.MediaCheck;
+
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop 111. Start = %d', [StartIndex])));
+                    CheckCueSheetLoop(StartIndex);
+
                     ServerInputCueSheets(ChannelID, StartIndex);
                   end;
                 finally
@@ -14033,7 +14439,7 @@ begin
   begin
 //    if (FBlankCheckThread.FWarningDialog = nil) or (not FBlankCheckThread.FWarningDialog.Showing) then
     begin
-      WarningText := Format(SWNotExistNextEvent, [GetChannelNameByID(ChannelID)]);
+      WarningText := Format(GetLanguageStr(SWNotExistNextEvent), [GetChannelNameByID(ChannelID)]);
 
       WarningStrLen := Length(WarningText) + 1;
 //      WarningStr := StrAlloc(WarningStrLen);
@@ -14375,13 +14781,17 @@ begin
     CItem := GetCueSheetItemByIndex(I);
     if (CItem <> nil) then
     begin
-  //    DeletePlayListTimeLine(CItem);
-      DeleteEvent(CItem);
-      if (CItem^.EventStatus.State <> esSkipped) then
-        CItem^.EventStatus.State := esIdle;
+      // Onair가 시작된 이벤트는 삭제하지 않음
+//      if (CItem^.EventStatus.State < esOnair) then
+      begin
+    //    DeletePlayListTimeLine(CItem);
+        DeleteEvent(CItem);
+        if (CItem^.EventStatus.State <> esSkipped) then
+          CItem^.EventStatus.State := esIdle;
 
-      if (CItem^.EventMode = EM_MAIN) and (CueSheetNext = CItem) then
-        CueSheetNext := nil;
+        if (CItem^.EventMode = EM_MAIN) and (CueSheetNext = CItem) then
+          CueSheetNext := nil;
+      end;
     end;
   end;
 end;
@@ -14538,6 +14948,21 @@ begin
         break;
     end;
   end;
+end;
+
+procedure TfrmChannel.OnAirChangeStartTimeEvent(AIndex: Integer; ASaveStartTime, AChangeStartTime: TEventTime);
+var
+  Item: PCueSheetItem;
+begin
+  if (not HasMainControl) then exit;
+
+  if (FCueSheetList = nil) then exit;
+  if (AIndex < 0) or (AIndex > FCueSheetList.Count - 1) then exit;
+
+  Item := GetCueSheetItemByIndex(AIndex);
+  if (Item = nil) then exit;
+
+  ChangeStartTimeEvent(Item, AChangeStartTime);
 end;
 
 procedure TfrmChannel.OnAirChangeDurationEvent(AIndex: Integer; ASaveDuration, AChangeDuration: TTimecode);
@@ -15254,6 +15679,68 @@ begin
   end;
 end;
 
+function TfrmChannel.ChangeStartTimeEvent(AItem: PCueSheetItem; AStartTime: TEventTime): Integer;
+var
+  I, J: Integer;
+  SourceGroup: PSourceGroup;
+  Source: PSource;
+  SourceHandles: TSourceHandleList;
+  SourceHandle: PSourceHandle;
+  Event: TEvent;
+begin
+  Result := D_FALSE;
+
+  if (not HasMainControl) then exit;
+
+  if (AItem^.EventMode <> EM_MAIN) then exit;
+
+  SourceGroup := GetSourceGroupByName(String(AItem^.Source));
+  if (SourceGroup = nil) then exit;
+  if (SourceGroup.Sources = nil) then exit;
+
+  if (SourceGroup.Sources.Count > 0) then
+  begin
+    // 메인 장비에만 길이 변경 명령을 내림
+    Source := SourceGroup.Sources[0];
+    if (Source = nil) then exit;
+
+    SourceHandles := Source^.Handles;
+    if (SourceHandles = nil) or (SourceHandles.Count <= 0) then exit;
+
+    for I := 0 to SourceHandles.Count - 1 do
+    begin
+      SourceHandle := SourceHandles[I];
+      if (SourceHandle^.DCS <> nil) and (SourceHandle^.DCS^.Alive) and
+         (SourceHandle^.Handle > INVALID_DEVICE_HANDLE) then
+        Result := frmSEC.DCSEventThread.ChangeStartTimeEvent(SourceHandle, AItem^.EventID, AStartTime);
+    end;
+
+  {  // No needed, switcher & router has duration 0
+    // Change duration switcher & router event
+    if (Source^.MakeTransition) then
+    begin
+      for I := 0 to GV_MCSList.Count - 1 do
+      begin
+        Source := GetSourceByName(String(GV_MCSList[I]^.Name));
+        if (Source = nil) then continue;
+
+        if (Source^.Channel^.ID <> FChannelID) then continue;
+
+        SourceHandles := Source^.Handles;
+        if (SourceHandles = nil) or (SourceHandles.Count <= 0) then continue;
+
+        for J := 0 to SourceHandles.Count - 1 do
+        begin
+          SourceHandle := SourceHandles[J];
+          if (SourceHandle^.DCS <> nil) and (SourceHandle^.DCS^.Alive) and
+             (SourceHandle^.Handle > INVALID_DEVICE_HANDLE) then
+            Result := frmSEC.DCSEventThread.ChangeStartTimeEvent(SourceHandle, AItem^.EventID, AStartTime);
+        end;
+      end;
+    end; }
+  end;
+end;
+
 function TfrmChannel.ChangeDurationEvent(AItem: PCueSheetItem; ADuration: TTimecode): Integer;
 var
   I, J: Integer;
@@ -15316,6 +15803,25 @@ begin
   end;
 end;
 
+function TfrmChannel.CreateWarningDialog(AOwner: TComponent; AText: String): TfrmWarningDialog;
+var
+  H: HWND;
+  F: TfrmWarningDialog;
+begin
+  Result := TfrmWarningDialog.Create(nil);
+  Result.SetWarningText(AText);
+
+  AOwner.FreeNotification(Result);  // ?? AOwner가 AForm 파괴를 감지함
+  Result.Show;
+
+  // If showing message then bring to top
+  H := FindWindow('#32770', PChar(Application.Title));
+  if (H <> 0) then
+  begin
+    SetWindowPos(H, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE);
+  end;
+end;
+
 procedure TfrmChannel.StartOnAir;
 var
   I, J: Integer;
@@ -15359,7 +15865,7 @@ begin
 //  if (GetChannelOnAirByID(FChannelID)) then
   if (FChannelOnAir) then
   begin
-    ErrorString := Format(SChannelAlreadyRunning, [GetChannelNameByID(FChannelID)]);
+    ErrorString := Format(GetLanguageStr(SChannelAlreadyRunning), [GetChannelNameByID(FChannelID)]);
     MessageBeep(MB_ICONWARNING);
     MessageBox(Handle, PChar(ErrorString), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
     exit;
@@ -15487,7 +15993,7 @@ begin
         if (StartOnAirTime <= Now) then
         begin
           MessageBeep(MB_ICONQUESTION);
-          R := MessageBox(Handle, Pchar(SQStartOnAirByManual), PChar(Application.Title), MB_YESNOCANCEL or MB_ICONQUESTION or MB_TOPMOST);
+          R := MessageBox(Handle, PChar(GetLanguageStr(SQStartOnAirByManual)), PChar(Application.Title), MB_YESNOCANCEL or MB_ICONQUESTION or MB_TOPMOST);
           if (R = IDYES) then
           begin
             ServerBeginUpdates(ChannelID);
@@ -15536,9 +16042,9 @@ begin
 
               ServerInputCueSheets(ChannelID, 0);
 
-              CueSheetNext := CurrItem;
+//              CueSheetNext := CurrItem;
 
-              CheckCueSheetLoop(CueSheetNext);
+              CheckCueSheetLoop(CurrItem);
             finally
               ServerEndUpdates(ChannelID);
             end;
@@ -15585,9 +16091,9 @@ begin
 
               ServerInputCueSheets(ChannelID, 0);
 
-              CueSheetNext := NextItem;
+//              CueSheetNext := NextItem;
 
-              CheckCueSheetLoop(CueSheetNext);
+              CheckCueSheetLoop(NextItem);
             finally
               ServerEndUpdates(ChannelID);
             end;
@@ -15637,9 +16143,9 @@ begin
 
             ServerInputCueSheets(ChannelID, 0);
 
-            CueSheetNext := NextItem;
+//            CueSheetNext := NextItem;
 
-            CheckCueSheetLoop(CueSheetNext);
+            CheckCueSheetLoop(NextItem);
           finally
             ServerEndUpdates(ChannelID);
           end;
@@ -15693,7 +16199,7 @@ begin
         if (OnAirItem <> CurrItem) or (OnNextItem <> NextItem) then
         begin
           MessageBeep(MB_ICONERROR);
-          MessageBox(Handle, PChar(SEChangedOnAirEvent), PChar(Application.Title), MB_OK or MB_ICONERROR or MB_TOPMOST);
+          MessageBox(Handle, PChar(GetLanguageStr(SEChangedOnAirEvent)), PChar(Application.Title), MB_OK or MB_ICONERROR or MB_TOPMOST);
           exit;
         end;
 
@@ -15884,10 +16390,10 @@ begin
 
           ServerInputCueSheets(ChannelID, 0);
 
-          CueSheetCurr := OnAirItem;
-          CueSheetNext := OnNextItem;
+//          CueSheetCurr := OnAirItem;
+//          CueSheetNext := OnNextItem;
 
-          CheckCueSheetLoop(CueSheetCurr);
+          CheckCueSheetLoop(OnAirItem);
         finally
           ServerEndUpdates(ChannelID);
         end;
@@ -15948,7 +16454,7 @@ begin
     if (DateTimeToTimecode(NextStartTime - Now, FR_30) <= GV_SettingThresholdTime.HoldLockTime) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SFreezeOnAirTimeout), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SFreezeOnAirTimeout)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
 
@@ -15978,7 +16484,7 @@ begin
     if (DateTimeToTimecode(NextStartTime - Now) <= GV_SettingTresholdTime.HoldLockTime) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SFreezeOnAirTimeout), PChar(Application.Title), MB_OK or MB_ICONWARNING);
+      MessageBox(Handle, PChar(GetLanguageStr(SFreezeOnAirTimeout)), PChar(Application.Title), MB_OK or MB_ICONWARNING);
       exit;
     end;
 
@@ -16022,7 +16528,7 @@ begin
 
   IsFinish := False;
   MessageBeep(MB_ICONQUESTION);
-  R := MessageBox(Handle, Pchar(SQFinishtOnAirAndPreserveEvent), PChar(Application.Title), MB_YESNOCANCEL or MB_ICONQUESTION or MB_TOPMOST);
+  R := MessageBox(Handle, PChar(GetLanguageStr(SQFinishtOnAirAndPreserveEvent)), PChar(Application.Title), MB_YESNOCANCEL or MB_ICONQUESTION or MB_TOPMOST);
   if (R = IDYES) then
   begin
     IsFinish := True;
@@ -16030,7 +16536,7 @@ begin
   else if (R = IDNO) then
   begin
     MessageBeep(MB_ICONQUESTION);
-    R := MessageBox(Handle, Pchar(SQFinishtOnAirAndClearEvent), PChar(Application.Title), MB_YESNO or MB_ICONQUESTION or MB_TOPMOST);
+    R := MessageBox(Handle, PChar(GetLanguageStr(SQFinishtOnAirAndClearEvent)), PChar(Application.Title), MB_YESNO or MB_ICONQUESTION or MB_TOPMOST);
     if (R = IDYES) then
     begin
       OnAirClearEvents;
@@ -16160,7 +16666,7 @@ begin
     if (DateTimeToTimecode(CurrEndTimeT - CurrTimeT, FR_30) <= GV_SettingThresholdTime.BreakLockTime) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SBreakCurrentTimeout), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SBreakCurrentTimeout)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
 
@@ -16217,7 +16723,7 @@ begin
 
         SaveDurationTC := CurrItem^.DurationTC;
         CurrItem^.DurationTC := CurrDurationTC;
-        CurrItem^.OutTC := GetPlusTimecode(CurrItem^.InTC, CurrItem^.DurationTC, ChannelFrameRateType);
+        CurrItem^.OutTC := GetMinusTimecode(OutTC, FrameToTimecode(1, ChannelFrameRateType), ChannelFrameRateType); //GetPlusTimecode(CurrItem^.InTC, CurrItem^.DurationTC, ChannelFrameRateType);
 
         CurrEndTimeE := GetEventEndTime(CurrItem^.StartTime, CurrItem^.DurationTC, ChannelFrameRateType);
 
@@ -16230,7 +16736,8 @@ begin
         NewCurrItem^.StartMode := SM_MANUAL;
         NewCurrItem^.StartTime := CurrEndTimeE;
         NewCurrItem^.DurationTC := RemainTC;
-        NewCurrItem^.OutTC := GetPlusTimecode(NewCurrItem^.InTC, NewCurrItem^.DurationTC, ChannelFrameRateType);
+        NewCurrItem^.InTC := OutTC;//GetPlusTimecode(NewCurrItem^.InTC, NewCurrItem^.DurationTC, ChannelFrameRateType);
+//        NewCurrItem^.OutTC := GetPlusTimecode(NewCurrItem^.InTC, NewCurrItem^.DurationTC, ChannelFrameRateType);
 
         StrCat(CurrItem^.Title, ' - 1');
         StrCat(NewCurrItem^.Title, ' - 2');
@@ -16552,35 +17059,355 @@ begin
   end;
 end;
 
+// 다음 이벤트를 지정
 procedure TfrmChannel.AssignNextEvent(ANextLockTime: Boolean = True);
 var
   CurrEndTime: TDateTime;
 
-  I: Integer;
-  StartIndex, EndIndex, SkipIndex: Integer;
-  LoopFirstIndex, LoopLastIndex: Integer;
+  StartIndex: Integer;
+  StartItem: PCueSheetItem;
 
-  SItem, CItem: PCueSheetItem;
+  SelectIndex: Integer;
+  SelectItem: PCueSheetItem;
+  SelectNextIndex: Integer;
+
+  LoopFirstIndex, LoopLastIndex, LoopLastNextIndex: Integer;
+
   SaveStartTime: TEventTime;
+  DurTime: TEventTime;
+
+  I: Integer;
+
+
+
+  SkipIndex: Integer;
+  LoopCheckIndex: Integer;
+
+  SItem, CItem, Item: PCueSheetItem;
 begin
   if (not HasMainControl) then exit;
 
+  // 현재 이벤트의 남은 시각을 계산하여 다음 이벤트를 선택할 수 있는 시간이 납지 않으면 제외
   if (CueSheetCurr <> nil) and (ANextLockTime) then
   begin
     CurrEndTime := EventTimeToDateTime(GetEventEndTime(CueSheetCurr^.StartTime, CueSheetCurr^.DurationTC, ChannelFrameRateType), ChannelFrameRateType);
     if (DateTimeToTimecode(CurrEndTime - Now, FR_30) <= GV_SettingThresholdTime.SetNextLockTime) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SSetNextTimeout), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SSetNextTimeout)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
   end;
 
+  // 시작 이벤트 인덱스 구함
+  StartIndex := GetStartOnAirMainIndex;
+  StartItem  := GetParentCueSheetItemByIndex(StartIndex);
+
+  // 선택한 이벤트 구함
+  SelectIndex := acgPlaylist.RealRow - CNT_CUESHEET_HEADER;
+  SelectItem  := GetParentCueSheetItemByIndex(SelectIndex);
+  SelectIndex := GetCueSheetIndexByItem(SelectItem);
+
+  // 선택한 이벤트의 시작시각을 저장
+  SaveStartTime := SelectItem^.StartTime;
+
+  // 변경할 시작시각의 길이를 구함
+  DurTime := GetDurEventTime(SaveStartTime, StartItem^.StartTime, ChannelFrameRateType);
+
+  // Loop 첫번째/마지막 이벤트 인덱스 구함
+  LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
+  LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLast);
+  LoopLastNextIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
+
+  wmtlPlaylist.BeginUpdateCompositions;
+  if (ChannelOnAir) then
+    ServerBeginUpdates(ChannelID);
+  try
+    // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
+    if (InRange(SelectIndex, LoopFirstIndex, LoopLastIndex)) then
+    begin
+      // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
+      if (SelectIndex < StartIndex) then
+      begin
+        // 시작 인덱스부터 Loop 마지막 인덱스 skip 처리
+        SetCueSheetItemStatusByIndex(StartIndex, LoopLastNextIndex - 1, esSkipped);
+
+        // 온에어 중이면 이벤트 삭제
+        if (ChannelOnAir) then
+        begin
+          for I := StartIndex to LoopLastNextIndex - 1 do
+          begin
+            Item := GetCueSheetItemByIndex(I);
+            if (Item <> nil) then
+            begin
+              DeleteEvent(Item);
+            end;
+          end;
+        end;
+
+        // Loop 처음 인덱스부터 선택한 이벤트 전까지 skip 처리
+        SetCueSheetItemStatusByIndex(LoopFirstIndex, SelectIndex - 1, esSkipped);
+
+        // 온에어 중이면 이벤트 삭제
+        if (ChannelOnAir) then
+        begin
+          for I := LoopFirstIndex to SelectIndex - 1 do
+          begin
+            Item := GetCueSheetItemByIndex(I);
+            if (Item <> nil) then
+            begin
+              DeleteEvent(Item);
+            end;
+          end;
+        end;
+      end;
+
+      // 시작 인덱스에서 선택한 이벤트 전까지 Skip 처리
+      if (SelectIndex > StartIndex) then
+      begin
+        SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
+
+        // 온에어 중이면 이벤트 삭제
+        if (ChannelOnAir) then
+        begin
+          for I := StartIndex to SelectIndex - 1 do
+          begin
+            Item := GetCueSheetItemByIndex(I);
+            if (Item <> nil) then
+            begin
+              DeleteEvent(Item);
+            end;
+          end;
+        end;
+      end;
+
+      // 선택한 이벤트부터 끝까지 온에어되지 않은 이벤트의 시작시각 변경
+      for I := SelectIndex to LoopLastNextIndex - 1 do
+      begin
+        Item := GetCueSheetItemByIndex(I);
+        if (Item <> nil) then
+        begin
+          if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
+          begin
+            Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
+          end;
+        end;
+      end;
+
+      // Loop의 처음 이벤트부터 선택한 이벤트 이전까지 시작시각 변경
+      for I := LoopFirstIndex to SelectIndex - 1 do
+      begin
+        Item := GetCueSheetItemByIndex(I);
+        if (Item <> nil) then
+        begin
+          if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
+          begin
+            Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
+          end;
+        end;
+      end;
+
+      // 타임라인 업데이트
+      DisplayPlayListTimeLine(LoopFirstIndex);
+
+      // 온에어중이면 선택한 이벤트부터 시작 시각 조정
+      if (ChannelOnAir) then
+      begin
+        OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, SelectItem^.StartTime);
+      end;
+
+      // Loop List의 시작시각을 조정
+      ResetStartTimeLoopNextList(SaveStartTime, StartItem^.StartTime);
+
+      SaveStartTime := FCueSheetLoopLastNextMainItem^.StartTime;
+      FCueSheetLoopLastNextMainItem^.StartTime := GetMinusEventTime(FCueSheetLoopLastNextMainItem^.StartTime, DurTime, ChannelFrameRateType);
+
+      // 선택한 이벤트 이후의 시작 시각 조정
+      ResetStartTimeByTime(LoopLastNextIndex, SaveStartTime);
+    end
+    else
+    begin
+      // 시작 이벤트가 Loop안에 있으면 StartIndex를 Loop 처음 이벤트 인덱스로 설정
+      if (InRange(StartIndex, LoopFirstIndex, LoopLastIndex)) then
+        StartIndex := LoopFirstIndex;
+
+      // 시작 이벤트부터 선택한 이벤트 이전까지 skip 처리
+      SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
+
+      // 온에어 중이면 이벤트 삭제
+      if (ChannelOnAir) then
+      begin
+        DeleteLoopCueSheet;
+
+        for I := StartIndex to SelectIndex - 1 do
+        begin
+          Item := GetCueSheetItemByIndex(I);
+          if (Item <> nil) then
+          begin
+            if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+              continue;
+
+            DeleteEvent(Item);
+          end;
+        end;
+      end;
+
+      SaveStartTime := SelectItem^.StartTime;
+      SelectItem^.StartTime := GetMinusEventTime(SelectItem^.StartTime, DurTime, ChannelFrameRateType);
+
+      // 선택한 이벤트 이후의 시작 시각 조정
+      ResetStartTimeByTime(SelectIndex, SaveStartTime);
+
+      // 온에어중이면 선택한 이벤트부터 새로 이벤트 입력
+      if (ChannelOnAir) then
+      begin
+//        OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, SelectItem^.StartTime);
+        OnAirInputEvents(SelectIndex, GV_SettingOption.MaxInputEventCount);
+      end;
+
+      // 선택한 이벤트부터 Loop Check
+      CheckCueSheetLoop(SelectIndex);
+    end;
+
+    if (ChannelOnAir) then
+    begin
+      ServerDeleteCueSheets(ChannelID, StartIndex, SelectIndex - 1);
+      ServerInputCueSheets(ChannelID, SelectIndex);
+    end;
+
+    if (not ChannelOnAir) then
+      CueSheetNext := SelectItem;
+  finally
+    if (ChannelOnAir) then
+      ServerEndUpdates(ChannelID);
+    wmtlPlaylist.EndUpdateCompositions;
+  end;
+
+
+
+ exit;
+
+  // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
+  if (InRange(SelectIndex, LoopFirstIndex, LoopLastIndex)) then
+  begin
+    wmtlPlaylist.BeginUpdateCompositions;
+    if (ChannelOnAir) then
+      ServerBeginUpdates(ChannelID);
+    try
+      if (StartItem <> nil) then
+        SelectItem^.StartTime := StartItem^.StartTime;
+
+      // 변경된 시작시각의 길이를 구함
+      DurTime := GetDurEventTime(SaveStartTime, SelectItem^.StartTime, ChannelFrameRateType);
+
+      // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
+      if (SelectIndex < StartIndex) then
+      begin
+        // 선탣한 이벤트의 다음 이벤트 인덱스를 구함
+        SelectNextIndex := GetNextMainIndexByIndex(StartIndex);
+
+        // 선택한 이벤트의 다음 이벤트 부터 Loop의 마지막 이벤트까지 Skip 처리
+        if (SelectNextIndex <= LoopLastIndex) then
+        begin
+          SetCueSheetItemStatusByIndex(SelectNextIndex, LoopLastNextIndex - 1, esSkipped);
+
+          // 온에어 중이면 이벤트 삭제
+          if (ChannelOnAir) then
+          begin
+            for I := SelectNextIndex to LoopLastNextIndex - 1 do
+            begin
+              Item := GetCueSheetItemByIndex(I);
+              DeleteEvent(Item);
+            end;
+          end;
+        end;
+
+        SetCueSheetItemStatusByIndex(LoopFirstIndex, SelectIndex - 1, esSkipped);
+
+        // 온에어 중이면 이벤트 삭제
+        if (ChannelOnAir) then
+        begin
+          for I := LoopFirstIndex to SelectIndex - 1 do
+          begin
+            Item := GetCueSheetItemByIndex(I);
+            DeleteEvent(Item);
+          end;
+        end;
+      end;
+
+      // 시작 인덱스에서 선택한 이벤트 전까지 Skip 처리
+      if (SelectIndex > StartIndex) then
+      begin
+        SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
+
+        // 온에어 중이면 이벤트 삭제
+        if (ChannelOnAir) then
+        begin
+          for I := StartIndex to SelectIndex - 1 do
+          begin
+            Item := GetCueSheetItemByIndex(I);
+            DeleteEvent(Item);
+          end;
+        end;
+      end;
+
+      // Loop 마지막 인텍스가 선택한 인덱스보다 크면 Loop 마지막 인덱스를 선택한 인덱스 이전으로 설정
+      if (LoopLastIndex >= SelectIndex) then LoopLastIndex := SelectIndex - 1;
+
+      // Loop의 시작부터 끝까지 온에어되지 않은 이벤트의 시작시각 변경
+      for I := LoopFirstIndex to LoopLastIndex do
+      begin
+        Item := GetCueSheetItemByIndex(I);
+        if (Item <> nil) then
+        begin
+          if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
+          begin
+            if (CompareEventTime(SaveStartTime, SelectItem^.StartTime, ChannelFrameRateType) <= 0) then
+              Item^.StartTime := GetPlusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType)
+            else
+              Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
+          end;
+        end;
+      end;
+
+      // 타임라인 업데이트
+      DisplayPlayListTimeLine(LoopFirstIndex);
+
+      // 선택한 이벤트 이후의 시작 시각 조정
+      ResetStartTimeByTime(SelectIndex, SaveStartTime);
+
+      // 온에어중이면 선택한 이벤트부터 시작 시각 조정
+      if (FChannelOnAir) then
+      begin
+        OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, SelectItem^.StartTime);
+      end;
+
+      // Loop List의 시작시각을 조정
+      ResetStartTimeLoopNextList(SaveStartTime, SelectItem^.StartTime);
+
+      if (ChannelOnAir) then
+      begin
+        ServerDeleteCueSheets(ChannelID, StartIndex, SelectIndex - 1);
+        ServerInputCueSheets(ChannelID, SelectIndex);
+      end;
+
+      if (not ChannelOnAir) then
+        CueSheetNext := SelectItem;
+    finally
+      if (ChannelOnAir) then
+        ServerEndUpdates(ChannelID);
+      wmtlPlaylist.EndUpdateCompositions;
+    end;
+  end;
+
+
+  exit;
+
   with acgPlaylist do
   begin
-    EndIndex := RealRow - CNT_CUESHEET_HEADER;
-    CItem := GetParentCueSheetItemByIndex(EndIndex);
-    EndIndex := GetCueSheetIndexByItem(CItem);
+    SelectIndex := RealRow - CNT_CUESHEET_HEADER;
+    CItem := GetParentCueSheetItemByIndex(SelectIndex);
+    SelectIndex := GetCueSheetIndexByItem(CItem);
     if (CItem <> nil) and
        (CItem^.EventMode = EM_MAIN) and
        (CItem^.EventStatus.State <= esCued) then
@@ -16592,7 +17419,7 @@ begin
         if (ChannelOnAir) then
           ServerBeginUpdates(ChannelID);
         try
-  {        for I := StartIndex to EndIndex - 1 do
+  {        for I := StartIndex to SelectIndex - 1 do
           begin
             CItem := GetCueSheetItemByIndex(I);
             if (CItem <> nil) and (CItem^.EventStatus.State <= esPreroll) then
@@ -16606,15 +17433,15 @@ begin
           else
             SkipIndex := StartIndex; }
 
-          if (CueSheetNext <> nil) then
+{          if (CueSheetNext <> nil) then
             SItem := CueSheetNext
           else if (CueSheetCurr <> nil) then
             SItem := GetNextMainItemByItem(CueSheetCurr)
-          else
+          else }
             SITem := GetCueSheetItemByIndex(StartIndex);
 
   //        SetCueSheetItemStatusByIndex(GetCueSheetIndexByItem(FCueSheetNext), StartIndex - 1, esSkipped);
-          SetCueSheetItemStatusByIndex(StartIndex, EndIndex - 1, esSkipped);
+          SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
 
 {          if (CueSheetLoopFirst <> nil) and (CueSheetLoopLast <> nil) then
           begin
@@ -16644,32 +17471,118 @@ begin
           if (SItem <> nil) then
             CItem^.StartTime := SItem^.StartTime;
 
-          ResetStartTimeByTime(EndIndex, SaveStartTime);
+          if (FCueSheetLoopFirst <> nil) and (FCueSheetLoopLast <> nil) then
+          begin
+            DurTime := GetDurEventTime(SaveStartTime, CItem^.StartTime, ChannelFrameRateType);
+
+            LoopFirstIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
+            LoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLast);
+
+            if (LoopLastIndex >= SelectIndex) then LoopLastIndex := SelectIndex - 1;
+
+            for I := LoopFirstIndex to LoopLastIndex do
+            begin
+              Item := GetCueSheetItemByIndex(I);
+              if (Item <> nil) then
+              begin
+                if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
+                begin
+                  if (CompareEventTime(SaveStartTime, CItem^.StartTime, ChannelFrameRateType) <= 0) then
+                    Item^.StartTime := GetPlusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType)
+                  else
+                    Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
+
+                  DisplayPlayListTimeLine(I);
+                end;
+              end;
+            end;
+          end;
+
+          ResetStartTimeByTime(SelectIndex, SaveStartTime);
+
+
+
+{          LoopCheckIndex := EndIndex;
+          if  (FCueSheetLoopFirst <> nil) and (FCueSheetLoopLast <> nil) then
+          begin
+            LoopFirstIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
+            LoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLast);
+          end;
+
+            if (InRange(EndIndex, LoopFirstIndex, LoopLastIndex)) then
+            begin
+  // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
+  if (FCueSheetLoopLast <> nil) then
+  begin
+  ResetStartTimeLoopNextList(SaveStartTime, CItem^.StartTime);
+
+//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
+//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+
+    // 마지막 Loop의 다음 Main 인덱스를 구함
+//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
+  end;
+            end;
+//          end;
+//          CheckCueSheetLoop(LoopCheckIndex);
+ }
 
           // If onair then delet & input event
           if (FChannelOnAir) then
           begin
-            DeleteLoopCueSheet;
 
-            OnAirDeleteEvents(StartIndex, EndIndex - 1);
+//            DeleteLoopCueSheet;
+
+//            OnAirDeleteEvents(StartIndex, EndIndex - 1);
 //            OnAirCDeleteEvents(StartIndex, EndIndex - 1);
 
-            OnAirInputEvents(EndIndex, GV_SettingOption.MaxInputEventCount);
+            for I := StartIndex to SelectIndex - 1 do
+            begin
+              Item := GetCueSheetItemByIndex(I);
+              if (Item <> nil) then
+              begin
+                if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+                  continue;
+
+                DeleteEvent(Item);
+              end;
+            end;
+
+//            OnAirInputEvents(EndIndex, GV_SettingOption.MaxInputEventCount);
+            OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, CItem^.StartTime);
           end;
 
   //        FLastDisplayNo := GetBeforeMainCountByIndex(StartIndex);
   //        DisplayPlayListGrid(StartIndex, 0);
 //          DisplayPlayListTimeLine(StartIndex);
 
+//CheckCueSheetLoop(StartIndex);
+  // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
+  if (FCueSheetLoopLast <> nil) then
+  begin
+  ResetStartTimeLoopNextList(SaveStartTime, CItem^.StartTime);
+
+//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
+//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+
+    // 마지막 Loop의 다음 Main 인덱스를 구함
+//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
+  end;
+
+//  InputLoopEvent(CueSheetCurr);
+
           if (ChannelOnAir) then
           begin
-            ServerDeleteCueSheets(ChannelID, StartIndex, EndIndex - 1);
-            ServerInputCueSheets(ChannelID, EndIndex);
+            ServerDeleteCueSheets(ChannelID, StartIndex, SelectIndex - 1);
+            ServerInputCueSheets(ChannelID, SelectIndex);
           end;
 
-          CueSheetNext := GetCueSheetItemByIndex(EndIndex);
-
-          CheckCueSheetLoop(CueSheetNext);
+          if (not ChannelOnAir) then
+            CueSheetNext := CItem;
         finally
           if (ChannelOnAir) then
             ServerEndUpdates(ChannelID);
@@ -16698,7 +17611,7 @@ var
   SourceHandles: TSourceHandleList;
   SourceHandle: PSourceHandle;
 
-  I: Integer;
+  I, J: Integer;
   R: Integer;
 
   CurrIndex: Integer;
@@ -16749,7 +17662,7 @@ exit;  }
       if (not (Item^.EventStatus.State in [esLoaded..esCued])) then
       begin
         MessageBeep(MB_ICONERROR);
-        MessageBox(Handle, PChar(SENextEventNotReady), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+        MessageBox(Handle, PChar(GetLanguageStr(SENextEventNotReady), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
         exit;
       end;
     end
@@ -16771,7 +17684,7 @@ exit;  }
 //--- begin
   // Manual 이벤트의 경우 DCS에서 이벤트 상태가 오기전에 채널 타이머에 의해 자동 시간 증가 처리 될수 있음
   // 이벤트 상태를 OnAir로 변경 처리함
-  NextItem^.EventStatus.State := esOnair;
+//  NextItem^.EventStatus.State := esOnair;
 //--- end
 
   Sleep(TimecodeToMilliSec(GV_SettingTimeParameter.StandardTimeCorrection, FR_30));
@@ -16860,7 +17773,45 @@ exit;  }
               NextItem^.StartTime  := StartTime;
               NextItem^.DurationTC := DurationTC;
 
+//              NextItem :=GetCueSheetItemByIndex(NextIndex);
+
               ResetStartTimeByTime(NextIndex, SaveStartTime, SaveDurationTC);
+
+              // Loop 이벤트내에 시작이면, 처음 Loop 이벤트 부터 현재 이벤트 이전 까지 시작시각 조정
+              if (FCueSheetLoopFirst <> nil) then
+              begin
+                CurrIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
+                if (NextIndex > CurrIndex) then
+                begin
+                  DurEventTime := GetDurEventTime(SaveStartTime, NextItem^.StartTime, ChannelFrameRateType);
+
+                  for J := CurrIndex to NextIndex - 1 do
+                  begin
+                    CurrItem := GetCueSheetItemByIndex(J);
+                    if (CurrItem <> nil) then
+                    begin
+                      case CurrItem^.EventMode of
+                        EM_MAIN:
+                        begin
+                          if (CompareEventTime(SaveStartTime, NextItem^.StartTime, ChannelFrameRateType) <= 0) then
+                            CurrItem^.StartTime := GetPlusEventTime(CurrItem^.StartTime, DurEventTime, ChannelFrameRateType)
+                          else
+                            CurrItem^.StartTime := GetMinusEventTime(CurrItem^.StartTime, DurEventTime, ChannelFrameRateType);
+                        end;
+                      end;
+                    end
+                  end;
+                end;
+
+    if (not ChannelOnAir) then
+    begin
+      CalcuratePlayListTimeLineRange;
+      UpdatePlayListTimeLineRange;
+    end;
+    DisplayPlayListTimeLine(CurrIndex);
+              end;
+
+
 
 //     Aleady DCS reset start time
 //                OnAirInputEvents(GetNextMainIndexByIndex(NextIndex), GV_SettingOption.MaxInputEventCount);
@@ -16880,17 +17831,46 @@ exit;  }
       end;
     end;
 
-    CueSheetCurr := NextItem;
-    NextItem := GetNextMainItemByItem(CueSheetCurr);
+
+//    if (CueSheetCurr <> nil) and (CueSheetCurr^.StartMode = SM_LOOP) then
+//    begin
+//      CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
+//      SendMessage(Handle, WM_EXECUTE_LOOP_UPDATE_EVENT, CurrIndex, LParam(CueSheetCurr));
+//    end;
+
+//    CueSheetCurr := NextItem;
+//    NextItem := GetNextMainItemByItem(CueSheetCurr);
 
 //            OnAirInputEvents(NextIndex, GV_SettingOption.MaxInputEventCount);
     acgPlaylist.Repaint;
 //    DisplayPlayListTimeLine(NextIndex);
 
-    CheckCueSheetLoop(CueSheetCurr);
+//    CheckCueSheetLoop(CueSheetCurr);
+//    CheckCueSheetLoop(NextItem);
+
+
+  // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
+  if (FCueSheetLoopLast <> nil) then
+  begin
+  ResetStartTimeLoopNextList(SaveStartTime, NextItem^.StartTime);
+
+//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
+//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+
+    // 마지막 Loop의 다음 Main 인덱스를 구함
+//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
+  end;
+
+{    if (CueSheetCurr^.StartMode = SM_LOOP) then
+    begin
+      CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
+      SendMessage(Handle, WM_EXECUTE_LOOP_INPUT_EVENT, CurrIndex, LParam(CueSheetCurr));
+    end;  }
   finally
     if (ChannelOnAir) then
-      ServerEndUpdates(ChannelID);
+//      ServerEndUpdates(ChannelID);
   end;
 end;
 
@@ -16914,7 +17894,7 @@ begin
     if (DateTimeToTimecode(NextStartTime - Now, FR_30) <= GV_SettingThresholdTime.EnqueueLockTime) then
     begin
       MessageBeep(MB_ICONWARNING);
-      MessageBox(Handle, PChar(SEnqueueTimeout), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
+      MessageBox(Handle, PChar(GetLanguageStr(SEnqueueTimeout)), PChar(Application.Title), MB_OK or MB_ICONWARNING or MB_TOPMOST);
       exit;
     end;
   end;
@@ -17022,7 +18002,12 @@ begin
   Item := GetCueSheetItemByID(AEventID);
   if (Item <> nil) then
   begin
+    // Skip된 이벤트는 상태를 업데이트 하지 않음
     if (Item^.EventStatus.State = esSkipped) then exit;
+
+    // 1개 Loop로 동작시 Loop 다음의 이벤트가 큐되는것을 없데이트 하지 않음
+//    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirst = FCueSheetLoopLast) and
+//       (AStatus.State > esLoaded) then exit;
 
     FCueSheetLock.Enter;
     try
@@ -17039,12 +18024,14 @@ begin
       ServerSetEventStatuses(Item^.EventID, Item^.EventStatus);
     end;
   end;
+
+  SetLoopEventStatus(AEventID, AStatus);
 end;
 
 procedure TfrmChannel.SetEventStatus(AHandle: TDeviceHandle; AEventID: TEventID; AStatus: TEventStatus; AIsCurrEvent: Boolean = False);
 var
   Item: PCueSheetItem;
-  Index: Integer;
+  Index, LoopLastNextMainIndex: Integer;
   I: Integer;
 
   SourceGroup: PSourceGroup;
@@ -17057,7 +18044,21 @@ begin
   Item := GetCueSheetItemByID(AEventID);
   if (Item <> nil) then
   begin
+    // Skip된 이벤트는 상태를 업데이트 하지 않음
     if (Item^.EventStatus.State = esSkipped) then exit;
+
+{    // 1개 Loop로 동작시 Loop 다음의 이벤트가 큐되는것을 없데이트 하지 않음
+    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirst = FCueSheetLoopLast) and
+       (AStatus.State > esLoaded) then exit; }
+
+    // Loop 동작시 마지막 루프 이후의 이벤트는 업데이트를 하지 않음
+{    if (FCueSheetLoopLastNextMainItem <> nil) and (AStatus.State > esLoaded) then
+    begin
+      Index := GetCueSheetIndexByItem(Item);
+      LoopLastNextMainIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
+
+      if (Index >= LoopLastNextMainIndex) then exit;
+    end;  }
 
     SourceGroup := GetSourceGroupByName(String(Item^.Source));
     if (SourceGroup = nil) then exit;
@@ -17096,6 +18097,42 @@ begin
           break;
         end;
       end;
+    end;
+  end;
+
+  SetLoopEventStatus(AEventID, AStatus);
+end;
+
+// Loop 이벤트가 아직 CueSheet에 반영되기 이전, LoopList의 이벤트 상태를 업데이트
+procedure TfrmChannel.SetLoopEventStatus(AEventID: TEventID; AStatus: TEventStatus);
+var
+  I: Integer;
+  Item: PCueSheetItem;
+  Index: Integer;
+begin
+  if (FCueSheetLoopNextList = nil) or (FCueSheetLoopNextList.Count <= 0) then exit;
+
+  for I := 0 to FCueSheetLoopNextList.Count - 1 do
+  begin
+    Item := FCueSheetLoopNextList[I];
+    if (Item <> nil) and (IsEqualEventID(Item^.EventID, AEventID)) then
+    begin
+//      FCueSheetLock.Enter;
+//      try
+        Item^.EventStatus := AStatus;
+//      finally
+//        FCueSheetLock.Leave;
+//      end;
+{
+      Index := GetCueSheetIndexByItem(Item);
+      if (Index >= 0) then
+      begin
+        PostMessage(Handle, WM_UPDATE_EVENT_STATUS, Index, NativeInt(Item));
+
+        ServerSetEventStatuses(Item^.EventID, Item^.EventStatus);
+      end;   }
+
+      break;
     end;
   end;
 end;
@@ -17170,23 +18207,6 @@ begin
 
       if (ChannelOnAir) then ServerSetMediaStatuses(Item^.EventID, Item^.MediaStatus);
     end;
-  end;
-end;
-
-procedure TfrmChannel.ClearCueSheetLoopPrevList;
-var
-  I: Integer;
-begin
-  if (FCueSheetLoopPrevList = nil) then exit;
-
-  FCueSheetLock.Enter;
-  try
-    for I := FCueSheetLoopPrevList.Count - 1 downto 0 do
-      Dispose(FCueSheetLoopPrevList[I]);
-
-    FCueSheetLoopPrevList.Clear;
-  finally
-    FCueSheetLock.Leave;
   end;
 end;
 
@@ -17357,6 +18377,8 @@ begin
   begin
     BeginUpdate;
     try
+      FixedFont.Color := COLOR_TX_CUESHEET_FiXED_COLOR;
+
       RowCount  := CNT_CUESHEET_HEADER + CNT_CUESHEET_FOOTER;
       ColCount  := CNT_CUESHEET_COLUMNS;
       FixedRows := CNT_CUESHEET_HEADER;
@@ -17664,6 +18686,8 @@ begin
   begin
     with TimeZoneProperty do
     begin
+      Font.Color := COLOR_TX_TIMECODE_COLOR;
+
       FrameDayReset := True;
 //      FrameRate := FrameRate29_97;
       FrameRate := GetFrameRateValueByType(GV_SettingOption.TimelineFrameRateType);
@@ -19327,10 +20351,12 @@ begin
   SetEvent(FCloseEvent);
 end;
 
+// 현재, 다음 이벤트를 설정하고 다음 이벤트 설정 시 DCS에 이벤트를 전송
 procedure TChannelCueSheetCheckThread.DoCueSheetCheck;
 var
   CurrentTime: TDateTime;
 
+  CurrentEndTime: TDateTime;
   NextStartTime: TDateTime;
 
   SaveCurr: PCueSheetItem;
@@ -19351,6 +20377,7 @@ begin
 
     Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Start DoCueSheetCheck procedure.'));
 
+    // 현재 시스템 시각을 구함
     CurrentTime := Now;
 
     // 다음 이벤트가 수동모드이고 남은 시작시각이 AutoIncreaseDurationBefore 보다 큰 경우는 대기
@@ -19364,8 +20391,10 @@ begin
         exit;
     end;
 
+    // 현재 시각을 기준으로 현재 이벤트를 구하는 시작 인덱스를 구함
     if (CueSheetCurr <> nil) then
     begin
+      // 현재 큐시트가 Loop의 마지막 이벤트이면 시작 인덱스는 Loop의 첫번째 이벤트의 인덱스로 살장
       if (CueSheetCurr = FCueSheetLoopLast) then
         CurrIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst)
       else
@@ -19374,54 +20403,89 @@ begin
     else
       CurrIndex := 0;
 
+    // 현재 이벤트를 저장
     SaveCurr := CueSheetCurr;
+
+    // 현재 시각 기준의 현재 이벤트를 구함
     CurrItem := GetMainItemByInRangeTime(CurrIndex, CurrentTime);
+
+    // 저장된 현재 이벤트와 현재 시각 기준의 현재 이벤트가 다르면 현재 이벤트 업데이트
     if (SaveCurr <> CurrItem) then
     begin
-//      if (CueSheetCurr <> nil) and (CueSheetCurr^.StartMode = SM_LOOP) then
-//        UpdateLoopCueSheet(CueSheetCurr);
+      // 현재 시각 기준의 현재 이벤트가 Loop 이벤트일 경우
+      if (CurrItem <> nil) and (CurrItem^.StartMode = SM_LOOP) then
+      begin
+        // 현재 이벤트의 인덱스를 구하고 Loop Update 이벤트 처리
+        CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
+        SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_UPDATE_EVENT, CurrIndex, LParam(CueSheetCurr));
 
-      CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
-      PostMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_UPDATE_EVENT, CurrIndex, LParam(CueSheetCurr));
+        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 1 CurrIndex = %d', [CurrIndex])));
+      end;
 
+      // 1개의 Loop 이벤트일때 현재 이벤트가 Loop 이벤트와 같으면 저장된 이벤트를 현재 이벤트로 설정
+      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopFirst) and (CueSheetCurr = FCueSheetLoopLast) then
+      begin
+        CurrItem := SaveCurr;
+
+        // 저장된 이벤트로 현재 이벤트를 바로 럽데이트하면 그리드 리프레쉬가 되지 않아 null 로 설정후 재설정
+        CueSheetCurr := nil;
+      end;
+
+      // 현재 이벤트 설정
       CueSheetCurr := CurrItem;
 
-      CurrIndex := GetCueSheetIndexByItem(CurrItem);
-      PostMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_INPUT_EVENT, CurrIndex, LParam(CurrItem));
+      // 현재 시각 기준의 현재 이벤트가 Loop 이벤트일 경우
+      if (CurrItem <> nil) and (CurrItem^.StartMode = SM_LOOP) then
+      begin
+        // 현재 이벤트의 인덱스를 구하고 Loop Input 이벤트 처리
+        CurrIndex := GetCueSheetIndexByItem(CurrItem);
+        SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_INPUT_EVENT, CurrIndex, LParam(CurrItem));
 
-//      if (CueSheetCurr^.StartMode = SM_LOOP) then
-//        InputLoopEvent(CueSheetCurr);
-
-{      InputIndex := GetNextOnAirMainIndexByItem(CueSheetCurr);
-//      OnAirInputEvents(InputIndex, 1);
- }
+        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 2 CurrIndex = %d', [CurrIndex])));
+      end;
     end;
 
 
-{    if (CueSheetCurr <> nil) then
-      NextItem := GetNextMainItemByItem(CueSheetCurr)
-    else //if (CueSheetNext = nil) then
-      NextItem := GetStartOnAirMainItem; }
-
+{    // 현재 시각을 기준으로 다음 이벤트를 구하는 시작 인덱스를 구함
     if (CueSheetNext <> nil) then
       NextIndex := GetCueSheetIndexByItem(CueSheetNext)
     else
       NextIndex := 0;
 
+    // 다음 이벤트를 저장
     SaveNext := CueSheetNext;
+
+    // 현재 시각 기준의 다음 이벤트를 구함
+    NextItem := GetMainItemByStartTime(NextIndex, CurrentTime); }
+
+    // 현재 시각을 기준으로 다음 이벤트를 구하는 시작 인덱스를 구함
+    if (CueSheetNext <> nil) then
+    begin
+      // 현재 큐시트가 Loop의 마지막 이벤트이면 시작 인덱스는 Loop의 첫번째 이벤트의 인덱스로 살장
+      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopLast) then
+        NextIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst)
+      else
+        NextIndex := GetCueSheetIndexByItem(CueSheetNext);
+    end
+    else
+      NextIndex := 0;
+
+    // 다음 이벤트를 저장
+    SaveNext := CueSheetNext;
+
+    // 현재 시각 기준의 다음 이벤트를 구함
     NextItem := GetMainItemByStartTime(NextIndex, CurrentTime);
 
+    // 저장된 다음 이벤트와 현재 시각 기준의 다음 이벤트가 다르면 다음 이벤트 업데이트
     if (SaveNext <> NextItem) then
     begin
-//      if (CueSheetCurr <> nil) and (CueSheetCurr^.StartMode = SM_LOOP) then
-//        UpdateLoopCueSheet(CueSheetCurr);
-
+      // Media Check Queue를 초기화하고 재 설정
       frmSEC.DCSEventThread.ResetMediaCheckIndex;
+
+      // 다음 이벤트 설정
       CueSheetNext := NextItem;
 
-//      if (CueSheetNext <> nil) and (CueSheetNext^.StartMode = SM_LOOP) then
-//        InputLoopEvent(CueSheetNext);
-
+      // 다음 이벤트 부터 DCS에 전송
       if (CueSheetNext <> nil) then
       begin
         NextIndex := GetCueSheetIndexByItem(CueSheetNext);
@@ -19435,20 +20499,9 @@ begin
       else
       begin
         // 다음 이벤트가 없다는 경고 화면 필요, Post Message로 처리
+          Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'TChannelCueSheetCheckThread.DoCueSheetCheck OnAirInputEvents'));
       end;
     end;
-
-{    if (CueSheetCurr <> nil) then
-    begin
-      CueSheetNext := GetNextMainItemByItem(CueSheetCurr);
-
-      if (CueSheetNext = nil) then
-      begin
-        // 다음 이벤트가 없다는 경고 화면 필요, Post Message로 처리
-      end;
-    end
-//    else if (CueSheetNext = nil) then
-//      CueSheetNext := GetStartOnAirMainItem; }
 
     Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Finish DoCueSheetCheck procedure.'));
   end;
