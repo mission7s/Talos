@@ -114,7 +114,7 @@
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <DCC_MapFile>2</DCC_MapFile>
-        <VerInfo_Keys>CompanyName=;FileVersion=1.0.1.15;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileVersion=1.0.1.19;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -122,7 +122,7 @@
         <Icon_MainIcon>SEC_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>C:\Gemiso\SEC\</DCC_ExeOutput>
         <VerInfo_Release>1</VerInfo_Release>
-        <VerInfo_Build>15</VerInfo_Build>
+        <VerInfo_Build>19</VerInfo_Build>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>

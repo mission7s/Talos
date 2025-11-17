@@ -1546,10 +1546,12 @@ begin
 
   ChannelID := PAnsiCharToWord(@ABuffer[1]);
 
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, Format('ServerBeginUpdate, channel = %d', [ChannelID]));
+
   ChannelForm := frmSEC.GetChannelFormByID(ChannelID);
   if (ChannelForm <> nil) then
   begin
-    Assert(False, 'SECBeginUpdate');
     Result := ChannelForm.SECBeginUpdateW;
   end;
 end;
@@ -1563,10 +1565,12 @@ begin
 
   ChannelID := PAnsiCharToWord(@ABuffer[1]);
 
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, Format('ServerEndUpdate, channel = %d', [ChannelID]));
+
   ChannelForm := frmSEC.GetChannelFormByID(ChannelID);
   if (ChannelForm <> nil) then
   begin
-    Assert(False, 'SECEndUpdate');
     Result := ChannelForm.SECEndUpdateW;
   end;
 end;
@@ -1617,7 +1621,8 @@ begin
   ChannelID := PAnsiCharToWord(@ABuffer[1]);
   IsOnAir   := PAnsiCharToBool(@ABuffer[3]);
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'ServerSetOnAir start.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('ServerSetOnAir start, channel = %d, onair = %s', [ChannelID, BoolToStr(IsOnAir)])));
 
   ChannelForm := frmSEC.GetChannelFormByID(ChannelID);
 
@@ -1625,7 +1630,9 @@ begin
   begin
     Result := ChannelForm.SECSetOnAirW(IsOnAir);
   end;
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'ServerSetOnAir end.'));
+
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('ServerSetOnAir end, channel = %d, onair = %s', [ChannelID, BoolToStr(IsOnAir)])));
 end;
 
 function ServerSetEventStatus(ABuffer: AnsiString): Integer;
@@ -1807,7 +1814,8 @@ begin
     LastProgramNo := PAnsiCharToInt(@ABuffer[CueSheetFileNameLen + DATE_LEN + 18]);
     LastGroupNo := PAnsiCharToInt(@ABuffer[CueSheetFileNameLen + DATE_LEN + 22]);
 
-    Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerInputChannelCueSheet start, file = %s, channel = %d, onairdate = %s, onairflag = %d, no = %d, eventcount = %d, lastserialno = %d, lastprogramno = %d, lastgroupno = %d', [FileName, ChannelID, Onairdate, Integer(OnairFlag), OnairNo, EventCount, LastSerialNo, LastProgramNo, LastGroupNo])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerInputChannelCueSheet start, file = %s, channel = %d, onairdate = %s, onairflag = %d, no = %d, eventcount = %d, lastserialno = %d, lastprogramno = %d, lastgroupno = %d', [FileName, ChannelID, Onairdate, Integer(OnairFlag), OnairNo, EventCount, LastSerialNo, LastProgramNo, LastGroupNo])));
 
     ChannelForm := frmSEC.GetChannelFormByID(ChannelID);
     if (ChannelForm <> nil) then
@@ -1815,7 +1823,8 @@ begin
       Result := ChannelForm.SECInputChannelCueSheetW(FileName, Onairdate, OnairFlag, OnairNo, EventCount, LastSerialNo, LastProgramNo, LastGroupNo);
     end;
 
-    Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerInputChannelCueSheet end, file = %s, channel = %d, onairdate = %s, onairflag = %d, no = %d, eventcount = %d, lastserialno = %d, lastprogramno = %d, lastgroupno = %d', [FileName, ChannelID, Onairdate, Integer(OnairFlag), OnairNo, EventCount, LastSerialNo, LastProgramNo, LastGroupNo])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerInputChannelCueSheet end, file = %s, channel = %d, onairdate = %s, onairflag = %d, no = %d, eventcount = %d, lastserialno = %d, lastprogramno = %d, lastgroupno = %d', [FileName, ChannelID, Onairdate, Integer(OnairFlag), OnairNo, EventCount, LastSerialNo, LastProgramNo, LastGroupNo])));
   end;
 end;
 
@@ -1846,7 +1855,8 @@ begin
 
   ChannelID := PAnsiCharToWord(@ABuffer[1]);
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerClearChannelCueSheet start, Channel = %d', [ChannelID])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerClearChannelCueSheet start, Channel = %d', [ChannelID])));
 
   ChannelForm := frmSEC.GetChannelFormByID(ChannelID);
   if (ChannelForm <> nil) then
@@ -1854,7 +1864,8 @@ begin
     Result := ChannelForm.SECClearChannelCueSheetW(ChannelID);
   end;
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerClearChannelCueSheet end, Channel = %d', [ChannelID])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ServerClearChannelCueSheet end, Channel = %d', [ChannelID])));
 end;
 
 function ServerFinishLoadCueSheet(ABuffer: AnsiString): Integer;
@@ -3746,7 +3757,6 @@ begin
   FreeAndNil(FSaveMenuFont);
   FreeAndNil(FSaveColorMap);
 
-  Assert(False, GetMainLogStr(lsNormal, '111'));
   if (FWarningDialogDeviceCheck <> nil) and (FWarningDialogDeviceCheck.HandleAllocated) then
   begin
     FWarningDialogDeviceCheck.Close;
@@ -3821,19 +3831,8 @@ begin
           if (ChannelForm <> nil) then
           begin
             FreeAndNil(ChannelForm);
-  Assert(False, GetMainLogStr(lsNormal, 'ChannelForm destroy.'));
-
           end;
         end;
-
-//--- 2024/08/30, bong
-//--- eurakalog에서 에러 발생함
-//--- begin
-//        FreeAndNil(OfficePage);
-//---end
-
-  Assert(False, GetMainLogStr(lsNormal, 'OfficePage destroy.'));
-
       end;
     end;
   end;
@@ -4165,7 +4164,8 @@ begin
       if (R = D_OK) then
       begin
         MCC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
+        if (GV_SettingGeneral.LogDebug > 0) then
+          Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
@@ -4218,7 +4218,8 @@ begin
       if (R = D_OK) then
       begin
         SEC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, LS_SECAliveCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsAlive, True)]));
+        if (GV_SettingGeneral.LogDebug > 0) then
+          Assert(False, GetMainLogStr(lsNormal, LS_SECAliveCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
@@ -4677,7 +4678,9 @@ begin
       R := DCSSysIsMain(DCS^.HostIP, IsMain);
       if (R = D_OK) then
       begin
-        Assert(False, GetMainLogStr(lsNormal, LS_DCSMainCheckSuccess, [DCS^.ID, DCS^.Name, BoolToStr(IsMain, True)]));
+        if (GV_SettingGeneral.LogDebug > 0) then
+          Assert(False, GetMainLogStr(lsNormal, LS_DCSMainCheckSuccess, [DCS^.ID, DCS^.Name, BoolToStr(IsMain, True)]));
+
         DCS^.Main := IsMain;
         DCS^.Alive := True;
         if (DCS^.Alive) and (SaveAlive <> DCS^.Alive) then
@@ -5211,7 +5214,7 @@ end;
 
 procedure TCrossCheckThread.MainChange;
 begin
-  Assert(False, GetMainLogStr(lsNormal, Format('Switch start main SEC, Name = %s, ID = %d',
+  Assert(False, GetMainLogStr(lsNormal, Format('MainChange Switch start main SEC, Name = %s, ID = %d',
                                                [String(GV_SECMine^.Name), GV_SECMine^.ID])));
 
   GV_SECMine^.Main := True;
@@ -5233,7 +5236,7 @@ begin
   // SEC re active
   PostMessage(FSEC.Handle, WM_UPDATE_ACTIVATE, 0, 0);
 
-  Assert(False, GetMainLogStr(lsNormal, Format('Switch main SEC succeded, Name = %s, ID = %d',
+  Assert(False, GetMainLogStr(lsNormal, Format('MainChange Switch main SEC succeded, Name = %s, ID = %d',
                                                [String(GV_SECMine^.Name), GV_SECMine^.ID])));
 
 end;
@@ -5254,7 +5257,7 @@ begin
     exit;
   end;
 
-  Assert(False, GetMainLogStr(lsNormal, Format('SEC Main/sub state, name = %s, main = %s',
+  Assert(False, GetMainLogStr(lsNormal, Format('DoMainCheck SEC Main/sub state, name = %s, main = %s',
                                                [String(GV_SECMine^.Name), BoolToStr(GV_SECMine^.Main, True)])));
 
   // Another SEC main check
@@ -5265,7 +5268,7 @@ begin
     begin
       R := SECIsMain(SEC^.HostIP, IsMain);
 
-      Assert(False, GetMainLogStr(lsNormal, Format('Check main SEC, name = %s, ismain = %s',
+      Assert(False, GetMainLogStr(lsNormal, Format('DoMainCheck Check main SEC, name = %s, ismain = %s',
                                                    [String(SEC^.Name), BoolToStr(IsMain, True)])));
 
       if (R = D_OK) and (IsMain) then
@@ -5326,7 +5329,8 @@ begin
         SEC^.Main  := IsMain;
         SEC^.Alive := True;
 
-        Assert(False, GetMainLogStr(lsNormal, LS_SECMainCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsMain, True)]));
+        if (GV_SettingGeneral.LogDebug > 0) then
+          Assert(False, GetMainLogStr(lsNormal, LS_SECMainCheckSuccess, [SEC^.ID, SEC^.Name, BoolToStr(IsMain, True)]));
       end
       else
       begin
@@ -5479,7 +5483,8 @@ begin
       if (R = D_OK) then
       begin
         MCC^.Alive := IsAlive;
-        Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
+        if (GV_SettingGeneral.LogDebug > 0) then
+          Assert(False, GetMainLogStr(lsNormal, LS_MCCAliveCheckSuccess, [MCC^.ID, MCC^.Name, BoolToStr(IsAlive, True)]));
       end
       else
       begin
@@ -6641,12 +6646,12 @@ begin
 
             if (MediaExist) then
             begin
-              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetExist succeeded, ''111''', [])));
+//              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetExist succeeded, ''111''', [])));
               MediaStatus := msEqual;
-              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetExist succeeded, ''222''', [])));
+//              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetExist succeeded, ''222''', [])));
 
               R := DCSGetSize(M^.SourceHandle^.DCS^.ID, M^.SourceHandle^.Handle, M^.MediaId, MediaDuration);
-              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetSize succeeded, ''111''', [])));
+//              Assert(False, GetMainLogStr(lsNormal, Format('DoEventMediaCheck DCSGetSize succeeded, ''111''', [])));
               if (R = D_OK) then
               begin
                 EventDuration := GetPlusTimecode(M^.InTC, M^.DurationTC, ChannelForm.ChannelFrameRateType);

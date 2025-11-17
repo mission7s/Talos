@@ -320,6 +320,7 @@ type
     MediaPath: String;
     LogPath: String;
     LogExt: String;
+    LogDebug: Word;
     Language: String;
   end;
 
@@ -1254,6 +1255,7 @@ begin
       MediaPath        := IniFile.ReadString(Section, 'MediaPath', ExtractFilePath(Application.ExeName) + 'Media') + PathDelim;
       LogPath          := IniFile.ReadString(Section, 'LogPath', ExtractFilePath(Application.ExeName) + 'Log') + PathDelim;
       LogExt           := IniFile.ReadString(Section, 'LogExt', 'SEC.log');
+      LogDebug         := IniFile.ReadInteger(Section, 'LogDebug', 0);
 
       if (not DirectoryExists(LogPath)) then ForceDirectories(LogPath);
       if (not DirectoryExists(WorkCueSheetPath)) then ForceDirectories(WorkCueSheetPath);

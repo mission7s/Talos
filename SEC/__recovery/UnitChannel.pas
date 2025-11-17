@@ -172,14 +172,20 @@ type
     FCueSheetNext: PCueSheetItem;
     FCueSheetTarget: PCueSheetItem;
 
-    FCueSheetLoopFirst: PCueSheetItem;
-    FCueSheetLoopLast: PCueSheetItem;
+    FCueSheetIsLooping: Boolean;
+
+    FCueSheetLoopFirstItem: PCueSheetItem;
+    FCueSheetLoopLastItem: PCueSheetItem;
     FCueSheetLoopLastNextMainItem: PCueSheetItem;
+
+    FCueSheetLoopFirstIndex: Integer;
+    FCueSheetLoopLastIndex: Integer;
+    FCueSheetLoopLastNextMainIndex: Integer;
 
     FCueSheetLoopNextList: TCueSheetList;
 
-    FCueSheetLoopLastStartTime: TEventTime;
-    FCueSheetLoopLastDurationTC: TTimecode;
+    FCueSheetLoopLastItemStartTime: TEventTime;
+    FCueSheetLoopLastItemDurationTC: TTimecode;
 
     FServerEventIDCurr: TEventID;
     FServerEventIDNext: TEventID;
@@ -677,8 +683,9 @@ type
     property CueSheetNext: PCueSheetItem read FCueSheetNext write SetCueSheetNext;
     property CueSheetTarget: PCueSheetItem read FCueSheetTarget write SetCueSheetTarget;
 
-    property CueSheetLoopFirst: PCueSheetItem read FCueSheetLoopFirst;
-    property CueSheetLoopLast: PCueSheetItem read FCueSheetLoopLast;
+    property CueSheetIsLooping: Boolean read FCueSheetIsLooping;
+    property CueSheetLoopFirstItem: PCueSheetItem read FCueSheetLoopFirstItem;
+    property CueSheetLoopLastItem: PCueSheetItem read FCueSheetLoopLastItem;
 
 //    property TimelineZoomPosition: Integer read FTimelineZoomPosition write SetZoomPosition;
 //    property TimelineZoomType: TTimelineZoomType read FTimelineZoomType;
@@ -4245,7 +4252,8 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECBeginUpdateW'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECBeginUpdateW'));
 end;
 
 function TfrmChannel.SECEndUpdateW: Integer;
@@ -4260,13 +4268,15 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECEndUpdateW'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECEndUpdateW'));
 end;
 
 function TfrmChannel.SECSetOnAirW(AIsOnAir: Boolean): Integer;
 begin
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECSetOnAirW start.'));
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECSetOnAirW start.'));
   Result := D_FALSE;
 
 //  Windows message에서 처리
@@ -4279,7 +4289,9 @@ begin
     PostMessage(frmAllChannels.Handle, WM_SET_ONAIRW, ChannelID, NativeInt(AIsOnAir));
 
   Result := D_OK;
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECSetOnAirW end.'));
+
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECSetOnAirW end.'));
 end;
 
 function TfrmChannel.SECSetEventStatusW(AEventID: TEventID; AStatus: TEventStatus): Integer;
@@ -4361,49 +4373,52 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
 
   Item := GetCueSheetItemByID(ACueSheetItem.EventID);
   if (Item <> nil) then
   begin
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U111'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U111'));
     Move(ACueSheetItem, Item^, SizeOf(TCueSheetItem));
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U222'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U222'));
     Result := GetCueSheetIndexByItem(Item);
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U333'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U333'));
 
     PostMessage(Handle, WM_UPDATE_CUESHEETW, Result, NativeInt(Item));
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U444'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U444'));
 
     if (frmAllChannels <> nil) then
       PostMessage(frmAllChannels.Handle, WM_UPDATE_CUESHEETW, Result, NativeInt(Item));
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U555'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'U555'));
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW update cuesheet, Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW update cuesheet, Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
   end
   else
   begin
     FCueSheetLock.Enter;
     try
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I111'));
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I111'));
       Item := New(PCueSheetItem);
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I222'));
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I222'));
       Move(ACueSheetItem, Item^, SizeOf(TCueSheetItem));
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I333'));
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I333'));
       if (AIndex < FCueSheetList.Count) then
         FCueSheetList.Insert(AIndex, Item)
       else
         FCueSheetList.Add(Item);
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I444'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I444'));
 
     PostMessage(Handle, WM_INSERT_CUESHEETW, AIndex, NativeInt(Item));
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I555'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I555'));
 
     if (frmAllChannels <> nil) then
       PostMessage(frmAllChannels.Handle, WM_INSERT_CUESHEETW, AIndex, NativeInt(Item));
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I666'));
+//  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'I666'));
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW insert cuesheet, Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputCueSheetW insert cuesheet, Index=%d, ID=%s', [AIndex, EventIDToString(ACueSheetItem.EventID)])));
     finally
       FCueSheetLock.Leave;
     end;
@@ -4426,7 +4441,8 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteCueSheetW ID=%s', [EventIDToString(AEventID)])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteCueSheetW ID=%s', [EventIDToString(AEventID)])));
 
   Item := GetCueSheetItemByID(AEventID);
   if (Item <> nil) then
@@ -4448,7 +4464,8 @@ begin
       FCueSheetLock.Leave;
     end; }
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteCueSheetW delete cuesheet, ID=%s', [EventIDToString(AEventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteCueSheetW delete cuesheet, ID=%s', [EventIDToString(AEventID)])));
   end;
 
   Result := D_OK;
@@ -4469,7 +4486,8 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECClearCueSheetW'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'SECClearCueSheetW'));
 end;
 
 function TfrmChannel.SECSetCueSheetCurrW(AEventID: TEventID): Integer;
@@ -4478,7 +4496,8 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetCurrW ID=%s', [EventIDToString(AEventID)])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetCurrW ID=%s', [EventIDToString(AEventID)])));
 
   Move(AEventID, FServerEventIDCurr, SizeOf(TEventID));
 
@@ -4487,7 +4506,8 @@ begin
   begin
     CueSheetCurr := Item;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetCurrW set curr cuesheet, curr=%p, ID=%s', [CueSheetCurr, EventIDToString(AEventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetCurrW set curr cuesheet, curr=%p, ID=%s', [CueSheetCurr, EventIDToString(AEventID)])));
   end;
 
   Result := D_OK;
@@ -4499,7 +4519,8 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNextW ID=%s', [EventIDToString(AEventID)])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNextW ID=%s', [EventIDToString(AEventID)])));
 
   Move(AEventID, FServerEventIDNext, SizeOf(TEventID));
 
@@ -4508,7 +4529,8 @@ begin
   begin
     CueSheetNext := Item;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNextW set next cuesheet, next=%p, ID=%s', [CueSheetNext, EventIDToString(AEventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNextW set next cuesheet, next=%p, ID=%s', [CueSheetNext, EventIDToString(AEventID)])));
   end;
 
   Result := D_OK;
@@ -4520,7 +4542,8 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetTargetW ID=%s', [EventIDToString(AEventID)])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetTargetW ID=%s', [EventIDToString(AEventID)])));
 
   Move(AEventID, FServerEventIDTarget, SizeOf(TEventID));
 
@@ -4529,7 +4552,8 @@ begin
   begin
     CueSheetTarget := Item;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetTargetW set target cuesheet, target=%p, ID=%s', [CueSheetTarget, EventIDToString(AEventID)])));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetTargetW set target cuesheet, target=%p, ID=%s', [CueSheetTarget, EventIDToString(AEventID)])));
   end;
 
   Result := D_OK;
@@ -4543,7 +4567,8 @@ var
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECInputChannelCueSheetW start.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECInputChannelCueSheetW start.'));
 
   if (FChannelCueSheetList = nil) then exit;
 
@@ -4575,9 +4600,11 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECInputChannelCueSheetW end.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECInputChannelCueSheetW end.'));
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputChannelCueSheetW file = %s', [ACueSheetFileName])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECInputChannelCueSheetW file = %s', [ACueSheetFileName])));
 end;
 
 function TfrmChannel.SECDeleteChannelCueSheetW(AOnairdate: String): Integer;
@@ -4597,14 +4624,16 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteChannelCueSheetW date = %s', [AOnairdate])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECDeleteChannelCueSheetW date = %s', [AOnairdate])));
 end;
 
 function TfrmChannel.SECClearChannelCueSheetW(AChannelID: Word): Integer;
 begin
   Result := D_FALSE;
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECClearChannelCueSheetW start.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECClearChannelCueSheetW start.'));
 
   Result := D_FALSE;
 
@@ -4614,9 +4643,11 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECClearChannelCueSheetW End.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsError, ChannelID, 'SECClearChannelCueSheetW End.'));
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECClearChannelCueSheetW', [])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECClearChannelCueSheetW', [])));
 end;
 
 function TfrmChannel.SECFinishLoadCueSheetW(ACueSheetFileName: String): Integer;
@@ -4635,7 +4666,8 @@ begin
 
   Result := D_OK;
 
-  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECFinishLoadCueSheetW file = %s', [ACueSheetFileName])));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECFinishLoadCueSheetW file = %s', [ACueSheetFileName])));
 end;
 
 constructor TfrmChannel.Create(AOwner: TComponent; AChannelID: Word; ACombine: Boolean; ALeft, ATop, AWidth, AHeight: Integer);
@@ -4882,12 +4914,18 @@ begin
   FCueSheetNext   := nil;
   FCueSheetTarget := nil;
 
-  FCueSheetLoopLastStartTime  := InitEventTime;
-  FCueSheetLoopLastDurationTC := 0;
+  FCueSheetLoopLastItemStartTime  := InitEventTime;
+  FCueSheetLoopLastItemDurationTC := 0;
 
-  FCueSheetLoopFirst := nil;
-  FCueSheetLoopLast  := nil;
+  FCueSheetIsLooping := False;
+
+  FCueSheetLoopFirstItem := nil;
+  FCueSheetLoopLastItem  := nil;
   FCueSheetLoopLastNextMainItem := nil;
+
+  FCueSheetLoopFirstIndex := -1;
+  FCueSheetLoopLastIndex  := -1;
+  FCueSheetLoopLastNextMainIndex := -1;
 
   FCueSheetLoopNextList := TCueSheetList.Create;
 
@@ -6445,9 +6483,9 @@ begin
   else
     StartIndex := 0;
 
-{ if (StartIndex > 0) and (CueSheetLoopFirst <> nil) then
+{ if (StartIndex > 0) and (CueSheetLoopFirstItem <> nil) then
   begin
-    LoopStartIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
+    LoopStartIndex := GetCueSheetIndexByItem(CueSheetLoopFirstItem);
     if (LoopStartIndex < StartIndex) then
        StartIndex := LoopStartIndex;
   end;  }
@@ -7277,12 +7315,18 @@ begin
   CueSheetNext   := nil;
   CueSheetTarget := nil;
 
-  FCueSheetLoopLastStartTime  := InitEventTime;
-  FCueSheetLoopLastDurationTC := 0;
+  FCueSheetLoopLastItemStartTime  := InitEventTime;
+  FCueSheetLoopLastItemDurationTC := 0;
 
-  FCueSheetLoopFirst := nil;
-  FCueSheetLoopLast  := nil;
+  FCueSheetIsLooping := False;
+
+  FCueSheetLoopFirstItem := nil;
+  FCueSheetLoopLastItem  := nil;
   FCueSheetLoopLastNextMainItem := nil;
+
+  FCueSheetLoopFirstIndex := -1;
+  FCueSheetLoopLastIndex  := -1;
+  FCueSheetLoopLastNextMainIndex := -1;
 end;
 
 procedure TfrmChannel.AddLoadPlayList(ALoadChannelCueSheet: PChannelCueSheet; ACueSheetList: TCueSheetList; AAdd: Boolean = False);
@@ -7859,13 +7903,13 @@ begin
 
 
   // 마지막 Loop의 EndTime을 현재 Loop의 StartTime으로  구함
-//  StartTime := GetEventEndTime(FCueSheetLoopLast^.StartTime, FCueSheetLoopLast^.DurationTC);
-//  if (FCueSheetLoopLastStartTime.D = 0) and (FCueSheetLoopLastStartTime.T = 0) then
+//  StartTime := GetEventEndTime(FCueSheetLoopLastItem^.StartTime, FCueSheetLoopLastItem^.DurationTC);
+//  if (FCueSheetLoopLastItemStartTime.D = 0) and (FCueSheetLoopLastItemStartTime.T = 0) then
 //  begin
-//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
-//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+//    FCueSheetLoopLastItemStartTime  := FCueSheetLoopLastItem^.StartTime;
+//    FCueSheetLoopLastItemDurationTC := FCueSheetLoopLastItem^.DurationTC;
 //  end;
-  LoopAddMainStartTime := GetEventEndTime(FCueSheetLoopLastStartTime, FCueSheetLoopLastDurationTC, ChannelFrameRateType);
+  LoopAddMainStartTime := GetEventEndTime(FCueSheetLoopLastItemStartTime, FCueSheetLoopLastItemDurationTC, ChannelFrameRateType);
 
   Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, LoopAddMainStartTime = %s', [EventTimeToString(LoopAddMainStartTime, ChannelFrameRateType)])));
 
@@ -7909,7 +7953,7 @@ begin
   Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InputLoopEvent, Loop add count = %d', [FCueSheetLoopNextList.Count])));
 
 //  // 마지막 Loop 다음 Item을 찾음
-//  FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);//GetCueSheetItemByIndex(LoopLastNextMainIndex);
+//  FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLastItem);//GetCueSheetItemByIndex(LoopLastNextMainIndex);
   if (FCueSheetLoopLastNextMainItem <> nil) then
   begin
     SaveStartTime := FCueSheetLoopLastNextMainItem^.StartTime;
@@ -7997,10 +8041,10 @@ begin
     end;
   end;
 
-//  FCueSheetLoopLast := ALoopItem;
+//  FCueSheetLoopLastItem := ALoopItem;
 
-  FCueSheetLoopLastStartTime  := ALoopItem^.StartTime;
-  FCueSheetLoopLastDurationTC := ALoopItem^.DurationTC;
+  FCueSheetLoopLastItemStartTime  := ALoopItem^.StartTime;
+  FCueSheetLoopLastItemDurationTC := ALoopItem^.DurationTC;
 
 end;
 
@@ -8016,10 +8060,136 @@ begin
 end;
 
 procedure TfrmChannel.ClearCueSheetLoopItems;
+var
+  I: Integer;
+  Item: PCueSheetItem;
+  StartIndex, EndIndex: Integer;
 begin
-  FCueSheetLoopFirst := nil;
-  FCueSheetLoopLast  := nil;
+{  if (CueSheetCurr <> nil) then
+  begin
+    StartIndex := GetCueSheetIndexByItem(CueSheetCurr);
+  end
+  else exit; }
+
+  StartIndex := GetStartOnAirMainIndex;
+
+  // 시작 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
+  if (InRange(StartIndex, FCueSheetLoopFirstIndex, FCueSheetLoopLastIndex)) then
+  begin
+    if (FCueSheetLoopLastNextMainIndex >= 0) then
+      EndIndex := FCueSheetLoopLastNextMainIndex - 1
+    else
+      EndIndex := FCueSheetList.Count - 1;
+
+  FCueSheetIsLooping := False;
+//  FCueSheetLoopFirstItem := nil;
+//  FCueSheetLoopLastItem  := nil;
+//  FCueSheetLoopLastNextMainItem  := nil;
+//
+//  FCueSheetLoopFirstIndex := -1;
+//  FCueSheetLoopLastIndex  := -1;
+//  FCueSheetLoopLastNextMainIndex := -1;
+
+{    // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
+    if (FCueSheetLoopFirstIndex < StartIndex) then
+    begin
+      // 시작 인덱스부터 Loop 마지막 인덱스 skip 처리
+      SetCueSheetItemStatusByIndex(StartIndex, FCueSheetLoopLastNextMainIndex - 1, esSkipped);
+
+      // 온에어 중이면 이벤트 삭제
+      if (ChannelOnAir) then
+      begin
+        for I := StartIndex to FCueSheetLoopLastNextMainIndex - 1 do
+        begin
+          Item := GetCueSheetItemByIndex(I);
+          if (Item <> nil) then
+          begin
+            DeleteEvent(Item);
+          end;
+        end;
+      end;
+
+      // Loop 처음 인덱스부터 선택한 이벤트 전까지 skip 처리
+      SetCueSheetItemStatusByIndex(FCueSheetLoopFirstIndex, StartIndex - 1, esSkipped);
+
+      // 온에어 중이면 이벤트 삭제
+      if (ChannelOnAir) then
+      begin
+        for I := FCueSheetLoopFirstIndex to StartIndex - 1 do
+        begin
+          Item := GetCueSheetItemByIndex(I);
+          if (Item <> nil) then
+          begin
+            DeleteEvent(Item);
+          end;
+        end;
+      end;
+    end; }
+
+    // 시작 이벤트부터 루프의 마지막 선택한 이벤트 까지 skip 처리
+    SetCueSheetItemStatusByIndex(StartIndex, EndIndex, esSkipped);
+
+    // 온에어 중이면 이벤트 삭제
+    if (ChannelOnAir) then
+    begin
+      DeleteLoopCueSheet;
+
+      for I := StartIndex to EndIndex do
+      begin
+        Item := GetCueSheetItemByIndex(I);
+        if (Item <> nil) then
+        begin
+          if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+            continue;
+
+          DeleteEvent(Item);
+        end;
+      end;
+    end;
+
+    // Loop 처음 인덱스부터 시작 이벤트 전까지 skip 처리
+    SetCueSheetItemStatusByIndex(FCueSheetLoopFirstIndex, StartIndex - 1, esSkipped);
+
+    // 온에어 중이면 이벤트 삭제
+    if (ChannelOnAir) then
+    begin
+      for I := FCueSheetLoopFirstIndex to StartIndex - 1 do
+      begin
+        Item := GetCueSheetItemByIndex(I);
+        if (Item <> nil) then
+        begin
+          if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+            continue;
+
+          DeleteEvent(Item);
+        end;
+      end;
+    end;
+  end;
+
+//  CheckCueSheetLoop(EndIndex + 1);
+
+exit;
+  if (FCueSheetLoopFirstItem <> nil) then
+  begin
+    for I := FCueSheetLoopFirstIndex to FCueSheetLoopLastIndex do
+    begin
+      Item := GetCueSheetItemByIndex(I);
+      if (Item <> nil) and (Item^.EventMode = EM_MAIN) then
+        Item^.StartMode := SM_AUTOFOLLOW;
+    end;
+  end;
+
+
+
+  FCueSheetIsLooping := False;
+  FCueSheetLoopFirstItem := nil;
+  FCueSheetLoopLastItem  := nil;
   FCueSheetLoopLastNextMainItem  := nil;
+
+  FCueSheetLoopFirstIndex := -1;
+  FCueSheetLoopLastIndex  := -1;
+  FCueSheetLoopLastNextMainIndex := -1;
 end;
 
 procedure TfrmChannel.CheckCueSheetLoop(AIndex: Integer);
@@ -8029,19 +8199,28 @@ var
 begin
   if (AIndex < 0) then exit;
 
-  FCueSheetLoopFirst := nil;
-  FCueSheetLoopLast  := nil;
+  FCueSheetIsLooping := False;
+
+  FCueSheetLoopFirstItem := nil;
+  FCueSheetLoopLastItem  := nil;
   FCueSheetLoopLastNextMainItem := nil;
+
+  FCueSheetLoopFirstIndex := -1;
+  FCueSheetLoopLastIndex  := -1;
+  FCueSheetLoopLastNextMainIndex := -1;
 
   for I := AIndex to FCueSheetList.Count - 1 do
   begin
     Item := GetCueSheetItemByIndex(I);
     if (Item <> nil) and (Item^.EventMode = EM_MAIN) and (Item^.StartMode = SM_LOOP) and (Item^.EventStatus.State <> esSkipped) then
     begin
-      FCueSheetLoopFirst := Item;
-      FCueSheetLoopLast  := Item;
+      FCueSheetLoopFirstItem := Item;
+      FCueSheetLoopLastItem  := Item;
 
-      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, Find loop first = %s', [EventIDToString(FCueSheetLoopFirst^.EventID)])));
+      FCueSheetLoopFirstIndex := GetCueSheetIndexByItem(FCueSheetLoopFirstItem);
+      FCueSheetLoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLastItem);
+
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, Find loop first = %s', [EventIDToString(FCueSheetLoopFirstItem^.EventID)])));
 
       for J := I + 1 to FCueSheetList.Count - 1 do
       begin
@@ -8051,30 +8230,34 @@ begin
           if (Item^.EventStatus.State = esSkipped) then continue;
 
           if (Item^.StartMode = SM_LOOP) then
-            FCueSheetLoopLast := Item
+          begin
+            FCueSheetLoopLastItem := Item;
+            FCueSheetLoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLastItem);
+          end
           else
             break;
         end;
       end;
 
-      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, Find loop last = %s', [EventIDToString(FCueSheetLoopLast^.EventID)])));
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, Find loop last = %s', [EventIDToString(FCueSheetLoopLastItem^.EventID)])));
       break;
     end;
   end;
 
-//  FCueSheetLoopLastStartTime := InitEventTime;
+//  FCueSheetLoopLastItemStartTime := InitEventTime;
 
   ClearCueSheetLoopNextList;
 
-  if (FCueSheetLoopLast <> nil) then
+  if (FCueSheetLoopLastItem <> nil) then
   begin
-    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
-    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+    FCueSheetLoopLastItemStartTime  := FCueSheetLoopLastItem^.StartTime;
+    FCueSheetLoopLastItemDurationTC := FCueSheetLoopLastItem^.DurationTC;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastItemStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastItemDurationTC, ChannelIsDropFrame)])));
 
     // 마지막 Loop의 다음 Main 인덱스를 구함
-    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
+    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLastItem);
+    FCueSheetLoopLastNextMainIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
   end;
 end;
 
@@ -11196,7 +11379,7 @@ var
   Item: PCueSheetItem;
 begin
   inherited;
-      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('DisplayPlayListGrid, index = %d, addcount = %d', [AIndex, AAddCount])));
+//      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('DisplayPlayListGrid, index = %d, addcount = %d', [AIndex, AAddCount])));
 
   if (FCueSheetList = nil) then exit;
 
@@ -11395,7 +11578,7 @@ begin
       R := RealRowIndex(AIndex + CNT_CUESHEET_HEADER);
       InsertNormalRow(R);
 
-      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InsertNormalRow mairogram, %d', [R])));
+//      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InsertNormalRow mairogram, %d', [R])));
     end
     else if (AItem^.EventMode = EM_MAIN) then
     begin
@@ -11416,7 +11599,7 @@ begin
         R := RealRowIndex(AIndex + CNT_CUESHEET_HEADER);
         InsertNormalRow(R);
 
-        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InsertNormalRow main, %d', [R])));
+//        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('InsertNormalRow main, %d', [R])));
       end;
     end
     else
@@ -13188,7 +13371,7 @@ begin
         else
           Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurEventTime, ChannelFrameRateType);
 
-//FCueSheetLoopLastDurationTC := Item.DurationTC;
+//FCueSheetLoopLastItemDurationTC := Item.DurationTC;
 
         break;
       end;
@@ -13196,9 +13379,9 @@ begin
     end;
 
     if (CompareEventTime(ASaveTime, ANewTime, ChannelFrameRateType) <= 0) then
-    FCueSheetLoopLastStartTime := GetPlusEventTime(FCueSheetLoopLastStartTime, DurEventTime, ChannelFrameRateType)
+    FCueSheetLoopLastItemStartTime := GetPlusEventTime(FCueSheetLoopLastItemStartTime, DurEventTime, ChannelFrameRateType)
     else
-    FCueSheetLoopLastStartTime := GetMinusEventTime(FCueSheetLoopLastStartTime, DurEventTime, ChannelFrameRateType);
+    FCueSheetLoopLastItemStartTime := GetMinusEventTime(FCueSheetLoopLastItemStartTime, DurEventTime, ChannelFrameRateType);
   finally
     FCueSheetLock.Leave;
   end;
@@ -13409,6 +13592,8 @@ var
   NowChannelCueSheet: PChannelCueSheet;           // 현재 로딩한 날쩌의 큐시트
   NowStartIndex: Integer;                         // 현재 로딩한 날쩌의 큐시트 시작 인덱스
 
+  IsUpdateMode: Boolean;
+
   I, J: Integer;
   Item, ChildItem: PCueSheetItem;
 
@@ -13446,6 +13631,8 @@ begin
       repeat
   //      if (SR.Attr and FileAttrs) = SR.Attr then
         begin
+          IsUpdateMode := False;
+
           LoadFileName := GV_SettingGeneral.LoadCueSheetPath + SR.Name;
           WorkFileName := GV_SettingGeneral.WorkCueSheetPath + SR.Name;
 
@@ -13493,7 +13680,7 @@ begin
               NowChannelCueSheet := GetChannelCueSheetByOnairDate(OnAirDateToDate(LoadChannelCueSheet^.OnairDate));
               if (NowChannelCueSheet <> nil) then
               begin
-                if (NowChannelCueSheet^.OnairNo >= LoadChannelCueSheet^.OnairNo) then
+                if (NowChannelCueSheet^.OnairNo > LoadChannelCueSheet^.OnairNo) then
                 begin
                   Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList, Find aleady loaded cuesheet, File = %s',
                                                                              [String(LoadChannelCueSheet^.FileName)])));
@@ -13510,6 +13697,12 @@ begin
                   end;
 
                   Continue;
+                end
+                else if (NowChannelCueSheet^.OnairNo = LoadChannelCueSheet^.OnairNo) then
+                begin
+                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList, Update load cuesheet update mode, File = %s',
+                                                                             [String(LoadChannelCueSheet^.FileName)])));
+                  IsUpdateMode := True;
                 end;
               end;
 
@@ -13537,6 +13730,9 @@ begin
 //              if (MoveFile(PChar(LoadFileName), PChar(WorkFileName))) then
               if (MoveFileEx(PChar(LoadFileName), PChar(WorkFileName), MOVEFILE_REPLACE_EXISTING)) then
               begin
+//                ClearCueSheetLoopNextList;
+
+
                 // 현재 기준 시각 구함 - 추후 변경 가능한 타임 옵션 적용해야 함
 {                if (CueSheetNext <> nil) then
                 begin
@@ -13564,127 +13760,6 @@ begin
 
                 // 이벤트 등록을 위한 기준시각 구함
                 // 기준시각에서 EditLock Time을 더한 시각보다 시작시각이 큰 이벤트만 새로 로딩함
-                if (CueSheetCurr <> nil) then
-                begin
-//                  BaseStartTime := CueSheetCurr^.StartTime;
-                  BaseStartTime := GetEventEndTime(CueSheetCurr^.StartTime, CueSheetCurr^.DurationTC, ChannelFrameRateType);
-                  BaseStartTime := GetPlusEventTime(BaseStartTime, TimecodeToEventTime(GV_SettingThresholdTime.EditLockTime), ChannelFrameRateType);
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Exist current event item. Base start time = %s',
-                                                                             [EventTimeToString(BaseStartTime, ChannelFrameRateType)])));
-                end
-                else
-                begin
-                  BaseStartTime := DateTimeToEventTime(BaseDateTime, ChannelFrameRateType);
-                  BaseStartTime := GetPlusEventTime(BaseStartTime, TimecodeToEventTime(GV_SettingThresholdTime.EditLockTime), ChannelFrameRateType);
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Now time is base time. Base start time = %s',
-                                                                             [EventTimeToString(BaseStartTime, ChannelFrameRateType)])));
-                end;
-
-
-                // 로딩한 큐시트의 현재 시각 이전의 항목 삭제
-                RemoveItemList := TCueSheetList.Create;
-                Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 1'));
-                try
-                  for I := 0 to LoadCueSheetList.Count - 1 do
-                  begin
-                    Item := LoadCueSheetList[I];
-                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 2'));
-                    if (Item <> nil) then
-                    begin
-                      if (Item^.EventMode = EM_PROGRAM) then
-                      begin
-                        ProgramNo := Item^.ProgramNo;
-
-                        // 프로그램 이벤트 인 경우 메인 이벤트가 현재시각 이전 인 경우 삭제
-                        for J := I + 1 to LoadCueSheetList.Count - 1 do
-                        begin
-                          ChildItem := LoadCueSheetList[J];
-                          if (ChildItem <> nil) and (ChildItem^.ProgramNo = ProgramNo) and
-                             (ChildItem^.EventMode = EM_MAIN) then
-                          begin
-//                            StartTime := GetEventEndTime(ChildItem^.StartTime, ChildItem^.DurationTC);
-                            StartTime := ChildItem^.StartTime;
-
-                            if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) <= 0) then
-                              RemoveItemList.Add(Item)
-                            else
-                              break;
-                          end
-                          else
-                            break;
-                        end;
-                      end
-                      else if (Item^.EventMode = EM_MAIN) then
-                      begin
-                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 3'));
-                        StartTime := Item^.StartTime;
-//                        StartTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC);
-                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Check load main item end time. End time = %s',
-                                                                                   [EventTimeToString(StartTime, ChannelFrameRateType)])));
-
-                        if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) < 0) then
-                        begin
-                          // 현재 메인 이벤트 삭제
-                          RemoveItemList.Add(Item);
-                          Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add remove load main item. Index = %d, ' +
-                                                                                     'Serial no = %d, ' +
-                                                                                     'Group no = %d',
-                                                                                     [I,
-                                                                                      Item^.EventID.SerialNo,
-                                                                                      Item^.GroupNo])));
-
-                          GroupNo := Item^.GroupNo;
-
-                          // 기준 시각 보다 작은 경우 자식 이벤트 삭제
-                          for J := I + 1 to LoadCueSheetList.Count - 1 do
-                          begin
-                            ChildItem := LoadCueSheetList[J];
-                            if (ChildItem <> nil) and (ChildItem^.GroupNo = GroupNo) then
-                            begin
-                              RemoveItemList.Add(ChildItem);
-                              Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add remove load child item. Index = %d, ' +
-                                                                                         'Serial no = %d, ' +
-                                                                                         'Group no = %d',
-                                                                                         [J,
-                                                                                          ChildItem^.EventID.SerialNo,
-                                                                                          ChildItem^.GroupNo])));
-                            end
-                            else
-                              break;
-                          end;
-                        end;
-                      end;
-                    end;
-                  end;
-
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Get delete load item count = %d',
-                                                                             [RemoveItemList.Count])));
-                  // Delete event items
-                  for I := RemoveItemList.Count - 1 downto 0 do
-                  begin
-                    Item := RemoveItemList[I];
-
-                    LoadCueSheetList.Remove(Item);
-                    Dispose(Item);
-                  end;
-
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete load items.'));
-
-                  LoadChannelCueSheet^.EventCount := LoadCueSheetList.Count;
-
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Load channel cuesheet event count = %d', [LoadChannelCueSheet^.EventCount])));
-
-                  if (LoadCueSheetList.Count <= 0) then
-                  begin
-                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Not add cuesheet event items, playlist = %s', [LoadChannelCueSheet^.FileName])));
-                    exit;
-                  end;
-                finally
-                  RemoveItemList.Clear;
-                  FreeAndNil(RemoveItemList);
-                end;
-
-
 
                 wmtlPlaylist.BeginUpdateCompositions;
 
@@ -13697,86 +13772,157 @@ begin
                 acgPlaylist.MouseActions.DisjunctRowSelect := False;
 
                 try
-                  // 로딩한 날짜의 현재 큐시트 찾기
-                  NowChannelCueSheet := GetChannelCueSheetByOnairDate(OnAirDateToDate(LoadChannelCueSheet^.OnairDate));
-                  if (NowChannelCueSheet <> nil) then
+                  if (CueSheetCurr <> nil) then
                   begin
+  //                  BaseStartTime := CueSheetCurr^.StartTime;
+                    BaseStartTime := GetEventEndTime(CueSheetCurr^.StartTime, CueSheetCurr^.DurationTC, ChannelFrameRateType);
+                    BaseStartTime := GetPlusEventTime(BaseStartTime, TimecodeToEventTime(GV_SettingThresholdTime.EditLockTime), ChannelFrameRateType);
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Exist current event item. Base start time = %s',
+                                                                               [EventTimeToString(BaseStartTime, ChannelFrameRateType)])));
+                  end
+                  else
+                  begin
+                    BaseStartTime := DateTimeToEventTime(BaseDateTime, ChannelFrameRateType);
+                    BaseStartTime := GetPlusEventTime(BaseStartTime, TimecodeToEventTime(GV_SettingThresholdTime.EditLockTime), ChannelFrameRateType);
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Now time is base time. Base start time = %s',
+                                                                               [EventTimeToString(BaseStartTime, ChannelFrameRateType)])));
+                  end;
 
-                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Find now cuesheet onair date playlist. ' +
-                                                                               'File name = %s, ' +
-                                                                               'Onair date = %s, ' +
-                                                                               'Onair flag = %s, ' +
-                                                                               'Onair no = %d, ' +
-                                                                               'Event count = %d',
-                                                                               [String(NowChannelCueSheet^.FileName),
-                                                                                String(NowChannelCueSheet^.OnairDate),
-                                                                                Char(NowChannelCueSheet^.OnairFlag),
-                                                                                NowChannelCueSheet^.OnairNo,
-                                                                                NowChannelCueSheet^.EventCount
-                                                                                ])));
+                  // 운행표 수정일 경우
+                  if (IsUpdateMode) then
+                  begin
+                    // 로드한 큐시트 업데이트
+                    for I := 0 to LoadCueSheetList.Count - 1 do
+                    begin
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList update load cuesheet item. index = %d, id = %s', [I, EventIDToString(LoadCueSheetList[I]^.EventID)])));
 
-
-                    RemoveItemList := TCueSheetList.Create;
-                    RemoveRowList := TList<Integer>.Create;
-                    RemoveMainRowList := TList<Integer>.Create;
-                    try
-                      // 현재 큐시트의 시작 이벤트 인덱스 구함
-                      NowStartIndex := GetChannelCueSheetStartIndex(NowChannelCueSheet);
-
-                      // 현재 큐시트의 현재 시각 이후의 항목 삭제
-                      for I := NowStartIndex to NowStartIndex + NowChannelCueSheet^.EventCount - 1 do
+                      Item := GetCueSheetItemByID(LoadCueSheetList[I]^.EventID);
+                      if (Item <> nil) then
                       begin
-                        Item := GetCueSheetItemByIndex(I);
+//                          Move(LoadCueSheetList[I]^, Item^, SizeOf(TCueSheetItem));
+
+                        // 제목등 메타데이터만 변경
+                        FCueSheetLock.Enter;
+                        try
+                          StrCopy(Item^.Title, LoadCueSheetList[I]^.Title);
+                          StrCopy(Item^.SubTitle, LoadCueSheetList[I]^.SubTitle);
+
+                          Item^.Input := LoadCueSheetList[I]^.Input;
+                          Item^.Output := LoadCueSheetList[I]^.Output;
+
+                          StrCopy(Item^.Source, LoadCueSheetList[I]^.Source);
+
+                          Item^.SourceLayer := LoadCueSheetList[I]^.SourceLayer;
+
+                          StrCopy(Item^.MediaId, LoadCueSheetList[I]^.MediaId);
+
+                          Item^.MediaStatus := LoadCueSheetList[I]^.MediaStatus;
+                          Item^.DurationTC := LoadCueSheetList[I]^.DurationTC;
+                          Item^.InTC := LoadCueSheetList[I]^.InTC;
+                          Item^.OutTC := LoadCueSheetList[I]^.OutTC;
+                          Item^.VideoType := LoadCueSheetList[I]^.VideoType;
+                          Item^.AudioType := LoadCueSheetList[I]^.AudioType;
+                          Item^.ClosedCaption := LoadCueSheetList[I]^.ClosedCaption;
+                          Item^.VoiceAdd := LoadCueSheetList[I]^.VoiceAdd;
+                          Item^.TransitionType := LoadCueSheetList[I]^.TransitionType;
+                          Item^.TransitionRate := LoadCueSheetList[I]^.TransitionRate;
+                          Item^.FinishAction := LoadCueSheetList[I]^.FinishAction;
+                          Item^.ProgramType := LoadCueSheetList[I]^.ProgramType;
+                          Item^.BkColor := LoadCueSheetList[I]^.BkColor;
+                          Item^.TxColor := LoadCueSheetList[I]^.TxColor;
+                          Item^.ToColor := LoadCueSheetList[I]^.ToColor;
+
+                          StrCopy(Item^.Notes, LoadCueSheetList[I]^.Notes);
+                        finally
+                          FCueSheetLock.Leave;
+                        end;
+
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList update cuesheet item. index = %d, id = %s', [I, EventIDToString(Item^.EventID)])));
+                      end;
+                    end;
+
+                    // 현재 큐시트의 시작 이벤트 인덱스 구함
+                    NowStartIndex := GetChannelCueSheetStartIndex(NowChannelCueSheet);
+                    StartIndex := NowStartIndex;
+
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList update load cuesheet startindex = %d', [StartIndex])));
+
+                    PopulatePlayListGrid(StartIndex);
+
+                    if (ChannelOnAir) then
+                    begin
+                      ServerInputCueSheets(ChannelID, StartIndex);
+                    end;
+                  end
+                  else
+                  begin
+                    // 로딩한 큐시트의 현재 시각 이전의 항목 삭제
+                    RemoveItemList := TCueSheetList.Create;
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 1'));
+                    try
+                      for I := 0 to LoadCueSheetList.Count - 1 do
+                      begin
+                        Item := LoadCueSheetList[I];
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 2'));
                         if (Item <> nil) then
                         begin
                           if (Item^.EventMode = EM_PROGRAM) then
                           begin
-                            // 프로그램 이벤트 인 경우 메인 이벤트가 현재시각 이후 인 경우 삭제
-                            ChildItem := GetProgramMainItemByItem(Item);
-                            if (ChildItem <> nil) and
-                               (ChildItem^.EventMode = EM_MAIN) then
-                            begin
-                              // 프로그램 이벤트 Node Expand
-//                              acgPlaylist.ExpandNode(I + CNT_CUESHEET_HEADER);
+                            ProgramNo := Item^.ProgramNo;
 
-//                              StartTime := GetEventEndTime(ChildItem^.StartTime, ChildItem^.DurationTC);
-                              StartTime := ChildItem^.StartTime;
-                              if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) >= 0) then
+                            // 프로그램 이벤트 인 경우 메인 이벤트가 현재시각 이전 인 경우 삭제
+                            for J := I + 1 to LoadCueSheetList.Count - 1 do
+                            begin
+                              ChildItem := LoadCueSheetList[J];
+                              if (ChildItem <> nil) and (ChildItem^.ProgramNo = ProgramNo) and
+                                 (ChildItem^.EventMode = EM_MAIN) then
                               begin
-                                RemoveItemList.Add(Item);
-                                RemoveRowList.Add(I);//acgPlaylist.DisplRowIndex(I + CNT_CUESHEET_HEADER));
-                              end;
+    //                            StartTime := GetEventEndTime(ChildItem^.StartTime, ChildItem^.DurationTC);
+                                StartTime := ChildItem^.StartTime;
+
+                                if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) <= 0) then
+                                  RemoveItemList.Add(Item)
+                                else
+                                  break;
+                              end
+                              else
+                                break;
                             end;
                           end
-                          else if (Item^.EventMode = EM_MAIN) {and (Item <> CueSheetNext) and (Item <> CueSheetCurr)} then
+                          else if (Item^.EventMode = EM_MAIN) then
                           begin
-//                            StartTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC);
+                            Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Test 3'));
                             StartTime := Item^.StartTime;
+    //                        StartTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC);
+                            Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Check load main item end time. End time = %s',
+                                                                                       [EventTimeToString(StartTime, ChannelFrameRateType)])));
 
-                            if {(Item^.EventStatus.State = esSkipped) or }(CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) >= 0) then
+                            if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) < 0) then
                             begin
-                              // 메인 이벤트 Node Expand
-//                              acgPlaylist.ExpandNode(I + CNT_CUESHEET_HEADER);
-
-                              // 메인 이벤트 삭제
+                              // 현재 메인 이벤트 삭제
                               RemoveItemList.Add(Item);
-                              RemoveRowList.Add(I);//acgPlaylist.DisplRowIndex(I + CNT_CUESHEET_HEADER));
-                              RemoveMainRowList.Add(I);
-
-{                              // 현재 Main 이벤트 삭제
-                              if (FChannelOnAir) then
-                                OnAirDeleteEvents(I, I); }
+                              Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add remove load main item. Index = %d, ' +
+                                                                                         'Serial no = %d, ' +
+                                                                                         'Group no = %d',
+                                                                                         [I,
+                                                                                          Item^.EventID.SerialNo,
+                                                                                          Item^.GroupNo])));
 
                               GroupNo := Item^.GroupNo;
 
-                              // 기준 시각 보다 큰 경우 자식 이벤트 삭제
-                              for J := I + 1 to FCueSheetList.Count - 1 do
+                              // 기준 시각 보다 작은 경우 자식 이벤트 삭제
+                              for J := I + 1 to LoadCueSheetList.Count - 1 do
                               begin
-                                ChildItem := GetCueSheetItemByIndex(J);
+                                ChildItem := LoadCueSheetList[J];
                                 if (ChildItem <> nil) and (ChildItem^.GroupNo = GroupNo) then
                                 begin
                                   RemoveItemList.Add(ChildItem);
-                                  RemoveRowList.Add(J);//acgPlaylist.DisplRowIndex(J + CNT_CUESHEET_HEADER));
+                                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add remove load child item. Index = %d, ' +
+                                                                                             'Serial no = %d, ' +
+                                                                                             'Group no = %d',
+                                                                                             [J,
+                                                                                              ChildItem^.EventID.SerialNo,
+                                                                                              ChildItem^.GroupNo])));
                                 end
                                 else
                                   break;
@@ -13786,197 +13932,41 @@ begin
                         end;
                       end;
 
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Get delete item & row count. ' +
-                                                                                 'Item count = %d, ' +
-                                                                                 'Row count = %d',
-                                                                                 [RemoveItemList.Count,
-                                                                                  RemoveRowList.Count
-                                                                                  ])));
-
-                      // Delete rows
-                      for I := RemoveRowList.Count - 1 downto 0 do
-                      begin
-//                        acgPlaylist.RemoveNode(acgPlaylist.RealRowIndex(RemoveRowList[I]));
-//                        acgPlaylist.RemoveNormalRow(RemoveRowList[I]);
-//                        acgPlaylist.RemoveChildRow(acgPlaylist.RealRowIndex(RemoveRowList[J]));
-            deletePlayListGridMain(RemoveRowList[I]);
-                     end;
-
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete rows & nodes.'));
-
-                      // Delete dcs event
-                      if (ChannelOnAir) then
-                      begin
-                        // Loop 첫번째/마지막 이벤트 인덱스 구함
-                        LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
-                        LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLast);
-                        LoopLastNextIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
-
-                        wmtlPlaylist.BeginUpdateCompositions;
-                        if (ChannelOnAir) then
-                          ServerBeginUpdates(ChannelID);
-                        try
-                          // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
-                          if (InRange(SelectIndex, LoopFirstIndex, LoopLastIndex)) then
-                          begin
-                            // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
-                            if (SelectIndex < StartIndex) then
-                            begin
-                              // 시작 인덱스부터 Loop 마지막 인덱스 skip 처리
-                              SetCueSheetItemStatusByIndex(StartIndex, LoopLastNextIndex - 1, esSkipped);
-
-                              // 온에어 중이면 이벤트 삭제
-                              if (ChannelOnAir) then
-                              begin
-                                for I := StartIndex to LoopLastNextIndex - 1 do
-                                begin
-                                  Item := GetCueSheetItemByIndex(I);
-                                  if (Item <> nil) then
-                                  begin
-                                    DeleteEvent(Item);
-                                  end;
-                                end;
-                              end;
-
-                              // Loop 처음 인덱스부터 선택한 이벤트 전까지 skip 처리
-                              SetCueSheetItemStatusByIndex(LoopFirstIndex, SelectIndex - 1, esSkipped);
-
-                              // 온에어 중이면 이벤트 삭제
-                              if (ChannelOnAir) then
-                              begin
-                                for I := LoopFirstIndex to SelectIndex - 1 do
-                                begin
-                                  Item := GetCueSheetItemByIndex(I);
-                                  if (Item <> nil) then
-                                  begin
-                                    DeleteEvent(Item);
-                                  end;
-                                end;
-                              end;
-                            end;
-
-                            // 시작 인덱스에서 선택한 이벤트 전까지 Skip 처리
-                            if (SelectIndex > StartIndex) then
-                            begin
-                              SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
-
-                              // 온에어 중이면 이벤트 삭제
-                              if (ChannelOnAir) then
-                              begin
-                                for I := StartIndex to SelectIndex - 1 do
-                                begin
-                                  Item := GetCueSheetItemByIndex(I);
-                                  if (Item <> nil) then
-                                  begin
-                                    DeleteEvent(Item);
-                                  end;
-                                end;
-                              end;
-                            end;
-
-                            // 선택한 이벤트부터 끝까지 온에어되지 않은 이벤트의 시작시각 변경
-                            for I := SelectIndex to LoopLastNextIndex - 1 do
-                            begin
-                              Item := GetCueSheetItemByIndex(I);
-                              if (Item <> nil) then
-                              begin
-                                if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
-                                begin
-                                  Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
-                                end;
-                              end;
-                            end;
-
-                            // Loop의 처음 이벤트부터 선택한 이벤트 이전까지 시작시각 변경
-                            for I := LoopFirstIndex to SelectIndex - 1 do
-                            begin
-                              Item := GetCueSheetItemByIndex(I);
-                              if (Item <> nil) then
-                              begin
-                                if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
-                                begin
-                                  Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
-                                end;
-                              end;
-                            end;
-
-                            // 타임라인 업데이트
-                            DisplayPlayListTimeLine(LoopFirstIndex);
-
-                            // 온에어중이면 선택한 이벤트부터 시작 시각 조정
-                            if (ChannelOnAir) then
-                            begin
-                              OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, SelectItem^.StartTime);
-                            end;
-
-                            // Loop List의 시작시각을 조정
-                            ResetStartTimeLoopNextList(SaveStartTime, StartItem^.StartTime);
-
-                            SaveStartTime := FCueSheetLoopLastNextMainItem^.StartTime;
-                            FCueSheetLoopLastNextMainItem^.StartTime := GetMinusEventTime(FCueSheetLoopLastNextMainItem^.StartTime, DurTime, ChannelFrameRateType);
-
-                            // 선택한 이벤트 이후의 시작 시각 조정
-                            ResetStartTimeByTime(LoopLastNextIndex, SaveStartTime);
-                          end
-
-                        for I := RemoveMainRowList.Count - 1 downto 0 do
-                        begin
-                          OnAirDeleteEvents(RemoveMainRowList[I], RemoveMainRowList[I]);
-                        end;
-
-                        ServerDeleteCueSheets(ChannelID, RemoveItemList);
-                      end;
-
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Get delete load item count = %d',
+                                                                                 [RemoveItemList.Count])));
                       // Delete event items
                       for I := RemoveItemList.Count - 1 downto 0 do
                       begin
                         Item := RemoveItemList[I];
 
-                        DeletePlayListTimeLineByItem(Item);
-
-                        FCueSheetLock.Enter;
-                        try
-                          FCueSheetList.Remove(Item);
-                          Dispose(Item);
-                        finally
-                          FCueSheetLock.Leave;
-                        end;
-
-                        Dec(NowChannelCueSheet^.EventCount);
+                        LoadCueSheetList.Remove(Item);
+                        Dispose(Item);
                       end;
 
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete event items.'));
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete load items.'));
 
-                      SaveEventCount := NowChannelCueSheet^.EventCount;
-
-                      Move(LoadChannelCueSheet^, NowChannelCueSheet^, SizeOf(TChannelCueSheet));
-                      StrPLCopy(NowChannelCueSheet^.FileName, WorkFileName, MAX_PATH);
-                      NowChannelCueSheet^.EventCount := NowChannelCueSheet^.EventCount + SaveEventCount;
-
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Now channel cuesheet event count = %d', [NowChannelCueSheet^.EventCount])));
-
-                      StartIndex := NowStartIndex + SaveEventCount;
-  //                    ShowMessage(IntToStr(StartIndex));
-
+                      ClearCueSheetLoopItems;
                     finally
-                      RemoveMainRowList.Clear;
-                      RemoveRowList.Clear;
                       RemoveItemList.Clear;
-
-                      FreeAndNil(RemoveMainRowList);
-                      FreeAndNil(RemoveRowList);
                       FreeAndNil(RemoveItemList);
                     end;
-                  end
-                  else
-                  begin
-                    // 로딩한 날짜의 큐시트가 없는 경우
-                    // 로딩한 날짜 이후의 큐시트 찾음
-                    // 큐시트 및 이벤트 위치 지정
-                    NowChannelCueSheet := GetNextChannelCueSheetByOnairDate(OnAirDateToDate(LoadChannelCueSheet^.OnairDate));
+
+                    LoadChannelCueSheet^.EventCount := LoadCueSheetList.Count;
+
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Load channel cuesheet event count = %d', [LoadChannelCueSheet^.EventCount])));
+
+                    if (LoadCueSheetList.Count <= 0) then
+                    begin
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Not add cuesheet event items, playlist = %s', [LoadChannelCueSheet^.FileName])));
+                      exit;
+                    end;
+
+                    // 로딩한 날짜의 현재 큐시트 찾기
+                    NowChannelCueSheet := GetChannelCueSheetByOnairDate(OnAirDateToDate(LoadChannelCueSheet^.OnairDate));
                     if (NowChannelCueSheet <> nil) then
                     begin
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Find now cuesheet next onair date playlist. ' +
+
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Find now cuesheet onair date playlist. ' +
                                                                                  'File name = %s, ' +
                                                                                  'Onair date = %s, ' +
                                                                                  'Onair flag = %s, ' +
@@ -13989,109 +13979,299 @@ begin
                                                                                   NowChannelCueSheet^.EventCount
                                                                                   ])));
 
-                      // 큐시트 위치
-                      NowStartIndex := FChannelCueSheetList.IndexOf(NowChannelCueSheet);
-                      StartIndex    := GetChannelCueSheetStartIndex(NowChannelCueSheet);;
+                      RemoveItemList := TCueSheetList.Create;
+                      RemoveRowList := TList<Integer>.Create;
+                      RemoveMainRowList := TList<Integer>.Create;
+                      try
+                        // 현재 큐시트의 시작 이벤트 인덱스 구함
+                        NowStartIndex := GetChannelCueSheetStartIndex(NowChannelCueSheet);
+
+                        // 현재 큐시트의 현재 시각 이후의 항목 삭제
+                        for I := NowStartIndex to NowStartIndex + NowChannelCueSheet^.EventCount - 1 do
+                        begin
+                          Item := GetCueSheetItemByIndex(I);
+                          if (Item <> nil) then
+                          begin
+                            if (Item^.EventMode = EM_PROGRAM) then
+                            begin
+                              // 프로그램 이벤트 인 경우 메인 이벤트가 현재시각 이후 인 경우 삭제
+                              ChildItem := GetProgramMainItemByItem(Item);
+                              if (ChildItem <> nil) and
+                                 (ChildItem^.EventMode = EM_MAIN) then
+                              begin
+                                // 프로그램 이벤트 Node Expand
+  //                              acgPlaylist.ExpandNode(I + CNT_CUESHEET_HEADER);
+
+  //                              StartTime := GetEventEndTime(ChildItem^.StartTime, ChildItem^.DurationTC);
+                                StartTime := ChildItem^.StartTime;
+                                if (CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) >= 0) then
+                                begin
+                                  RemoveItemList.Add(Item);
+                                  RemoveRowList.Add(I);//acgPlaylist.DisplRowIndex(I + CNT_CUESHEET_HEADER));
+                                end;
+                              end;
+                            end
+                            else if (Item^.EventMode = EM_MAIN) {and (Item <> CueSheetNext) and (Item <> CueSheetCurr)} then
+                            begin
+  //                            StartTime := GetEventEndTime(Item^.StartTime, Item^.DurationTC);
+                              StartTime := Item^.StartTime;
+
+                              if {(Item^.EventStatus.State = esSkipped) or }(CompareEventTime(StartTime, BaseStartTime, ChannelFrameRateType) >= 0) then
+                              begin
+                                // 메인 이벤트 Node Expand
+  //                              acgPlaylist.ExpandNode(I + CNT_CUESHEET_HEADER);
+
+                                // 메인 이벤트 삭제
+                                RemoveItemList.Add(Item);
+                                RemoveRowList.Add(I);//acgPlaylist.DisplRowIndex(I + CNT_CUESHEET_HEADER));
+                                RemoveMainRowList.Add(I);
+
+  {                              // 현재 Main 이벤트 삭제
+                                if (FChannelOnAir) then
+                                  OnAirDeleteEvents(I, I); }
+
+                                GroupNo := Item^.GroupNo;
+
+                                // 기준 시각 보다 큰 경우 자식 이벤트 삭제
+                                for J := I + 1 to FCueSheetList.Count - 1 do
+                                begin
+                                  ChildItem := GetCueSheetItemByIndex(J);
+                                  if (ChildItem <> nil) and (ChildItem^.GroupNo = GroupNo) then
+                                  begin
+                                    RemoveItemList.Add(ChildItem);
+                                    RemoveRowList.Add(J);//acgPlaylist.DisplRowIndex(J + CNT_CUESHEET_HEADER));
+                                  end
+                                  else
+                                    break;
+                                end;
+                              end;
+                            end;
+                          end;
+                        end;
+
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Get delete item & row count. ' +
+                                                                                   'Item count = %d, ' +
+                                                                                   'Row count = %d',
+                                                                                   [RemoveItemList.Count,
+                                                                                    RemoveRowList.Count
+                                                                                    ])));
+
+                        // Delete rows
+                        for I := RemoveRowList.Count - 1 downto 0 do
+                        begin
+  //                        acgPlaylist.RemoveNode(acgPlaylist.RealRowIndex(RemoveRowList[I]));
+  //                        acgPlaylist.RemoveNormalRow(RemoveRowList[I]);
+  //                        acgPlaylist.RemoveChildRow(acgPlaylist.RealRowIndex(RemoveRowList[J]));
+              deletePlayListGridMain(RemoveRowList[I]);
+                       end;
+
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete rows & nodes.'));
+
+                        // Delete dcs event
+                        if (ChannelOnAir) then
+                        begin
+                          Dec(FLastInputIndex, RemoveItemList.Count);
+
+  //                        DeleteLoopCueSheet;
+  {  // Loop 첫번째/마지막 이벤트 인덱스 구함
+    LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirstItem);
+    LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLastItem);
+    LoopLastNextIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
+
+      // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
+      if (InRange(StartIndex, LoopFirstIndex, LoopLastIndex)) then
+      begin
+
+                          for I := StartIndex to SelectIndex - 1 do
+                          begin
+                            Item := GetCueSheetItemByIndex(I);
+                            if (Item <> nil) then
+                            begin
+                              if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
+                                continue;
+
+                              DeleteEvent(Item);
+                            end;
+                          end;
+      end; }
+
+
+                          for I := RemoveMainRowList.Count - 1 downto 0 do
+                          begin
+                            OnAirDeleteEvents(RemoveMainRowList[I], RemoveMainRowList[I]);
+                          end;
+
+                          ServerDeleteCueSheets(ChannelID, RemoveItemList);
+                        end;
+
+                        // Delete event items
+                        for I := RemoveItemList.Count - 1 downto 0 do
+                        begin
+                          Item := RemoveItemList[I];
+
+                          DeletePlayListTimeLineByItem(Item);
+
+                          FCueSheetLock.Enter;
+                          try
+                            FCueSheetList.Remove(Item);
+                            Dispose(Item);
+                          finally
+                            FCueSheetLock.Leave;
+                          end;
+
+                          Dec(NowChannelCueSheet^.EventCount);
+                        end;
+
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Success delete event items.'));
+
+                        SaveEventCount := NowChannelCueSheet^.EventCount;
+
+                        Move(LoadChannelCueSheet^, NowChannelCueSheet^, SizeOf(TChannelCueSheet));
+                        StrPLCopy(NowChannelCueSheet^.FileName, WorkFileName, MAX_PATH);
+                        NowChannelCueSheet^.EventCount := NowChannelCueSheet^.EventCount + SaveEventCount;
+
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Now channel cuesheet event count = %d', [NowChannelCueSheet^.EventCount])));
+
+                        StartIndex := NowStartIndex + SaveEventCount;
+    //                    ShowMessage(IntToStr(StartIndex));
+
+                      finally
+                        RemoveMainRowList.Clear;
+                        RemoveRowList.Clear;
+                        RemoveItemList.Clear;
+
+                        FreeAndNil(RemoveMainRowList);
+                        FreeAndNil(RemoveRowList);
+                        FreeAndNil(RemoveItemList);
+                      end;
                     end
                     else
                     begin
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Not found now cuesheet next onair date playlist.'));
-
-                      NowStartIndex := FChannelCueSheetList.Count;
-                      StartIndex    := FCueSheetList.Count;
-                    end;
-
-                    NowChannelCueSheet := New(PChannelCueSheet);
-                    Move(LoadChannelCueSheet^, NowChannelCueSheet^, SizeOf(TChannelCueSheet));
-                    StrPLCopy(NowChannelCueSheet^.FileName, WorkFileName, MAX_PATH);
-
-                    if (NowStartIndex = FChannelCueSheetList.Count) then
-                    begin
-                      FChannelCueSheetList.Add(NowChannelCueSheet);
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add channel cuesheet list. Index = %d, Count = %d, File name = %s', [NowStartIndex, FChannelCueSheetList.Count, WorkFileName])));
-                    end
-                    else
-                    begin
-                      FChannelCueSheetList.Insert(NowStartIndex, NowChannelCueSheet);
-                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Insert channel cuesheet list. Index = %d, Count = %d, File name = %s', [NowStartIndex, FChannelCueSheetList.Count, WorkFileName])));
-                    end;
-
-                    if (ChannelOnAir) then
-                    begin
-                      ServerInputChannelCueSheets(NowChannelCueSheet);
-                    end;
-
-                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add load channel cuesheet list. ' +
-                                                                               'File name = %s, ' +
-                                                                               'Onair date = %s, ' +
-                                                                               'Onair flag = %s, ' +
-                                                                               'Onair no = %d, ' +
-                                                                               'Event count = %d',
-                                                                               [String(NowChannelCueSheet^.FileName),
-                                                                                String(NowChannelCueSheet^.OnairDate),
-                                                                                Char(NowChannelCueSheet^.OnairFlag),
-                                                                                NowChannelCueSheet^.OnairNo,
-                                                                                NowChannelCueSheet^.EventCount
-                                                                                ])));
-
-  //                  ChannelCueSheetListSort(FChannelCueSheetList);
-                  end;
-
-  {                // 기준 시각 이벤트 인덱스 구함
-                  StartItem := GetMainItemByStartTime(NowStartIndex, EventTimeToDateTime(BaseStartTime));
-                  if (StartItem <> nil) then
-                  begin
-                    StartIndex := GetCueSheetIndexByItem(StartItem);
-                  end
-                  else
-                  begin
-                    StartIndex := FCueSheetList.Count;
-                  end; }
-
-                  // 로드한 큐시트 삽입
-                  for I := 0 to LoadCueSheetList.Count - 1 do
-                  begin
-                    FCueSheetLock.Enter;
-                    try
-                      Item := New(PCueSheetItem);
-                      Move(LoadCueSheetList[I]^, Item^, SizeOf(TCueSheetItem));
-                      if (StartIndex >= FCueSheetList.Count - I) then
+                      // 로딩한 날짜의 큐시트가 없는 경우
+                      // 로딩한 날짜 이후의 큐시트 찾음
+                      // 큐시트 및 이벤트 위치 지정
+                      NowChannelCueSheet := GetNextChannelCueSheetByOnairDate(OnAirDateToDate(LoadChannelCueSheet^.OnairDate));
+                      if (NowChannelCueSheet <> nil) then
                       begin
-                        FCueSheetList.Add(Item);
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Find now cuesheet next onair date playlist. ' +
+                                                                                   'File name = %s, ' +
+                                                                                   'Onair date = %s, ' +
+                                                                                   'Onair flag = %s, ' +
+                                                                                   'Onair no = %d, ' +
+                                                                                   'Event count = %d',
+                                                                                   [String(NowChannelCueSheet^.FileName),
+                                                                                    String(NowChannelCueSheet^.OnairDate),
+                                                                                    Char(NowChannelCueSheet^.OnairFlag),
+                                                                                    NowChannelCueSheet^.OnairNo,
+                                                                                    NowChannelCueSheet^.EventCount
+                                                                                    ])));
+
+                        // 큐시트 위치
+                        NowStartIndex := FChannelCueSheetList.IndexOf(NowChannelCueSheet);
+                        StartIndex    := GetChannelCueSheetStartIndex(NowChannelCueSheet);;
                       end
                       else
                       begin
-                        FCueSheetList.Insert(StartIndex + I, Item);
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Not found now cuesheet next onair date playlist.'));
+
+                        NowStartIndex := FChannelCueSheetList.Count;
+                        StartIndex    := FCueSheetList.Count;
                       end;
-                    finally
-                      FCueSheetLock.Leave;
+
+                      NowChannelCueSheet := New(PChannelCueSheet);
+                      Move(LoadChannelCueSheet^, NowChannelCueSheet^, SizeOf(TChannelCueSheet));
+                      StrPLCopy(NowChannelCueSheet^.FileName, WorkFileName, MAX_PATH);
+
+                      if (NowStartIndex = FChannelCueSheetList.Count) then
+                      begin
+                        FChannelCueSheetList.Add(NowChannelCueSheet);
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add channel cuesheet list. Index = %d, Count = %d, File name = %s', [NowStartIndex, FChannelCueSheetList.Count, WorkFileName])));
+                      end
+                      else
+                      begin
+                        FChannelCueSheetList.Insert(NowStartIndex, NowChannelCueSheet);
+                        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Insert channel cuesheet list. Index = %d, Count = %d, File name = %s', [NowStartIndex, FChannelCueSheetList.Count, WorkFileName])));
+                      end;
+
+                      if (ChannelOnAir) then
+                      begin
+                        ServerInputChannelCueSheets(NowChannelCueSheet);
+                      end;
+
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add load channel cuesheet list. ' +
+                                                                                 'File name = %s, ' +
+                                                                                 'Onair date = %s, ' +
+                                                                                 'Onair flag = %s, ' +
+                                                                                 'Onair no = %d, ' +
+                                                                                 'Event count = %d',
+                                                                                 [String(NowChannelCueSheet^.FileName),
+                                                                                  String(NowChannelCueSheet^.OnairDate),
+                                                                                  Char(NowChannelCueSheet^.OnairFlag),
+                                                                                  NowChannelCueSheet^.OnairNo,
+                                                                                  NowChannelCueSheet^.EventCount
+                                                                                  ])));
+
+    //                  ChannelCueSheetListSort(FChannelCueSheetList);
                     end;
-                  end;
 
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add event items. Count = %d', [LoadCueSheetList.Count])));
+    {                // 기준 시각 이벤트 인덱스 구함
+                    StartItem := GetMainItemByStartTime(NowStartIndex, EventTimeToDateTime(BaseStartTime));
+                    if (StartItem <> nil) then
+                    begin
+                      StartIndex := GetCueSheetIndexByItem(StartItem);
+                    end
+                    else
+                    begin
+                      StartIndex := FCueSheetList.Count;
+                    end; }
 
-                FLastDisplayNo := GetBeforeMainCountByIndex(StartIndex) - 1;
+                    // 로드한 큐시트 삽입
+                    for I := 0 to LoadCueSheetList.Count - 1 do
+                    begin
+                      FCueSheetLock.Enter;
+                      try
+                        Item := New(PCueSheetItem);
+                        Move(LoadCueSheetList[I]^, Item^, SizeOf(TCueSheetItem));
+                        if (StartIndex >= FCueSheetList.Count - I) then
+                        begin
+                          FCueSheetList.Add(Item);
+                        end
+                        else
+                        begin
+                          FCueSheetList.Insert(StartIndex + I, Item);
+                        end;
+                      finally
+                        FCueSheetLock.Leave;
+                      end;
+                    end;
 
-                ResetNo(StartIndex, FLastDisplayNo);
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('Add event items. Count = %d', [LoadCueSheetList.Count])));
 
-                  // DoCueSheetCheck에서 자동으로 이벤트를 Input 처리함
-                  // DoCueSheetCheck에서 처리가 잘 안되는듯
-                  Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('OnAirInputEvents check. Start = %d, LastInput = %d, Count = %d', [StartIndex, FLastInputIndex, GV_SettingOption.MaxInputEventCount])));
-                  if (FChannelOnAir) and (StartIndex < FLastInputIndex)  then
-                  begin
-                    OnAirInputEvents(StartIndex, GV_SettingOption.MaxInputEventCount);
-                  end;
+                  FLastDisplayNo := GetBeforeMainCountByIndex(StartIndex) - 1;
 
-                  FInspectThread.Inspect;
+                  ResetNo(StartIndex, FLastDisplayNo);
 
-                  if (ChannelOnAir) then
-                  begin
-                    FMediaCheckThread.MediaCheck;
+                    // DoCueSheetCheck에서 자동으로 이벤트를 Input 처리함
+                    // DoCueSheetCheck에서 처리가 잘 안되는듯
+                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('OnAirInputEvents check. Start = %d, LastInput = %d, Count = %d', [StartIndex, FLastInputIndex, GV_SettingOption.MaxInputEventCount])));
+                    if (FChannelOnAir) {and (StartIndex < FLastInputIndex)} then
+                    begin
+                      OnAirInputEvents(StartIndex, GV_SettingOption.MaxInputEventCount);
+                    end;
 
-                    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop 111. Start = %d', [StartIndex])));
-                    CheckCueSheetLoop(StartIndex);
+                    FInspectThread.Inspect;
 
-                    ServerInputCueSheets(ChannelID, StartIndex);
+                    if (ChannelOnAir) then
+                    begin
+                      FMediaCheckThread.MediaCheck;
+
+                      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('CheckCueSheetLoop 111. Start = %d', [StartIndex])));
+                      CheckCueSheetLoop(StartIndex);
+
+                      ServerInputCueSheets(ChannelID, StartIndex);
+                    end;
+
+                    DisplayPlayListGrid(StartIndex, LoadCueSheetList.Count);
                   end;
                 finally
                   acgPlaylist.MouseActions.DisjunctRowSelect := True;
@@ -14110,8 +14290,6 @@ begin
 //                  else if (CueSheetNext <> nil) then
 //                    StartIndex := GetCueSheetIndexByItem(CueSheetNext);
 
-                DisplayPlayListGrid(StartIndex, LoadCueSheetList.Count);
-
                 if (not ChannelOnAir) then
                 begin
                   CalcuratePlayListTimeLineRange;
@@ -14123,6 +14301,11 @@ begin
 
                 if (ChannelOnAir) then
                   ServerFinishLoadCuesheets(ChannelID, SR.Name);
+              end
+              else
+              begin
+                Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('AutoLoadPlayList, Move cuesheet file failed, File = %s',
+                                                                           [String(LoadChannelCueSheet^.FileName)])));
               end;
             finally
               for I := LoadCueSheetList.Count - 1 downto 0 do
@@ -17157,8 +17340,6 @@ var
   SelectItem: PCueSheetItem;
   SelectNextIndex: Integer;
 
-  LoopFirstIndex, LoopLastIndex, LoopLastNextIndex: Integer;
-
   SaveStartTime: TEventTime;
   DurTime: TEventTime;
 
@@ -17200,28 +17381,23 @@ begin
   // 변경할 시작시각의 길이를 구함
   DurTime := GetDurEventTime(SaveStartTime, StartItem^.StartTime, ChannelFrameRateType);
 
-  // Loop 첫번째/마지막 이벤트 인덱스 구함
-  LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
-  LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLast);
-  LoopLastNextIndex := GetCueSheetIndexByItem(FCueSheetLoopLastNextMainItem);
-
   wmtlPlaylist.BeginUpdateCompositions;
   if (ChannelOnAir) then
     ServerBeginUpdates(ChannelID);
   try
     // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
-    if (InRange(SelectIndex, LoopFirstIndex, LoopLastIndex)) then
+    if (InRange(SelectIndex, FCueSheetLoopFirstIndex, FCueSheetLoopLastIndex)) then
     begin
       // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
       if (SelectIndex < StartIndex) then
       begin
         // 시작 인덱스부터 Loop 마지막 인덱스 skip 처리
-        SetCueSheetItemStatusByIndex(StartIndex, LoopLastNextIndex - 1, esSkipped);
+        SetCueSheetItemStatusByIndex(StartIndex, FCueSheetLoopLastNextMainIndex - 1, esSkipped);
 
         // 온에어 중이면 이벤트 삭제
         if (ChannelOnAir) then
         begin
-          for I := StartIndex to LoopLastNextIndex - 1 do
+          for I := StartIndex to FCueSheetLoopLastNextMainIndex - 1 do
           begin
             Item := GetCueSheetItemByIndex(I);
             if (Item <> nil) then
@@ -17232,12 +17408,12 @@ begin
         end;
 
         // Loop 처음 인덱스부터 선택한 이벤트 전까지 skip 처리
-        SetCueSheetItemStatusByIndex(LoopFirstIndex, SelectIndex - 1, esSkipped);
+        SetCueSheetItemStatusByIndex(FCueSheetLoopFirstIndex, SelectIndex - 1, esSkipped);
 
         // 온에어 중이면 이벤트 삭제
         if (ChannelOnAir) then
         begin
-          for I := LoopFirstIndex to SelectIndex - 1 do
+          for I := FCueSheetLoopFirstIndex to SelectIndex - 1 do
           begin
             Item := GetCueSheetItemByIndex(I);
             if (Item <> nil) then
@@ -17268,7 +17444,7 @@ begin
       end;
 
       // 선택한 이벤트부터 끝까지 온에어되지 않은 이벤트의 시작시각 변경
-      for I := SelectIndex to LoopLastNextIndex - 1 do
+      for I := SelectIndex to FCueSheetLoopLastNextMainIndex - 1 do
       begin
         Item := GetCueSheetItemByIndex(I);
         if (Item <> nil) then
@@ -17281,7 +17457,7 @@ begin
       end;
 
       // Loop의 처음 이벤트부터 선택한 이벤트 이전까지 시작시각 변경
-      for I := LoopFirstIndex to SelectIndex - 1 do
+      for I := FCueSheetLoopFirstIndex to SelectIndex - 1 do
       begin
         Item := GetCueSheetItemByIndex(I);
         if (Item <> nil) then
@@ -17294,7 +17470,7 @@ begin
       end;
 
       // 타임라인 업데이트
-      DisplayPlayListTimeLine(LoopFirstIndex);
+      DisplayPlayListTimeLine(FCueSheetLoopFirstIndex);
 
       // 온에어중이면 선택한 이벤트부터 시작 시각 조정
       if (ChannelOnAir) then
@@ -17309,13 +17485,13 @@ begin
       FCueSheetLoopLastNextMainItem^.StartTime := GetMinusEventTime(FCueSheetLoopLastNextMainItem^.StartTime, DurTime, ChannelFrameRateType);
 
       // 선택한 이벤트 이후의 시작 시각 조정
-      ResetStartTimeByTime(LoopLastNextIndex, SaveStartTime);
+      ResetStartTimeByTime(FCueSheetLoopLastNextMainIndex, SaveStartTime);
     end
     else
     begin
       // 시작 이벤트가 Loop안에 있으면 StartIndex를 Loop 처음 이벤트 인덱스로 설정
-      if (InRange(StartIndex, LoopFirstIndex, LoopLastIndex)) then
-        StartIndex := LoopFirstIndex;
+      if (InRange(StartIndex, FCueSheetLoopFirstIndex, FCueSheetLoopLastIndex)) then
+        StartIndex := FCueSheetLoopFirstIndex;
 
       // 시작 이벤트부터 선택한 이벤트 이전까지 skip 처리
       SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
@@ -17367,322 +17543,6 @@ begin
     if (ChannelOnAir) then
       ServerEndUpdates(ChannelID);
     wmtlPlaylist.EndUpdateCompositions;
-  end;
-
-
-
- exit;
-
-  // 선택한 이벤트가 Loop내에 있는 경우, Loop는 별도로 처리
-  if (InRange(SelectIndex, LoopFirstIndex, LoopLastIndex)) then
-  begin
-    wmtlPlaylist.BeginUpdateCompositions;
-    if (ChannelOnAir) then
-      ServerBeginUpdates(ChannelID);
-    try
-      if (StartItem <> nil) then
-        SelectItem^.StartTime := StartItem^.StartTime;
-
-      // 변경된 시작시각의 길이를 구함
-      DurTime := GetDurEventTime(SaveStartTime, SelectItem^.StartTime, ChannelFrameRateType);
-
-      // 선택한 이벤트 인젝스가 시작 인덱스 보다 작으면
-      if (SelectIndex < StartIndex) then
-      begin
-        // 선탣한 이벤트의 다음 이벤트 인덱스를 구함
-        SelectNextIndex := GetNextMainIndexByIndex(StartIndex);
-
-        // 선택한 이벤트의 다음 이벤트 부터 Loop의 마지막 이벤트까지 Skip 처리
-        if (SelectNextIndex <= LoopLastIndex) then
-        begin
-          SetCueSheetItemStatusByIndex(SelectNextIndex, LoopLastNextIndex - 1, esSkipped);
-
-          // 온에어 중이면 이벤트 삭제
-          if (ChannelOnAir) then
-          begin
-            for I := SelectNextIndex to LoopLastNextIndex - 1 do
-            begin
-              Item := GetCueSheetItemByIndex(I);
-              DeleteEvent(Item);
-            end;
-          end;
-        end;
-
-        SetCueSheetItemStatusByIndex(LoopFirstIndex, SelectIndex - 1, esSkipped);
-
-        // 온에어 중이면 이벤트 삭제
-        if (ChannelOnAir) then
-        begin
-          for I := LoopFirstIndex to SelectIndex - 1 do
-          begin
-            Item := GetCueSheetItemByIndex(I);
-            DeleteEvent(Item);
-          end;
-        end;
-      end;
-
-      // 시작 인덱스에서 선택한 이벤트 전까지 Skip 처리
-      if (SelectIndex > StartIndex) then
-      begin
-        SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
-
-        // 온에어 중이면 이벤트 삭제
-        if (ChannelOnAir) then
-        begin
-          for I := StartIndex to SelectIndex - 1 do
-          begin
-            Item := GetCueSheetItemByIndex(I);
-            DeleteEvent(Item);
-          end;
-        end;
-      end;
-
-      // Loop 마지막 인텍스가 선택한 인덱스보다 크면 Loop 마지막 인덱스를 선택한 인덱스 이전으로 설정
-      if (LoopLastIndex >= SelectIndex) then LoopLastIndex := SelectIndex - 1;
-
-      // Loop의 시작부터 끝까지 온에어되지 않은 이벤트의 시작시각 변경
-      for I := LoopFirstIndex to LoopLastIndex do
-      begin
-        Item := GetCueSheetItemByIndex(I);
-        if (Item <> nil) then
-        begin
-          if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
-          begin
-            if (CompareEventTime(SaveStartTime, SelectItem^.StartTime, ChannelFrameRateType) <= 0) then
-              Item^.StartTime := GetPlusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType)
-            else
-              Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
-          end;
-        end;
-      end;
-
-      // 타임라인 업데이트
-      DisplayPlayListTimeLine(LoopFirstIndex);
-
-      // 선택한 이벤트 이후의 시작 시각 조정
-      ResetStartTimeByTime(SelectIndex, SaveStartTime);
-
-      // 온에어중이면 선택한 이벤트부터 시작 시각 조정
-      if (FChannelOnAir) then
-      begin
-        OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, SelectItem^.StartTime);
-      end;
-
-      // Loop List의 시작시각을 조정
-      ResetStartTimeLoopNextList(SaveStartTime, SelectItem^.StartTime);
-
-      if (ChannelOnAir) then
-      begin
-        ServerDeleteCueSheets(ChannelID, StartIndex, SelectIndex - 1);
-        ServerInputCueSheets(ChannelID, SelectIndex);
-      end;
-
-      if (not ChannelOnAir) then
-        CueSheetNext := SelectItem;
-    finally
-      if (ChannelOnAir) then
-        ServerEndUpdates(ChannelID);
-      wmtlPlaylist.EndUpdateCompositions;
-    end;
-  end;
-
-
-  exit;
-
-  with acgPlaylist do
-  begin
-    SelectIndex := RealRow - CNT_CUESHEET_HEADER;
-    CItem := GetParentCueSheetItemByIndex(SelectIndex);
-    SelectIndex := GetCueSheetIndexByItem(CItem);
-    if (CItem <> nil) and
-       (CItem^.EventMode = EM_MAIN) and
-       (CItem^.EventStatus.State <= esCued) then
-    begin
-      StartIndex := GetStartOnAirMainIndex;
-      if (StartIndex >= 0) then
-      begin
-        wmtlPlaylist.BeginUpdateCompositions;
-        if (ChannelOnAir) then
-          ServerBeginUpdates(ChannelID);
-        try
-  {        for I := StartIndex to SelectIndex - 1 do
-          begin
-            CItem := GetCueSheetItemByIndex(I);
-            if (CItem <> nil) and (CItem^.EventStatus.State <= esPreroll) then
-              CItem^.EventStatus.State := esSkipped;
-          end;  }
-
-  {        if (FCueSheetCurr <> nil) then
-            SkipIndex := GetCueSheetIndexByItem(FCueSheetCurr)
-          else if (FCueSheetNext <> nil) then
-            SkipIndex := GetCueSheetIndexByItem(FCueSheetNext)
-          else
-            SkipIndex := StartIndex; }
-
-{          if (CueSheetNext <> nil) then
-            SItem := CueSheetNext
-          else if (CueSheetCurr <> nil) then
-            SItem := GetNextMainItemByItem(CueSheetCurr)
-          else }
-            SITem := GetCueSheetItemByIndex(StartIndex);
-
-  //        SetCueSheetItemStatusByIndex(GetCueSheetIndexByItem(FCueSheetNext), StartIndex - 1, esSkipped);
-          SetCueSheetItemStatusByIndex(StartIndex, SelectIndex - 1, esSkipped);
-
-{          if (CueSheetLoopFirst <> nil) and (CueSheetLoopLast <> nil) then
-          begin
-            LoopFirstIndex := GetCueSheetIndexByItem(CueSheetLoopFirst);
-            LoopLastIndex  := GetCueSheetIndexByItem(CueSheetLoopLast);
-
-            if (LoopFirstIndex < StartIndex) then
-            begin
-              for I := LoopFirstIndex to StartIndex - 1 do
-              begin
-                CItem := GetCueSheetItemByIndex(I);
-                if (CItem <> nil) and  (CItem <> CueSheetCurr) and
-                   (CItem^.EventMode = EM_MAIN) and
-                   (CItem^.EventStatus.State <> esSkipped) {and (CItem^.EventStatus.State <> esError) }//and
-{                   (CItem^.EventStatus.State <= esCued) then
-                begin
-                  Result := I;
-                  break;
-                end;
-              end;
-            end;
-          end;  }
-
-//          SItem := GetCueSheetItemByIndex(StartIndex);
-
-          SaveStartTime := CItem^.StartTime;
-          if (SItem <> nil) then
-            CItem^.StartTime := SItem^.StartTime;
-
-          if (FCueSheetLoopFirst <> nil) and (FCueSheetLoopLast <> nil) then
-          begin
-            DurTime := GetDurEventTime(SaveStartTime, CItem^.StartTime, ChannelFrameRateType);
-
-            LoopFirstIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
-            LoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLast);
-
-            if (LoopLastIndex >= SelectIndex) then LoopLastIndex := SelectIndex - 1;
-
-            for I := LoopFirstIndex to LoopLastIndex do
-            begin
-              Item := GetCueSheetItemByIndex(I);
-              if (Item <> nil) then
-              begin
-                if (Item^.EventMode = EM_MAIN) and (Item^.EventStatus.State < esOnAir) then
-                begin
-                  if (CompareEventTime(SaveStartTime, CItem^.StartTime, ChannelFrameRateType) <= 0) then
-                    Item^.StartTime := GetPlusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType)
-                  else
-                    Item^.StartTime := GetMinusEventTime(Item^.StartTime, DurTime, ChannelFrameRateType);
-
-                  DisplayPlayListTimeLine(I);
-                end;
-              end;
-            end;
-          end;
-
-          ResetStartTimeByTime(SelectIndex, SaveStartTime);
-
-
-
-{          LoopCheckIndex := EndIndex;
-          if  (FCueSheetLoopFirst <> nil) and (FCueSheetLoopLast <> nil) then
-          begin
-            LoopFirstIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
-            LoopLastIndex  := GetCueSheetIndexByItem(FCueSheetLoopLast);
-          end;
-
-            if (InRange(EndIndex, LoopFirstIndex, LoopLastIndex)) then
-            begin
-  // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
-  if (FCueSheetLoopLast <> nil) then
-  begin
-  ResetStartTimeLoopNextList(SaveStartTime, CItem^.StartTime);
-
-//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
-//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
-
-//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
-
-    // 마지막 Loop의 다음 Main 인덱스를 구함
-//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
-  end;
-            end;
-//          end;
-//          CheckCueSheetLoop(LoopCheckIndex);
- }
-
-          // If onair then delet & input event
-          if (FChannelOnAir) then
-          begin
-
-//            DeleteLoopCueSheet;
-
-//            OnAirDeleteEvents(StartIndex, EndIndex - 1);
-//            OnAirCDeleteEvents(StartIndex, EndIndex - 1);
-
-            for I := StartIndex to SelectIndex - 1 do
-            begin
-              Item := GetCueSheetItemByIndex(I);
-              if (Item <> nil) then
-              begin
-                if (CueSheetCurr <> nil) and (CueSheetCurr^.GroupNo = Item^.GroupNo) then
-                  continue;
-
-                DeleteEvent(Item);
-              end;
-            end;
-
-//            OnAirInputEvents(EndIndex, GV_SettingOption.MaxInputEventCount);
-            OnAirChangeStartTimeEvent(SelectIndex, SaveStartTime, CItem^.StartTime);
-          end;
-
-  //        FLastDisplayNo := GetBeforeMainCountByIndex(StartIndex);
-  //        DisplayPlayListGrid(StartIndex, 0);
-//          DisplayPlayListTimeLine(StartIndex);
-
-//CheckCueSheetLoop(StartIndex);
-  // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
-  if (FCueSheetLoopLast <> nil) then
-  begin
-  ResetStartTimeLoopNextList(SaveStartTime, CItem^.StartTime);
-
-//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
-//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
-
-//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
-
-    // 마지막 Loop의 다음 Main 인덱스를 구함
-//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
-  end;
-
-//  InputLoopEvent(CueSheetCurr);
-
-          if (ChannelOnAir) then
-          begin
-            ServerDeleteCueSheets(ChannelID, StartIndex, SelectIndex - 1);
-            ServerInputCueSheets(ChannelID, SelectIndex);
-          end;
-
-          if (not ChannelOnAir) then
-            CueSheetNext := CItem;
-        finally
-          if (ChannelOnAir) then
-            ServerEndUpdates(ChannelID);
-          wmtlPlaylist.EndUpdateCompositions;
-        end;
-      end;
-//      CueSheetNext := CItem;
-
-
-//      acgPlaylist.Repaint;
-
-
-//      DisplayPlayListTimeLine(EndIndex);
-    end;
   end;
 end;
 
@@ -17864,9 +17724,9 @@ exit;  }
               ResetStartTimeByTime(NextIndex, SaveStartTime, SaveDurationTC);
 
               // Loop 이벤트내에 시작이면, 처음 Loop 이벤트 부터 현재 이벤트 이전 까지 시작시각 조정
-              if (FCueSheetLoopFirst <> nil) then
+              if (FCueSheetLoopFirstItem <> nil) then
               begin
-                CurrIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst);
+                CurrIndex := FCueSheetLoopFirstIndex;
                 if (NextIndex > CurrIndex) then
                 begin
                   DurEventTime := GetDurEventTime(SaveStartTime, NextItem^.StartTime, ChannelFrameRateType);
@@ -17936,17 +17796,17 @@ exit;  }
 
 
   // Loop 이벤트내에 시작이면, LoopNextList의 이벤트 시작시각 조정
-  if (FCueSheetLoopLast <> nil) then
+  if (FCueSheetLoopLastItem <> nil) then
   begin
   ResetStartTimeLoopNextList(SaveStartTime, NextItem^.StartTime);
 
-//    FCueSheetLoopLastStartTime  := FCueSheetLoopLast^.StartTime;
-//    FCueSheetLoopLastDurationTC := FCueSheetLoopLast^.DurationTC;
+//    FCueSheetLoopLastItemStartTime  := FCueSheetLoopLastItem^.StartTime;
+//    FCueSheetLoopLastItemDurationTC := FCueSheetLoopLastItem^.DurationTC;
 
-//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastDurationTC, ChannelIsDropFrame)])));
+//    Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('StartNextEventImmediately, LoopLastStartTime = %s, LoopLastDurationTC = %s', [EventTimeToString(FCueSheetLoopLastItemStartTime, ChannelFrameRateType), TimecodeToString(FCueSheetLoopLastItemDurationTC, ChannelIsDropFrame)])));
 
     // 마지막 Loop의 다음 Main 인덱스를 구함
-//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLast);
+//    FCueSheetLoopLastNextMainItem := GetNextMainItemByItem(FCueSheetLoopLastItem);
   end;
 
 {    if (CueSheetCurr^.StartMode = SM_LOOP) then
@@ -18092,7 +17952,7 @@ begin
     if (Item^.EventStatus.State = esSkipped) then exit;
 
     // 1개 Loop로 동작시 Loop 다음의 이벤트가 큐되는것을 없데이트 하지 않음
-//    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirst = FCueSheetLoopLast) and
+//    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirstItem = FCueSheetLoopLastItem) and
 //       (AStatus.State > esLoaded) then exit;
 
     FCueSheetLock.Enter;
@@ -18134,7 +17994,7 @@ begin
     if (Item^.EventStatus.State = esSkipped) then exit;
 
 {    // 1개 Loop로 동작시 Loop 다음의 이벤트가 큐되는것을 없데이트 하지 않음
-    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirst = FCueSheetLoopLast) and
+    if (Item = FCueSheetLoopLastNextMainItem) and (FCueSheetLoopFirstItem = FCueSheetLoopLastItem) and
        (AStatus.State > esLoaded) then exit; }
 
     // Loop 동작시 마지막 루프 이후의 이벤트는 업데이트를 하지 않음
@@ -18347,22 +18207,27 @@ begin
   begin
     BeginUpdate;
     try
-      if (FixedRows > 0) and (IsNode(0)) then
-        FIsContrctAll := GetNodeState(0);
+      try
+        if (FixedRows > 0) and (IsNode(0)) then
+          FIsContrctAll := GetNodeState(0);
 
-      MouseActions.DisjunctRowSelect := False;
-      ClearRowSelect;
-      SplitAllCells;
-      ExpandAll;
-      RemoveAllNodes;
-//      RowCount := CNT_CUESHEET_HEADER + CNT_CUESHEET_FOOTER;
-//      RemoveRowsEx(CNT_CUESHEET_HEADER, RowCount - CNT_CUESHEET_HEADER - CNT_CUESHEET_FOOTER);
-      RemoveRows(CNT_CUESHEET_HEADER, RowCount - CNT_CUESHEET_HEADER - CNT_CUESHEET_FOOTER);
-      MouseActions.DisjunctRowSelect := True;
-      SelectRows(CNT_CUESHEET_HEADER, 1);
-      Row := CNT_CUESHEET_HEADER;
-      TopRow := FixedRows;
-      LeftCol := FixedCols;
+        MouseActions.DisjunctRowSelect := False;
+        ClearRowSelect;
+        SplitAllCells;
+        ExpandAll;
+        RemoveAllNodes;
+  //      RowCount := CNT_CUESHEET_HEADER + CNT_CUESHEET_FOOTER;
+  //      RemoveRowsEx(CNT_CUESHEET_HEADER, RowCount - CNT_CUESHEET_HEADER - CNT_CUESHEET_FOOTER);
+        RemoveRows(CNT_CUESHEET_HEADER, RowCount - CNT_CUESHEET_HEADER - CNT_CUESHEET_FOOTER);
+        MouseActions.DisjunctRowSelect := True;
+        SelectRows(CNT_CUESHEET_HEADER, 1);
+        Row := CNT_CUESHEET_HEADER;
+        TopRow := FixedRows;
+        LeftCol := FixedCols;
+      except
+        on E: Exception do
+          Assert(False, GetChannelLogStr(lsError, ChannelID, Format('ClearPlayListGrid procedure exception error, %s - %s', [E.ClassName, E.Message])));
+      end;
     finally
       acgPlaylist.EndUpdate;
     end;
@@ -20161,7 +20026,9 @@ begin
     begin
 //      SECSetCueSheetNext(SEC^.HostIP, AEventID);
       frmSEC.SECEventThread.SetCueSheetNext(SEC, AEventID);
-      Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNexts, SEC=%d, ID=%s', [SEC^.ID, EventIDToString(AEventID)])));
+
+      if (GV_SettingGeneral.LogDebug > 0) then
+        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('SECSetCueSheetNexts, SEC=%d, ID=%s', [SEC^.ID, EventIDToString(AEventID)])));
     end;
   end;
 end;
@@ -20461,7 +20328,8 @@ begin
   begin
     if (not FChannelOnAir) then exit;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Start DoCueSheetCheck procedure.'));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Start DoCueSheetCheck procedure.'));
 
     // 현재 시스템 시각을 구함
     CurrentTime := Now;
@@ -20481,8 +20349,8 @@ begin
     if (CueSheetCurr <> nil) then
     begin
       // 현재 큐시트가 Loop의 마지막 이벤트이면 시작 인덱스는 Loop의 첫번째 이벤트의 인덱스로 살장
-      if (CueSheetCurr = FCueSheetLoopLast) then
-        CurrIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst)
+      if (CueSheetCurr = FCueSheetLoopLastItem) then
+        CurrIndex := GetCueSheetIndexByItem(FCueSheetLoopFirstItem)
       else
         CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
     end
@@ -20498,18 +20366,22 @@ begin
     // 저장된 현재 이벤트와 현재 시각 기준의 현재 이벤트가 다르면 현재 이벤트 업데이트
     if (SaveCurr <> CurrItem) then
     begin
-      // 현재 시각 기준의 현재 이벤트가 Loop 이벤트일 경우
-      if (CurrItem <> nil) and (CurrItem^.StartMode = SM_LOOP) then
+      // 현재 시각 기준의 이전 이벤트가 Loop 이벤트일 경우
+      if (FCueSheetIsLooping) and (SaveCurr <> nil) and (SaveCurr^.StartMode = SM_LOOP) then
       begin
         // 현재 이벤트의 인덱스를 구하고 Loop Update 이벤트 처리
         CurrIndex := GetCueSheetIndexByItem(CueSheetCurr);
-        SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_UPDATE_EVENT, CurrIndex, LParam(CueSheetCurr));
 
-        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 1 CurrIndex = %d', [CurrIndex])));
+        if (InRange(CurrIndex, FCueSheetLoopFirstIndex, FCueSheetLoopLastIndex)) then
+        begin
+          SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_UPDATE_EVENT, CurrIndex, LParam(CueSheetCurr));
+
+          Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 1 CurrIndex = %d', [CurrIndex])));
+        end;
       end;
 
       // 1개의 Loop 이벤트일때 현재 이벤트가 Loop 이벤트와 같으면 저장된 이벤트를 현재 이벤트로 설정
-      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopFirst) and (CueSheetCurr = FCueSheetLoopLast) then
+      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopFirstItem) and (CueSheetCurr = FCueSheetLoopLastItem) then
       begin
         CurrItem := SaveCurr;
 
@@ -20525,9 +20397,16 @@ begin
       begin
         // 현재 이벤트의 인덱스를 구하고 Loop Input 이벤트 처리
         CurrIndex := GetCueSheetIndexByItem(CurrItem);
-        SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_INPUT_EVENT, CurrIndex, LParam(CurrItem));
 
-        Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 2 CurrIndex = %d', [CurrIndex])));
+        if (InRange(CurrIndex, FCueSheetLoopFirstIndex, FCueSheetLoopLastIndex)) then
+        begin
+          if (CurrIndex = FCueSheetLoopFirstIndex) then
+            FCueSheetIsLooping := True;
+
+          SendMessage(FChannelForm.Handle, WM_EXECUTE_LOOP_INPUT_EVENT, CurrIndex, LParam(CurrItem));
+
+          Assert(False, GetChannelLogStr(lsNormal, ChannelID, Format('TChannelCueSheetCheckThread.DoCueSheetCheck 2 CurrIndex = %d', [CurrIndex])));
+        end;
       end;
     end;
 
@@ -20548,8 +20427,8 @@ begin
     if (CueSheetNext <> nil) then
     begin
       // 현재 큐시트가 Loop의 마지막 이벤트이면 시작 인덱스는 Loop의 첫번째 이벤트의 인덱스로 살장
-      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopLast) then
-        NextIndex := GetCueSheetIndexByItem(FCueSheetLoopFirst)
+      if (CueSheetCurr <> nil) and (CueSheetCurr = FCueSheetLoopLastItem) then
+        NextIndex := GetCueSheetIndexByItem(FCueSheetLoopFirstItem)
       else
         NextIndex := GetCueSheetIndexByItem(CueSheetNext);
     end
@@ -20585,11 +20464,12 @@ begin
       else
       begin
         // 다음 이벤트가 없다는 경고 화면 필요, Post Message로 처리
-          Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'TChannelCueSheetCheckThread.DoCueSheetCheck OnAirInputEvents'));
+//          Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'TChannelCueSheetCheckThread.DoCueSheetCheck OnAirInputEvents'));
       end;
     end;
 
-    Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Finish DoCueSheetCheck procedure.'));
+    if (GV_SettingGeneral.LogDebug > 0) then
+      Assert(False, GetChannelLogStr(lsNormal, ChannelID, 'Finish DoCueSheetCheck procedure.'));
   end;
 end;
 
@@ -20743,7 +20623,8 @@ procedure TChannelAutoLoadPlayListThread.DoAutoLoad;
 begin
   if (not HasMainControl) then exit;
 
-  Assert(False, GetChannelLogStr(lsNormal, FChannelForm.ChannelID, 'TChannelAutoLoadPlayListThread DoAutoLoad procedure.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, FChannelForm.ChannelID, 'TChannelAutoLoadPlayListThread DoAutoLoad procedure.'));
 
 //  ResetEvent(FAutoLoadEvent);
 
@@ -20819,7 +20700,8 @@ procedure TChannelAutoEjectPlayListThread.DoAutoEject;
 begin
   if (not HasMainControl) then exit;
 
-  Assert(False, GetChannelLogStr(lsNormal, FChannelForm.ChannelID, 'TChannelAutoEjectPlayListThread DoAutoEject procedure.'));
+  if (GV_SettingGeneral.LogDebug > 0) then
+    Assert(False, GetChannelLogStr(lsNormal, FChannelForm.ChannelID, 'TChannelAutoEjectPlayListThread DoAutoEject procedure.'));
 
 //  ResetEvent(FAutoEjectEvent);
 
